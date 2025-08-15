@@ -19,6 +19,12 @@
     .eta-table th, .eta-table td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; }
     .eta-table th { font-weight:700; }
     .eta-note { margin-top:8px; }
+    .mode-pill {
+      display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600;
+      background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; margin-left:8px;
+    }
+    .mode-pill.on { background:#e6f7ee; color:#0f5132; border-color:#b7ebc6; }   /* Business Hours */
+    .mode-pill.off{ background:#fff2cc; color:#7a5900; border-color:#ffe58f; }   /* After Hours   */
   </style>
 </head>
 <body>
@@ -95,10 +101,12 @@
       <div class="tile"><div class="body"><strong>Coverage</strong><div>Cape Breton + most of Nova Scotia</div></div></div>
     </div>
 
-    <!-- Typical response times (auto adds +15 mins in hours, +45 after hours) -->
+    <!-- Typical response times -->
     <div class="eta-card">
-      <h2 style="margin-bottom:8px">Typical response times</h2>
-      <p class="muted small" id="etaMode">Calculating for your current time…</p>
+      <h2 style="margin-bottom:8px">
+        Typical response times
+        <span id="etaModePill" class="mode-pill">Checking…</span>
+      </h2>
       <div class="responsive-table">
         <table class="eta-table" id="etaTable" aria-live="polite">
           <thead>
@@ -196,6 +204,7 @@
     if(h===16 && m>30) return false;
     return true;
   }
+  function ceil15(n){ return Math.ceil(n/15)*15; }
 
   // Smart CTA
   const cta = document.getElementById('smartCta');
@@ -213,44 +222,48 @@
     }
   }
 
-  // Typical response times
+  // Base drive times (conservative), minutes from shop
+  // Tweaked so Sydney is <= 60 min during business hours after rounding to 15 min
   const points = [
-    { place:'Sydney',           base:20 },
-    { place:'North Sydney',     base:25 },
-    { place:'Sydney Mines',     base:28 },
-    { place:'Glace Bay',        base:40 },
-    { place:'New Waterford',    base:38 },
-    { place:'Eskasoni',         base:45 },
-    { place:'Baddeck',          base:55 },
-    { place:'Port Hawkesbury',  base:80 },
-    { place:'Antigonish',       base:105 }
+    { place:'Sydney',           base:40 },  // +15 => 55 -> ceil15 => 60 (business hours)
+    { place:'North Sydney',     base:45 },
+    { place:'Sydney Mines',     base:50 },
+    { place:'Glace Bay',        base:55 },
+    { place:'New Waterford',    base:55 },
+    { place:'Eskasoni',         base:60 },
+    { place:'Baddeck',          base:75 },
+    { place:'Port Hawkesbury',  base:95 },
+    { place:'Antigonish',       base:120 }
   ];
-  function round5(n){ return Math.round(n/5)*5; }
 
   const tbody = document.querySelector('#etaTable tbody');
-  const mode  = document.getElementById('etaMode');
+  const pill  = document.getElementById('etaModePill');
 
   function renderETAs(){
-    if(!tbody||!mode) return;
+    if(!tbody||!pill) return;
     const now = halifaxNow();
     const business = inBizHours(now);
-    mode.textContent = business
-      ? 'During business hours (Mon–Fri 8:00–4:30). We add ~15 minutes for dispatch.'
-      : 'After hours (evenings/weekends). We add ~45 minutes for dispatch.';
+
+    // Dispatch overhead rules:
+    //  - Business hours: +15 min
+    //  - After hours: +30 min
+    const overhead = business ? 15 : 30;
+
+    pill.textContent = business ? 'Now: Business Hours' : 'Now: After Hours';
+    pill.className = 'mode-pill ' + (business ? 'on' : 'off');
+
     tbody.innerHTML='';
     points.forEach(p=>{
-      const eta = round5(p.base + (business ? 15 : 45));
+      const eta = ceil15(p.base + overhead);
       const tr = document.createElement('tr');
       tr.innerHTML = `<td>${p.place}</td><td>~${p.base} min</td><td><strong>~${eta} min</strong></td>`;
       tbody.appendChild(tr);
     });
   }
 
-  function tick(){
-    updateCTA(); renderETAs();
-  }
+  function tick(){ updateCTA(); renderETAs(); }
   tick();
-  setInterval(tick, 60000); // refresh every minute
+  setInterval(tick, 60000); // refresh every minute (timezone-safe)
 })();
 </script>
 </body>
