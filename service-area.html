@@ -60,8 +60,10 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA stays as is -->
-    <div class="header-cta sm-hide"><a class="btn" href="tel:9025394574">Call 902-539-4574</a></div>
+    <!-- Smart CTA: flips by hours -->
+    <div class="header-cta sm-hide">
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 902-539-4574">Call 902-539-4574</a>
+    </div>
   </div>
 </header>
 
@@ -70,6 +72,7 @@
     <h1>Service Area</h1>
     <p>We cover Cape Breton and most of Nova Scotia. Our shop is the starting point for dispatch and routing.</p>
 
+    <!-- Google Map -->
     <div class="kv" style="height:480px">
       <iframe
         title="Map - Atlantic Truck & Equipment Repair"
@@ -78,7 +81,18 @@
       </iframe>
     </div>
 
-    <p><a class="btn-light" target="_blank" rel="noopener" href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9">Open full map</a></p>
+    <!-- Centered service-area image -->
+    <figure style="margin:18px auto 8px; max-width:840px; text-align:center">
+      <img src="/assets/img/service-area.png"
+           alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point"
+           style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
+      <figcaption class="small muted" style="margin-top:6px">
+        Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
+      </figcaption>
+    </figure>
+
+    <p><a class="btn-light" target="_blank" rel="noopener"
+          href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9">Open full map</a></p>
   </div>
 </section>
 
@@ -136,5 +150,40 @@
   <a target="_blank" rel="noopener" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
   <a href="/requests.html">Requests</a>
 </div>
+
+<!-- Smart CTA fallback (in case site.js isn't loaded yet) -->
+<script>
+(function(){
+  const cta = document.getElementById('smartCta');
+  if(!cta) return;
+
+  function halifaxNow(){
+    return new Date(new Date().toLocaleString('en-CA', { timeZone: 'America/Halifax' }));
+  }
+  function inBizHours(d){
+    const day = d.getDay(); // 0 Sun .. 6 Sat
+    if(day === 0 || day === 6) return false;
+    const h = d.getHours(), m = d.getMinutes();
+    if(h < 8) return false;
+    if(h > 16) return false;
+    if(h === 16 && m > 30) return false;
+    return true;
+  }
+  function update(){
+    const now = halifaxNow();
+    if(inBizHours(now)){
+      cta.textContent = 'Call 902-539-4574';
+      cta.href = 'tel:9025394574';
+      cta.setAttribute('aria-label','Call 902-539-4574');
+    } else {
+      cta.textContent = 'After-Hours: 902-565-1730';
+      cta.href = 'tel:9025651730';
+      cta.setAttribute('aria-label','Call After-Hours 902-565-1730');
+    }
+  }
+  update();
+  setInterval(update, 60000); // refresh every minute
+})();
+</script>
 </body>
 </html>
