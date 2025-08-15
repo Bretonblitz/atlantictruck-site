@@ -1,9 +1,14 @@
-
 function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(_){return ''; } }
 
 async function api(path){
-  try{ const res = await fetch(path); if(!res.ok) throw new Error(res.status); return await res.json(); }
-  catch(e){ console.error('API fail', e); return {data:[]}; }
+  try{
+    const res = await fetch(path);
+    if(!res.ok) throw new Error(res.status);
+    return await res.json();
+  } catch(e){
+    console.error('API fail', e);
+    return {data:[]};
+  }
 }
 
 async function renderHomepageSidebar(){
@@ -12,35 +17,59 @@ async function renderHomepageSidebar(){
   wrap.innerHTML = '<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
   const json = await api('/.netlify/functions/get-facebook-posts?limit=3');
   wrap.innerHTML='';
-  if(!json.data||!json.data.length){ wrap.innerHTML='<small class="muted">No recent updates.</small>'; return; }
+  if(!json.data || !json.data.length){
+    wrap.innerHTML='<small class="muted">No recent updates.</small>';
+    return;
+  }
   json.data.forEach(p=>{
-    const a=document.createElement('a'); a.className='tile'; a.href=p.permalink_url||'#'; a.target='_blank'; a.rel='noopener';
-    a.innerHTML = (p.full_picture?`<img src="${p.full_picture}" alt="Post image">`:'')+`<div class="body"><div class="meta">${fmtDate(p.created_time)}</div><div>${(p.message||'').slice(0,140)}...</div></div>`;
+    const a=document.createElement('a');
+    a.className='tile';
+    a.href=p.permalink_url||'#';
+    a.target='_blank';
+    a.rel='noopener';
+    a.innerHTML =
+      (p.full_picture?`<img src="${p.full_picture}" alt="Post image">`:'') +
+      `<div class="body"><div class="meta">${fmtDate(p.created_time)}</div><div>${(p.message||'').slice(0,140)}...</div></div>`;
     wrap.appendChild(a);
   });
 }
 
 async function renderNews(){
-  const grid=document.getElementById('newsGrid'); if(!grid) return;
+  // supports either #newsGrid (new) or #newsFeed (old)
+  const grid = document.getElementById('newsGrid') || document.getElementById('newsFeed');
+  if(!grid) return;
   grid.innerHTML='<div class="skeleton"></div>'.repeat(6);
-  const json=await api('/.netlify/functions/get-facebook-posts?limit=12'); grid.innerHTML='';
-  if(!json.data||!json.data.length){ grid.innerHTML='<p class="muted">No recent posts.</p>'; return; }
+
+  const json = await api('/.netlify/functions/get-facebook-posts?limit=12');
+  grid.innerHTML='';
+  if(!json.data || !json.data.length){
+    grid.innerHTML='<p class="muted">No recent posts.</p>';
+    return;
+  }
   json.data.forEach(p=>{
-    const el=document.createElement('article'); el.className='news-card';
-    const img=p.full_picture?`<img src="${p.full_picture}" alt="Post image">`:'';
+    const el=document.createElement('article');
+    el.className='news-card';
+    const img=p.full_picture?`<img src="${p.full_picture}" alt="Post image" loading="lazy">`:'';
     const msg=(p.message||'').replace(/\n/g,'<br>');
-    el.innerHTML = `${img}<div class="body"><div class="meta">${fmtDate(p.created_time)}</div><div>${msg}</div></div>`;
+    el.innerHTML =
+      `${img}<div class="body"><div class="meta">${fmtDate(p.created_time)}</div><div>${msg}</div>
+       <p><a class="btn" target="_blank" rel="noopener" href="${p.permalink_url}">View on Facebook</a></p></div>`;
     grid.appendChild(el);
   });
 }
 
 async function renderGallery(){
-  const grid = document.getElementById('galleryGrid'); if(!grid) return;
+  const grid = document.getElementById('galleryGrid');
+  if(!grid) return;
   grid.innerHTML = '<div class="skeleton"></div>'.repeat(9);
 
-  const res = await fetch('/.netlify/functions/get-facebook-photos?limit=30');
   let json = { data: [] };
-  try { json = await res.json(); } catch(_){}
+  try {
+    const res = await fetch('/.netlify/functions/get-facebook-photos?limit=30');
+    json = await res.json();
+  } catch(e) {
+    console.error('gallery fetch error', e);
+  }
 
   grid.innerHTML = '';
   if (!json.data || !json.data.length) {
@@ -71,6 +100,9 @@ async function renderGallery(){
   });
 }
 
-}
-
-document.addEventListener('DOMContentLoaded', ()=>{ renderHomepageSidebar(); renderNews(); renderGallery(); });
+// kick everything once the DOM is ready
+document.addEventListener('DOMContentLoaded', ()=>{
+  try{ renderHomepageSidebar(); }catch(e){ console.error(e); }
+  try{ renderNews(); }catch(e){ console.error(e); }
+  try{ renderGallery(); }catch(e){ console.error(e); }
+});
