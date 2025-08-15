@@ -12,19 +12,17 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/site.js"></script>
+  <script defer src="/assets/js/site.js?v=2"></script>
   <style>
     .eta-card { padding:14px; border:1px solid #eee; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.06); background:#fff; }
     .eta-table { width:100%; border-collapse:collapse; }
     .eta-table th, .eta-table td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; }
     .eta-table th { font-weight:700; }
     .eta-note { margin-top:8px; }
-    .mode-pill {
-      display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600;
-      background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; margin-left:8px;
-    }
-    .mode-pill.on { background:#e6f7ee; color:#0f5132; border-color:#b7ebc6; }   /* Business Hours */
-    .mode-pill.off{ background:#fff2cc; color:#7a5900; border-color:#ffe58f; }   /* After Hours   */
+    .mode-pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; margin-left:8px; }
+    .mode-pill.on  { background:#e6f7ee; color:#0f5132; border-color:#b7ebc6; }  /* Business Hours */
+    .mode-pill.off { background:#fff2cc; color:#7a5900; border-color:#ffe58f; }  /* After Hours   */
+    .small.muted.inline { display:inline-block; margin-left:8px; color:#6b7280; font-size:12px; }
   </style>
 </head>
 <body>
@@ -72,7 +70,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA: flips by hours -->
+    <!-- Smart CTA -->
     <div class="header-cta sm-hide">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 902-539-4574">Call 902-539-4574</a>
     </div>
@@ -86,9 +84,7 @@
 
     <!-- Image first -->
     <figure style="margin:18px auto 10px; max-width:900px; text-align:center">
-      <img src="/assets/img/service-area.png"
-           alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point"
-           style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
+      <img src="/assets/img/service-area.png" alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point" style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
       <figcaption class="small muted" style="margin-top:6px">
         Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
       </figcaption>
@@ -106,6 +102,7 @@
       <h2 style="margin-bottom:8px">
         Typical response times
         <span id="etaModePill" class="mode-pill">Checking…</span>
+        <span id="etaClock" class="small muted inline" aria-live="polite"></span>
       </h2>
       <div class="responsive-table">
         <table class="eta-table" id="etaTable" aria-live="polite">
@@ -120,17 +117,14 @@
       </p>
     </div>
 
-    <!-- Map second; zoom widened to show Sydney, NS -->
+    <!-- Map (zoomed to show Sydney) -->
     <div class="kv" style="height:480px; margin-top:18px">
-      <iframe
-        title="Map - Atlantic Truck & Equipment Repair"
-        src="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9&output=embed"
-        width="100%" height="480" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
+      <iframe title="Map - Atlantic Truck & Equipment Repair"
+              src="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9&output=embed"
+              width="100%" height="480" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
       </iframe>
     </div>
-
-    <p><a class="btn-light" target="_blank" rel="noopener"
-          href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9">Open full map</a></p>
+    <p><a class="btn-light" target="_blank" rel="noopener" href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9">Open full map</a></p>
   </div>
 </section>
 
@@ -159,11 +153,11 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
+        <li>Main: <a href="tel:902-539-4574">902-539-4574</a></li>
         <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
         <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
+        <li>After Hours: <a href="tel:902-565-1730">902-565-1730</a> / <a href="tel:902-565-7211">902-565-7211</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -189,43 +183,55 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Smart CTA + dynamic ETAs (Halifax time) -->
+<!-- Smart CTA + dynamic ETAs (Halifax time, robust) -->
 <script>
 (function(){
-  function halifaxNow(){
-    return new Date(new Date().toLocaleString('en-CA', { timeZone: 'America/Halifax' }));
+  // Get Halifax (America/Halifax) parts without parsing strings
+  function halifaxParts(){
+    const dtf = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'America/Halifax',
+      weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    });
+    const parts = dtf.formatToParts(new Date());
+    let weekday='Mon', hour=0, minute=0;
+    for(const p of parts){
+      if(p.type==='weekday') weekday = p.value;
+      if(p.type==='hour')    hour    = parseInt(p.value,10);
+      if(p.type==='minute')  minute  = parseInt(p.value,10);
+    }
+    return {weekday, hour, minute, label: dtf.format(new Date())};
   }
-  function inBizHours(d){
-    const day=d.getDay(); // 0 Sun..6 Sat
-    if(day===0||day===6) return false;
-    const h=d.getHours(), m=d.getMinutes();
-    if(h<8) return false;
-    if(h>16) return false;
-    if(h===16 && m>30) return false;
+
+  function inBizHoursHalifax(){
+    const {weekday, hour, minute} = halifaxParts();
+    if(weekday==='Sat' || weekday==='Sun') return false;
+    if(hour < 8)  return false;
+    if(hour > 16) return false;
+    if(hour === 16 && minute > 30) return false;
     return true;
   }
+
   function ceil15(n){ return Math.ceil(n/15)*15; }
 
-  // Smart CTA
+  // Smart CTA flip
   const cta = document.getElementById('smartCta');
   function updateCTA(){
     if(!cta) return;
-    const now=halifaxNow();
-    if(inBizHours(now)){
-      cta.textContent='Call 902-539-4574';
-      cta.href='tel:9025394574';
+    if(inBizHoursHalifax()){
+      cta.textContent = 'Call 902-539-4574';
+      cta.href = 'tel:9025394574';
       cta.setAttribute('aria-label','Call 902-539-4574');
-    }else{
-      cta.textContent='After-Hours: 902-565-1730';
-      cta.href='tel:9025651730';
+    } else {
+      cta.textContent = 'After-Hours: 902-565-1730';
+      cta.href = 'tel:9025651730';
       cta.setAttribute('aria-label','Call After-Hours 902-565-1730');
     }
   }
 
-  // Base drive times (conservative), minutes from shop
-  // Tweaked so Sydney is <= 60 min during business hours after rounding to 15 min
+  // Base drive times (conservative), minutes from shop.
+  // Sydney is <= 60 min during business hours after rounding to 15.
   const points = [
-    { place:'Sydney',           base:40 },  // +15 => 55 -> ceil15 => 60 (business hours)
+    { place:'Sydney',           base:40 }, // +15 => 55 -> ceil15 => 60 (business)
     { place:'North Sydney',     base:45 },
     { place:'Sydney Mines',     base:50 },
     { place:'Glace Bay',        base:55 },
@@ -238,21 +244,21 @@
 
   const tbody = document.querySelector('#etaTable tbody');
   const pill  = document.getElementById('etaModePill');
+  const clock = document.getElementById('etaClock');
 
   function renderETAs(){
-    if(!tbody||!pill) return;
-    const now = halifaxNow();
-    const business = inBizHours(now);
+    if(!tbody || !pill) return;
+    const hal = halifaxParts();
+    const business = inBizHoursHalifax();
 
-    // Dispatch overhead rules:
-    //  - Business hours: +15 min
-    //  - After hours: +30 min
+    // Overhead: +15 in hours, +30 after hours
     const overhead = business ? 15 : 30;
 
     pill.textContent = business ? 'Now: Business Hours' : 'Now: After Hours';
     pill.className = 'mode-pill ' + (business ? 'on' : 'off');
+    if(clock) clock.textContent = `Now in Halifax: ${hal.label}`;
 
-    tbody.innerHTML='';
+    tbody.innerHTML = '';
     points.forEach(p=>{
       const eta = ceil15(p.base + overhead);
       const tr = document.createElement('tr');
@@ -263,7 +269,7 @@
 
   function tick(){ updateCTA(); renderETAs(); }
   tick();
-  setInterval(tick, 60000); // refresh every minute (timezone-safe)
+  setInterval(tick, 60000);
 })();
 </script>
 </body>
