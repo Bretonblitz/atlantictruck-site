@@ -4,29 +4,32 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Requests | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="Requests | Atlantic Truck & Equipment Repair">
+  <meta name="description" content="Request service or parts from Atlantic Truck & Equipment Repair. Fast, detailed forms to reduce downtime.">
   <meta property="og:title" content="Requests | Atlantic Truck & Equipment Repair">
-  <meta property="og:description" content="Requests | Atlantic Truck & Equipment Repair">
+  <meta property="og:description" content="Request service or parts from Atlantic Truck & Equipment Repair. Fast, detailed forms to reduce downtime.">
   <meta property="og:image" content="https://static.wixstatic.com/media/ba2cd3_78abbb4da5a24f3abdc4657a9187a048~mv2.jpg/v1/fill/w_980,h_426,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ba2cd3_78abbb4da5a24f3abdc4657a9187a048~mv2.jpg">
-  <meta property="og:type" content="website"><meta property="og:locale" content="en_CA">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_CA">
   <meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/site.js"></script>
 </head>
 <body>
+<!-- Emergency bar -->
 <div class="emergency-bar">
   <div class="container row spread center">
     <strong>24/7 Emergency Recovery &amp; Towing</strong>
     <div class="row wrap">
-      <a class="link-invert" href="tel:9025651730">After Hours: 902‑565‑1730</a>
+      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
       <span class="sm-hide">|</span>
-      <a class="link-invert" href="tel:9025657211">902‑565‑7211</a>
-      <a class="btn-light sm-hide" href="/requests.html#service">Need help now</a>
+      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
+      <a class="btn-light sm-hide" href="#service">Requests</a>
     </div>
   </div>
 </div>
+
+<!-- Header -->
 <header class="site-header">
   <div class="container row spread center">
     <a class="brand row center" href="/index.html">
@@ -53,71 +56,150 @@
         <li><a href="/gallery.html">Gallery</a></li>
         <li><a href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
-        <li><a href="/requests.html">Requests</a></li>
+        <li><a class="active" href="/requests.html">Requests</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <div class="header-cta sm-hide"><a class="btn" href="tel:9025394574">Call 902‑539‑4574</a></div>
+    <!-- Smart CTA (site.js flips this by time-of-day) -->
+    <div class="header-cta sm-hide">
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+    </div>
   </div>
 </header>
 
 <section class="section">
   <div class="container">
     <h1>Request Parts or Service</h1>
-    
-<div class="grid-2">
-  <div id="parts">
-    <div class="card">
-      <h2>Parts Request</h2>
-      <p>Authorized Freightliner® & Western Star® parts. Share your full VIN for exact match.</p>
-      <form action="https://formsubmit.co/parts@atlantictruck.ca" method="POST">
-        <input type="hidden" name="_subject" value="Website Parts Request">
-        <input type="hidden" name="_captcha" value="true">
-        <div class="grid-2">
-          <label>Full Name*<input required name="name" placeholder="Your name"></label>
-          <label>Phone*<input required name="phone" placeholder="###-###-####"></label>
-        </div>
-        <label>Email*<input required type="email" name="email" placeholder="you@company.com"></label>
-        <label>Full VIN*<input required name="vin" placeholder="17 characters"></label>
-        <div class="grid-2">
-          <label>Part Number (if known)<input name="part_number" placeholder="e.g. A123456789"></label>
-          <label>Part Type / Description<input name="part_type" placeholder="e.g. brake drum, air dryer"></label>
-        </div>
-        <label>Make/Model/Year<input name="mmY" placeholder="e.g. Freightliner Cascadia 2019"></label>
-        <label>Notes<textarea name="notes" placeholder="Anything else we should know?"></textarea></label>
-        <button class="btn" type="submit">Send Parts Request</button>
-        <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
-      </form>
-    </div>
-  </div>
-  <div id="service">
-    <div class="card">
-      <h2>Service Request</h2>
-      <p>Tell us what you need. We’ll confirm availability and get you booked.</p>
-      <form action="https://formsubmit.co/service@atlantictruck.ca" method="POST">
-        <input type="hidden" name="_subject" value="Website Service Request">
-        <input type="hidden" name="_captcha" value="true">
-        <div class="grid-2">
-          <label>Full Name*<input required name="name" placeholder="Your name"></label>
-          <label>Phone*<input required name="phone" placeholder="###-###-####"></label>
-        </div>
-        <label>Email*<input required type="email" name="email" placeholder="you@company.com"></label>
-        <label>Full VIN*<input required name="vin" placeholder="17 characters"></label>
-        <div class="grid-2">
-          <label>Preferred Date*<input required type="date" name="preferred_date"></label>
-          <label>Location<input name="location" placeholder="Shop or on-site?"></label>
-        </div>
-        <label>Service Required*<textarea required name="service_required" placeholder="Describe the issue or service"></textarea></label>
-        <button class="btn" type="submit">Send Service Request</button>
-        <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
-      </form>
-    </div>
-  </div>
-</div>
+    <p class="muted">For urgent roadside help, please call our after-hours numbers above. For shop work and parts, use the forms below—CAPTCHA protected.</p>
 
+    <!-- Jump links -->
+    <div class="tiles" style="margin-top:10px">
+      <a class="tile small" href="#service"><div class="body"><strong>Book Service</strong><div>Diagnostics, repair, inspections</div></div></a>
+      <a class="tile small" href="#parts"><div class="body"><strong>Request Parts</strong><div>Freightliner & Western Star</div></div></a>
+    </div>
+
+    <div class="grid-2" style="margin-top:18px">
+      <!-- SERVICE REQUEST -->
+      <div id="service">
+        <div class="card">
+          <h2>Service Request</h2>
+          <p>Tell us what you need. We’ll confirm availability and get you booked.</p>
+          <form action="https://formsubmit.co/service@atlantictruck.ca" method="POST" novalidate>
+            <!-- FormSubmit config -->
+            <input type="hidden" name="_subject" value="Website Service Request">
+            <input type="hidden" name="_captcha" value="true">
+            <input type="hidden" name="_template" value="table">
+            <!-- honeypot + timestamp (simple spam filter) -->
+            <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
+            <input type="hidden" name="_timestamp" id="srv_ts">
+
+            <div class="grid-2">
+              <label>Full Name*<input required name="name" autocomplete="name"></label>
+              <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel"></label>
+            </div>
+            <label>Email*<input required type="email" name="email" autocomplete="email"></label>
+
+            <div class="grid-3">
+              <label>Unit #<input name="unit_number" autocomplete="off" placeholder="e.g. Truck 21"></label>
+              <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Freightliner Cascadia 2019"></label>
+              <label>Full VIN*<input required name="vin" minlength="17" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" placeholder="17 characters (no I,O,Q)"></label>
+            </div>
+
+            <div class="grid-3">
+              <label>Preferred Date*<input required type="date" name="preferred_date"></label>
+              <label>Time Window
+                <select name="time_window">
+                  <option value="">No preference</option>
+                  <option>Morning (8–12)</option>
+                  <option>Afternoon (12–4:30)</option>
+                </select>
+              </label>
+              <label>Service Type
+                <select name="service_type">
+                  <option>Diagnostics/Repair</option>
+                  <option>Inspection (MVI/B-620)</option>
+                  <option>Welding/Fabrication</option>
+                  <option>Towing/Recovery</option>
+                  <option>Other</option>
+                </select>
+              </label>
+            </div>
+
+            <fieldset class="card" style="margin-top:10px">
+              <legend><strong>Where?</strong></legend>
+              <div class="row wrap" style="gap:14px">
+                <label><input type="radio" name="where" value="Shop" checked> At our shop</label>
+                <label><input type="radio" name="where" value="On-site"> On-site / roadside</label>
+              </div>
+              <div id="onSiteFields" style="display:none; margin-top:10px">
+                <div class="grid-2">
+                  <label>Street/Location<input name="onsite_address" autocomplete="street-address" placeholder="Highway & km marker, or address"></label>
+                  <label>City / Town<input name="onsite_city" autocomplete="address-level2"></label>
+                </div>
+                <div class="grid-2">
+                  <label>Province<input name="onsite_province" value="NS" autocomplete="address-level1"></label>
+                  <label>Postal Code<input name="onsite_postal" autocomplete="postal-code"></label>
+                </div>
+              </div>
+            </fieldset>
+
+            <label>Service Required*<textarea required name="service_required" rows="6" placeholder="Describe the issue or service needed"></textarea></label>
+
+            <div class="grid-2">
+              <label>Photo/Link (optional)<input name="photo_url" type="url" placeholder="https:// (photo, ECM code, etc.)"></label>
+              <label>PO # / Reference<input name="po" placeholder="If you need it on the invoice"></label>
+            </div>
+
+            <button class="btn" type="submit">Send Service Request</button>
+            <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
+          </form>
+        </div>
+      </div>
+
+      <!-- PARTS REQUEST -->
+      <div id="parts">
+        <div class="card">
+          <h2>Parts Request</h2>
+          <p>Authorized Freightliner® &amp; Western Star® parts. Share your full VIN for exact match.</p>
+          <form action="https://formsubmit.co/parts@atlantictruck.ca" method="POST" novalidate>
+            <!-- FormSubmit config -->
+            <input type="hidden" name="_subject" value="Website Parts Request">
+            <input type="hidden" name="_captcha" value="true">
+            <input type="hidden" name="_template" value="table">
+            <!-- honeypot + timestamp -->
+            <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
+            <input type="hidden" name="_timestamp" id="prt_ts">
+
+            <div class="grid-2">
+              <label>Full Name*<input required name="name" autocomplete="name"></label>
+              <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel"></label>
+            </div>
+            <label>Email*<input required type="email" name="email" autocomplete="email"></label>
+
+            <div class="grid-3">
+              <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Western Star 4900 2018"></label>
+              <label>Unit #<input name="unit_number" autocomplete="off"></label>
+              <label>Full VIN*<input required name="vin" minlength="17" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" placeholder="17 characters (no I,O,Q)"></label>
+            </div>
+
+            <div class="grid-2">
+              <label>Part Number (if known)<input name="part_number" placeholder="e.g. A03-12345-000"></label>
+              <label>Part Type / Description*<input required name="part_type" placeholder="e.g. brake drum, air dryer"></label>
+            </div>
+
+            <label>Quantity<input name="qty" type="number" min="1" step="1" placeholder="1"></label>
+            <label>Notes<textarea name="notes" rows="4" placeholder="Symptoms, old part #, photos link, etc."></textarea></label>
+
+            <button class="btn" type="submit">Send Parts Request</button>
+            <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
+          </form>
+        </div>
+      </div>
+    </div>
   </div>
 </section>
 
+<!-- Footer -->
 <footer class="site-footer">
   <div class="container grid-4">
     <div>
@@ -143,11 +225,11 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902‑539‑4574</a></li>
+        <li>Main: <a href="tel:902-539-4574">902-539-4574</a></li>
         <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
         <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902‑565‑1730</a> / <a href="tel:9025657211">902‑565‑7211</a></li>
+        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -170,7 +252,26 @@
 <div class="action-bar md-hide">
   <a href="tel:9025394574">Call</a>
   <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
-  <a href="/requests.html#service">Book Service</a>
+  <a href="#service">Book Service</a>
 </div>
+
+<!-- Minimal page JS: smart CTA + on-site toggle + spam timestamp -->
+<script src="/assets/js/site.js?v=20250815" defer></script>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // timestamp (basic spam signal)
+    const ts = Date.now();
+    const srv = document.getElementById('srv_ts'); if (srv) srv.value = ts;
+    const prt = document.getElementById('prt_ts'); if (prt) prt.value = ts;
+
+    // on-site reveal
+    const onSiteFields = document.getElementById('onSiteFields');
+    document.querySelectorAll('input[name="where"]').forEach(r => {
+      r.addEventListener('change', () => {
+        onSiteFields.style.display = r.value === 'On-site' && r.checked ? 'block' : 'none';
+      });
+    });
+  });
+</script>
 </body>
 </html>
