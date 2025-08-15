@@ -35,17 +35,42 @@ async function renderNews(){
 }
 
 async function renderGallery(){
-  const grid=document.getElementById('galleryGrid'); if(!grid) return;
-  grid.innerHTML='<div class="skeleton"></div>'.repeat(9);
-  const json=await api('/.netlify/functions/get-facebook-photos?limit=30'); grid.innerHTML='';
-  if(!json.data||!json.data.length){ grid.innerHTML='<p class="muted">No recent photos.</p>'; return; }
-  json.data.forEach(ph=>{
-    const src=(ph.images && ph.images.length)?ph.images[0].source:ph.full_picture||ph.source;
-    if(!src) return;
-    const a=document.createElement('a'); a.href=ph.permalink_url||ph.link||src; a.target='_blank'; a.rel='noopener';
-    const img=document.createElement('img'); img.src=src; img.alt=ph.name||'Photo';
-    a.appendChild(img); grid.appendChild(a);
+  const grid = document.getElementById('galleryGrid'); if(!grid) return;
+  grid.innerHTML = '<div class="skeleton"></div>'.repeat(9);
+
+  const res = await fetch('/.netlify/functions/get-facebook-photos?limit=30');
+  let json = { data: [] };
+  try { json = await res.json(); } catch(_){}
+
+  grid.innerHTML = '';
+  if (!json.data || !json.data.length) {
+    grid.innerHTML = '<p class="muted">No recent photos.</p>';
+    return;
+  }
+
+  const seen = new Set();
+  const canon = (u) => {
+    try { const x = new URL(u); return `${x.origin}${x.pathname}`.toLowerCase(); }
+    catch { return (u || '').split('?')[0].toLowerCase(); }
+  };
+
+  json.data.forEach(ph => {
+    const src = (ph.images?.[0]?.source) || ph.full_picture || ph.source;
+    if (!src) return;
+    const key = canon(src);
+    if (seen.has(key)) return; // de-dup in UI
+    seen.add(key);
+
+    const a = document.createElement('a');
+    a.href = ph.permalink_url || src;
+    a.target = '_blank'; a.rel = 'noopener';
+    const img = document.createElement('img');
+    img.src = src; img.alt = ph.name || 'Photo';
+    a.appendChild(img);
+    grid.appendChild(a);
   });
+}
+
 }
 
 document.addEventListener('DOMContentLoaded', ()=>{ renderHomepageSidebar(); renderNews(); renderGallery(); });
