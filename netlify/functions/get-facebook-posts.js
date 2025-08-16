@@ -78,4 +78,3 @@ function json(status, body, extra = {}) {
     body: JSON.stringify(body)
   };
 }
-
