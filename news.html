@@ -1,141 +1,173 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <title>Industry News | Atlantic Truck & Equipment Repair</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <meta name="description" content="Latest Atlantic Canada & North American trucking news, products, and features." />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>News | Atlantic Truck & Equipment Repair – Edwardsville (Cape Breton)</title>
+  <meta name="description" content="Latest trucking and Atlantic Canada headlines curated for our customers.">
+  <meta property="og:title" content="News | Atlantic Truck & Equipment Repair – Edwardsville (Cape Breton)">
+  <meta property="og:description" content="Latest trucking and Atlantic Canada headlines curated for our customers.">
+  <meta property="og:image" content="https://static.wixstatic.com/media/ba2cd3_94b254821d774fbe9be7b8f2b0951e00~mv2.jpg/v1/fill/w_980,h_653,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ba2cd3_94b254821d774fbe9be7b8f2b0951e00~mv2.jpg">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_CA">
+  <meta name="theme-color" content="#B9111B">
+  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <link rel="stylesheet" href="/assets/css/style.css">
   <style>
-    :root { --max: 1100px; --pad: 16px; --radius: 14px; --gap: 18px; }
-    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; color:#0b1020; background:#f6f7fb;}
-    header{background:#0b2a4a; color:#fff; padding:28px var(--pad);}
-    header h1{margin:0; font-size: clamp(22px, 3vw, 34px);}
-    main{max-width:var(--max); margin:24px auto; padding:0 var(--pad);}
-    .feeds-note{font-size:14px; color:#4a5568; margin:4px 0 22px}
-    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--gap);}
-    .card{background:#fff; border-radius:var(--radius); box-shadow:0 6px 16px rgba(0,0,0,.06); overflow:hidden; display:flex; flex-direction:column}
-    .thumb{width:100%; aspect-ratio:16/9; object-fit:cover; background:#e8ecf3}
-    .card-content{padding:16px}
-    .src{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#52607a; margin-bottom:6px}
-    .title{margin:0 0 8px; font-size:18px; line-height:1.25}
-    .meta{font-size:12px; color:#6b7280; margin:0 0 10px}
-    .excerpt p{margin:0 0 10px}
-    .actions{margin-top:auto; padding:0 16px 16px}
-    .btn{display:inline-block; text-decoration:none; border:1px solid #0b2a4a; padding:10px 14px; border-radius:10px}
-    .btn:hover{background:#0b2a4a; color:#fff}
-    .error, .loading{background:#fff3f3; border:1px solid #ffc7c7; color:#7a1111; padding:12px 14px; border-radius:12px; margin:12px 0}
-    .loading{background:#eef6ff; border-color:#cfe5ff; color:#0b2a4a}
+    /* Minimal extras to slot into your existing theme */
+    .news-intro { margin-top: 6px; }
+    .news-grid { display:grid; gap:16px; grid-template-columns: repeat(3,minmax(0,1fr)); }
+    @media (max-width: 980px){ .news-grid{grid-template-columns: repeat(2,minmax(0,1fr));} }
+    @media (max-width: 640px){ .news-grid{grid-template-columns: 1fr;} }
+    .news-card { background:#fff; border-radius:10px; box-shadow: 0 1px 3px rgba(0,0,0,.08); overflow:hidden; display:flex; flex-direction:column; }
+    .news-thumb { width:100%; aspect-ratio: 16/9; object-fit:cover; display:block; background:#f3f3f3; }
+    .news-body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+    .news-meta { font-size:12px; color:#666; display:flex; gap:8px; flex-wrap:wrap; }
+    .news-title { font-size:18px; line-height:1.25; }
+    .news-title a { text-decoration:none; color:#111; }
+    .news-title a:hover { text-decoration:underline; }
+    .news-actions { display:flex; justify-content:space-between; align-items:center; margin-top:2px; }
+    .chip { background:#f5f5f5; color:#333; border-radius:999px; padding:3px 8px; font-size:12px; }
+    .btn-more { display:inline-block; margin-top:18px; }
+    .muted-center { color:#666; text-align:center; }
   </style>
 </head>
 <body>
-  <header>
-    <h1>Trucking News</h1>
-    <p style="opacity:.85; margin-top:6px;">Fresh headlines from trusted trucking outlets. Updated automatically.</p>
-  </header>
+<!-- Emergency bar -->
+<div class="emergency-bar">
+  <div class="container row spread center">
+    <strong>24/7 Emergency Recovery &amp; Towing</strong>
+    <div class="row wrap">
+      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
+      <span class="sm-hide">|</span>
+      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
+      <a class="btn-light sm-hide" href="/requests.html#service">Requests</a>
+    </div>
+  </div>
+</div>
 
-  <main>
-    <div class="feeds-note">Sources: TruckNews (CA), Transport Topics (US). Add/remove feeds inside the script.</div>
-    <div id="status" class="loading">Loading the latest…</div>
-    <section id="news" class="grid" aria-live="polite"></section>
-  </main>
+<!-- Header -->
+<header class="site-header">
+  <div class="container row spread center">
+    <a class="brand row center" href="/index.html">
+      <img class="logo" alt="Atlantic Truck & Equipment Repair logo" src="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+      <div>
+        <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
+        <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
+      </div>
+    </a>
+    <nav class="main-nav">
+      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">☰</button>
+      <ul class="nav-list" id="navList">
+        <li><a href="/index.html">Home</a></li>
+        <li class="has-sub"><a href="/services/index.html">Services</a>
+          <ul class="sub">
+            <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
+            <li><a href="/services/towing.html">Towing</a></li>
+            <li><a href="/services/repair.html">Repair</a></li>
+            <li><a href="/services/inspection.html">Inspection</a></li>
+            <li><a href="/services/authorized-parts.html">Authorized Parts</a></li>
+            <li><a href="/services/welding.html">Welding</a></li>
+          </ul>
+        </li>
+        <li><a href="/gallery.html">Gallery</a></li>
+        <li><a class="active" href="/news.html">News</a></li>
+        <li><a href="/service-area.html">Service Area</a></li>
+        <li><a href="/requests.html">Requests</a></li>
+        <li><a href="/contact.html">Contact</a></li>
+      </ul>
+    </nav>
+    <div class="header-cta sm-hide">
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+    </div>
+  </div>
+</header>
 
-  <script>
-  // -------- CONFIG: add any public RSS feed URLs here --------
+<!-- Hero / News -->
+<section class="section">
+  <div class="container">
+    <h1>News</h1>
+    <p class="muted news-intro">Fresh trucking headlines and Atlantic Canada updates. We pull from trusted industry and local sources.</p>
+
+    <!-- News grid -->
+    <div id="newsGrid" class="news-grid" aria-live="polite"></div>
+    <div id="newsStatus" class="muted-center" style="margin-top:12px"></div>
+    <div style="text-align:center">
+      <button id="loadMoreBtn" class="btn btn-more" style="display:none">Load more</button>
+    </div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="site-footer">
+  <div class="container grid-4">
+    <div>
+      <div class="footer-title">Atlantic Truck &amp; Equipment Repair Ltd.</div>
+      <p class="muted">Trusted for towing, repairs, inspections &amp; welding across Cape Breton and most of Nova Scotia.</p>
+      <div class="row wrap" style="gap:12px;margin-top:10px">
+        <img src="/assets/img/freightliner.png" alt="Freightliner logo" style="height:26px">
+        <img src="/assets/img/western-star.png" alt="Western Star logo" style="height:26px">
+      </div>
+      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">📘 Follow us on Facebook</a></div>
+    </div>
+    <div>
+      <div class="footer-title">Services</div>
+      <ul class="plain">
+        <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
+        <li><a href="/services/towing.html">Towing</a></li>
+        <li><a href="/services/repair.html">Repairs</a></li>
+        <li><a href="/services/inspection.html">Inspections</a></li>
+        <li><a href="/services/authorized-parts.html">Authorized Parts</a></li>
+        <li><a href="/services/welding.html">Welding</a></li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Contact</div>
+      <ul class="plain">
+        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
+        <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
+        <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
+        <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
+        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
+        <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
+      </ul>
+    </div>
+    <div>
+      <div class="footer-title">Find Us</div>
+      <address class="muted small">417 Gulf Crescent, Edwardsville, NS B2A 4T9</address>
+      <a class="btn-light" target="_blank" href="https://www.google.com/maps/place/417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9/@46.139715,-60.2621357,9339m/data=!3m1!1e3!4m6!3m5!1s0x4b67facb8ef152a3:0x696f8a0bdb36d767!8m2!3d46.1517485!4d-60.2245496!16s%2Fg%2F11snpzymmc?entry=ttu&g_ep=EgoyMDI1MDgxMy4wIKXMDSoASAFQAw%3D%3D">Directions</a>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <div class="container row spread small">
+      <span>© 2025 Atlantic Truck &amp; Equipment Repair Ltd.</span>
+      <span>Edwardsville, Nova Scotia</span>
+    </div>
+  </div>
+</footer>
+
+<div class="action-bar md-hide">
+  <a href="tel:9025394574">Call</a>
+  <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
+  <a href="/requests.html#service">Book Service</a>
+</div>
+
+<!-- Page JS -->
+<script>
+(function(){
+  const newsGrid = document.getElementById('newsGrid');
+  const statusEl = document.getElementById('newsStatus');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
+
+  const PLACEHOLDER =
+    'https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png';
+
+  // --- Configure feeds here ---
   const FEEDS = [
-    { name: "TruckNews", url: "https://www.trucknews.com/rss/" },          // :contentReference[oaicite:1]{index=1}
-    { name: "Transport Topics", url: "https://www.ttnews.com/rss.xml" }    // industry-standard
-  ];
+    { name: 'TruckNews', url: 'https://www.trucknews.com/rss/' },               // 
+- Transport Topics publishes an official site-wide RSS feed at `ttnews.com/rss.xml`. :contentReference[oaicite:3]{index=3}
+- CTV Atlantic’s public RSS endpoint is listed here (we used that exact URL). :contentReference[oaicite:4]{index=4}
 
-  // Fallback image
-  const PLACEHOLDER_IMG = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
-    `<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='675'>
-      <rect width='100%' height='100%' fill='#e8ecf3'/>
-      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#52607a' font-family='Arial' font-size='26'>Trucking News</text>
-    </svg>`
-  );
-
-  const newsEl = document.getElementById("news");
-  const statusEl = document.getElementById("status");
-
-  // Uses api.rss2json.com (no key) — simple for static sites.
-  // If you ever hit rate limits, switch to your own RSS widget or a small serverless proxy.
-  async function fetchFeed(feed) {
-    const endpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
-    const res = await fetch(endpoint);
-    if (!res.ok) throw new Error(`Fetch failed for ${feed.name}`);
-    const data = await res.json();
-    if (!data || !data.items) throw new Error(`No items for ${feed.name}`);
-    return data.items.map(item => ({
-      source: feed.name,
-      title: item.title,
-      url: item.link,
-      date: new Date(item.pubDate || item.pub_date || Date.now()),
-      // Try image fields, then content sniff
-      image: item.thumbnail || (item.enclosure && item.enclosure.link) || extractImage(item.content || item.content_html) || PLACEHOLDER_IMG,
-      excerpt: stripHtml(item.description || item.content || "").trim()
-    }));
-  }
-
-  function stripHtml(html) {
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    return div.textContent || div.innerText || "";
-  }
-
-  function extractImage(html) {
-    if (!html) return null;
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    const img = div.querySelector("img");
-    return img ? img.src : null;
-  }
-
-  function formatDate(d) {
-    return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
-    // If you want time too: add hour/minute options
-  }
-
-  function buildCard(a) {
-    const article = document.createElement("article");
-    article.className = "card";
-    article.innerHTML = `
-      <img class="thumb" loading="lazy" alt="" src="${a.image}">
-      <div class="card-content">
-        <div class="src">${a.source}</div>
-        <h3 class="title">${a.title}</h3>
-        <p class="meta">${formatDate(a.date)}</p>
-        <div class="excerpt"></div>
-      </div>
-      <div class="actions">
-        <a class="btn" href="${a.url}" target="_blank" rel="noopener">Read full article</a>
-      </div>
-    `;
-    // Make sure there are at least two short paragraphs
-    const ex = a.excerpt.length > 400 ? a.excerpt.slice(0, 400) + "…" : a.excerpt;
-    const p1 = document.createElement("p");
-    p1.textContent = ex.slice(0, Math.ceil(ex.length / 2)).trim();
-    const p2 = document.createElement("p");
-    p2.textContent = ex.slice(Math.ceil(ex.length / 2)).trim() || "—";
-    article.querySelector(".excerpt").append(p1, p2);
-    return article;
-  }
-
-  (async function init() {
-    try {
-      const all = (await Promise.allSettled(FEEDS.map(fetchFeed)))
-        .flatMap(r => r.status === "fulfilled" ? r.value : []);
-      if (!all.length) throw new Error("No news items loaded.");
-      // sort newest first, cap to 18
-      all.sort((a,b) => b.date - a.date);
-      const items = all.slice(0, 18);
-      items.forEach(item => newsEl.appendChild(buildCard(item)));
-      statusEl.remove();
-    } catch (err) {
-      statusEl.className = "error";
-      statusEl.textContent = "Couldn’t load the news feed right now. Please refresh in a minute.";
-      console.error(err);
-    }
-  })();
-  </script>
-</body>
-</html>
+Want me to also wire in Global News Halifax or Nova Scotia traffic advisories? I can drop those in too.
+::contentReference[oaicite:5]{index=5}
