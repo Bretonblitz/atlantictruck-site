@@ -1,233 +1,141 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>News | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="Latest trucking and highway updates for Cape Breton and Atlantic Canada.">
-  <meta property="og:title" content="News | Atlantic Truck & Equipment Repair">
-  <meta property="og:description" content="Latest trucking and highway updates for Cape Breton and Atlantic Canada.">
-  <meta property="og:type" content="website">
-  <meta property="og:locale" content="en_CA">
-  <meta name="theme-color" content="#B9111B">
-  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="stylesheet" href="/assets/css/style.css">
-
+  <meta charset="utf-8" />
+  <title>Industry News | Atlantic Truck & Equipment Repair</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="description" content="Latest Atlantic Canada & North American trucking news, products, and features." />
   <style>
-    /* Local-only styles to make the feed look great with your base CSS */
-    .news-feed { display: grid; gap: 18px; }
-    @media (min-width: 900px){ .news-feed { grid-template-columns: 1fr 1fr; } }
-    .news-card { border:1px solid #e6e6e6; border-radius:12px; overflow:hidden; background:#fff; }
-    .news-card .img-wrap { background:#f5f5f5; }
-    .news-card img { width:100%; height:auto; display:block; }
-    .news-card .body { padding:14px; }
-    .news-card .meta { font-size:12px; color:#6b7280; margin-bottom:6px; }
-    .news-card h3 { margin:0 0 8px; font-size:18px; line-height:1.25; }
-    .news-card p { margin:0; }
-    .news-card .actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
-    .read-more { color:#B9111B; font-weight:600; text-decoration:none; }
-    .skeleton { border-radius:12px; height:140px; background:linear-gradient(90deg,#eee,#f5f5f5,#eee); animation:s 1.2s infinite; }
-    @keyframes s { 0%{background-position:-200px 0} 100%{background-position:calc(200px + 100%) 0} }
+    :root { --max: 1100px; --pad: 16px; --radius: 14px; --gap: 18px; }
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif; margin:0; color:#0b1020; background:#f6f7fb;}
+    header{background:#0b2a4a; color:#fff; padding:28px var(--pad);}
+    header h1{margin:0; font-size: clamp(22px, 3vw, 34px);}
+    main{max-width:var(--max); margin:24px auto; padding:0 var(--pad);}
+    .feeds-note{font-size:14px; color:#4a5568; margin:4px 0 22px}
+    .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:var(--gap);}
+    .card{background:#fff; border-radius:var(--radius); box-shadow:0 6px 16px rgba(0,0,0,.06); overflow:hidden; display:flex; flex-direction:column}
+    .thumb{width:100%; aspect-ratio:16/9; object-fit:cover; background:#e8ecf3}
+    .card-content{padding:16px}
+    .src{font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:#52607a; margin-bottom:6px}
+    .title{margin:0 0 8px; font-size:18px; line-height:1.25}
+    .meta{font-size:12px; color:#6b7280; margin:0 0 10px}
+    .excerpt p{margin:0 0 10px}
+    .actions{margin-top:auto; padding:0 16px 16px}
+    .btn{display:inline-block; text-decoration:none; border:1px solid #0b2a4a; padding:10px 14px; border-radius:10px}
+    .btn:hover{background:#0b2a4a; color:#fff}
+    .error, .loading{background:#fff3f3; border:1px solid #ffc7c7; color:#7a1111; padding:12px 14px; border-radius:12px; margin:12px 0}
+    .loading{background:#eef6ff; border-color:#cfe5ff; color:#0b2a4a}
   </style>
 </head>
 <body>
-<!-- Emergency bar -->
-<div class="emergency-bar">
-  <div class="container row spread center">
-    <strong>24/7 Emergency Recovery &amp; Towing</strong>
-    <div class="row wrap">
-      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
-      <span class="sm-hide">|</span>
-      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
-      <a class="btn-light sm-hide" href="/requests.html">Requests</a>
-    </div>
-  </div>
-</div>
+  <header>
+    <h1>Trucking News</h1>
+    <p style="opacity:.85; margin-top:6px;">Fresh headlines from trusted trucking outlets. Updated automatically.</p>
+  </header>
 
-<!-- Header -->
-<header class="site-header">
-  <div class="container row spread center">
-    <a class="brand row center" href="/index.html">
-      <img class="logo" alt="Atlantic Truck & Equipment Repair logo" src="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-      <div>
-        <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
-        <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
-      </div>
-    </a>
-    <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">☰</button>
-      <ul class="nav-list" id="navList">
-        <li><a href="/index.html">Home</a></li>
-        <li class="has-sub"><a href="/services/index.html">Services</a>
-          <ul class="sub">
-            <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
-            <li><a href="/services/towing.html">Towing</a></li>
-            <li><a href="/services/repair.html">Repair</a></li>
-            <li><a href="/services/inspection.html">Inspection</a></li>
-            <li><a href="/services/authorized-parts.html">Authorized Parts</a></li>
-            <li><a href="/services/welding.html">Welding</a></li>
-          </ul>
-        </li>
-        <li><a href="/gallery.html">Gallery</a></li>
-        <li><a class="active" href="/news.html">News</a></li>
-        <li><a href="/service-area.html">Service Area</a></li>
-        <li><a href="/requests.html">Requests</a></li>
-        <li><a href="/contact.html">Contact</a></li>
-      </ul>
-    </nav>
-    <!-- Smart CTA (site.js updates text/number by time-of-day) -->
-    <div class="header-cta sm-hide">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
-    </div>
-  </div>
-</header>
+  <main>
+    <div class="feeds-note">Sources: TruckNews (CA), Transport Topics (US). Add/remove feeds inside the script.</div>
+    <div id="status" class="loading">Loading the latest…</div>
+    <section id="news" class="grid" aria-live="polite"></section>
+  </main>
 
-<!-- Content -->
-<section class="section">
-  <div class="container">
-    <h1>News</h1>
-    <div id="newsFeed" class="news-feed" aria-live="polite">
-      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
-    </div>
-    <div style="margin-top:16px">
-      <a class="btn-light" target="_blank" rel="noopener" href="https://www.trucknews.com/">See more news</a>
-    </div>
-  </div>
-</section>
+  <script>
+  // -------- CONFIG: add any public RSS feed URLs here --------
+  const FEEDS = [
+    { name: "TruckNews", url: "https://www.trucknews.com/rss/" },          // :contentReference[oaicite:1]{index=1}
+    { name: "Transport Topics", url: "https://www.ttnews.com/rss.xml" }    // industry-standard
+  ];
 
-<!-- Footer -->
-<footer class="site-footer">
-  <div class="container grid-4">
-    <div>
-      <div class="footer-title">Atlantic Truck &amp; Equipment Repair Ltd.</div>
-      <p class="muted">Trusted for towing, repairs, inspections &amp; welding across Cape Breton and most of Nova Scotia.</p>
-      <div class="row wrap" style="gap:12px;margin-top:10px">
-        <img src="/assets/img/freightliner.png" alt="Freightliner logo" style="height:26px">
-        <img src="/assets/img/western-star.png" alt="Western Star logo" style="height:26px">
-      </div>
-      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">📘 Follow us on Facebook</a></div>
-    </div>
-    <div>
-      <div class="footer-title">Services</div>
-      <ul class="plain">
-        <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
-        <li><a href="/services/towing.html">Towing</a></li>
-        <li><a href="/services/repair.html">Repairs</a></li>
-        <li><a href="/services/inspection.html">Inspections</a></li>
-        <li><a href="/services/authorized-parts.html">Authorized Parts</a></li>
-        <li><a href="/services/welding.html">Welding</a></li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-title">Contact</div>
-      <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
-        <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
-        <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
-        <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
-        <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
-      </ul>
-    </div>
-    <div>
-      <div class="footer-title">Find Us</div>
-      <address class="muted small">
-        417 Gulf Crescent, Edwardsville, NS B2A 4T9
-      </address>
-      <a class="btn-light" target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
-    </div>
-  </div>
-  <div class="footer-bottom">
-    <div class="container row spread small">
-      <span>© 2025 Atlantic Truck &amp; Equipment Repair Ltd.</span>
-      <span>Edwardsville, Nova Scotia</span>
-    </div>
-  </div>
-</footer>
+  // Fallback image
+  const PLACEHOLDER_IMG = "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(
+    `<svg xmlns='http://www.w3.org/2000/svg' width='1200' height='675'>
+      <rect width='100%' height='100%' fill='#e8ecf3'/>
+      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#52607a' font-family='Arial' font-size='26'>Trucking News</text>
+    </svg>`
+  );
 
-<div class="action-bar md-hide">
-  <a href="tel:9025394574">Call</a>
-  <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
-  <a href="/requests.html">Requests</a>
-</div>
+  const newsEl = document.getElementById("news");
+  const statusEl = document.getElementById("status");
 
-<!-- Global site JS (keeps smart CTA consistent across pages) -->
-<script src="/assets/js/site.js?v=20250816" defer></script>
-
-<!-- Page-only script to render the news list -->
-<script>
-(function(){
-  const feedEl = document.getElementById('newsFeed');
-
-  function words(s){ return (s||'').trim().split(/\s+/); }
-  function shortText(s, maxWords){
-    const w = words(s);
-    if (w.length <= maxWords) return { text: s, truncated: false };
-    return { text: w.slice(0, maxWords).join(' ') + '…', truncated: true };
+  // Uses api.rss2json.com (no key) — simple for static sites.
+  // If you ever hit rate limits, switch to your own RSS widget or a small serverless proxy.
+  async function fetchFeed(feed) {
+    const endpoint = `https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feed.url)}`;
+    const res = await fetch(endpoint);
+    if (!res.ok) throw new Error(`Fetch failed for ${feed.name}`);
+    const data = await res.json();
+    if (!data || !data.items) throw new Error(`No items for ${feed.name}`);
+    return data.items.map(item => ({
+      source: feed.name,
+      title: item.title,
+      url: item.link,
+      date: new Date(item.pubDate || item.pub_date || Date.now()),
+      // Try image fields, then content sniff
+      image: item.thumbnail || (item.enclosure && item.enclosure.link) || extractImage(item.content || item.content_html) || PLACEHOLDER_IMG,
+      excerpt: stripHtml(item.description || item.content || "").trim()
+    }));
   }
-  function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); } catch(_){ return ''; } }
 
-  async function loadNews(){
-    try{
-      const res  = await fetch('/.netlify/functions/get-truck-news?limit=10', { cache: 'no-store' });
-      const json = await res.json();
-      const items = (json && json.data) ? json.data : [];
-      feedEl.innerHTML = '';
+  function stripHtml(html) {
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    return div.textContent || div.innerText || "";
+  }
 
-      if (!items.length){
-        feedEl.innerHTML = '<p class="muted">No recent articles.</p>';
-        return;
-      }
+  function extractImage(html) {
+    if (!html) return null;
+    const div = document.createElement("div");
+    div.innerHTML = html;
+    const img = div.querySelector("img");
+    return img ? img.src : null;
+  }
 
-      for (const it of items){
-        const title = it.title || 'Untitled';
-        const link  = it.link || '#';
-        const date  = fmtDate(it.date);
-        const source= it.source ? ` • ${it.source}` : '';
-        const sum   = it.summary || '';
-        const preview = shortText(sum, 50);
+  function formatDate(d) {
+    return d.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric" });
+    // If you want time too: add hour/minute options
+  }
 
-        const card = document.createElement('article');
-        card.className = 'news-card';
+  function buildCard(a) {
+    const article = document.createElement("article");
+    article.className = "card";
+    article.innerHTML = `
+      <img class="thumb" loading="lazy" alt="" src="${a.image}">
+      <div class="card-content">
+        <div class="src">${a.source}</div>
+        <h3 class="title">${a.title}</h3>
+        <p class="meta">${formatDate(a.date)}</p>
+        <div class="excerpt"></div>
+      </div>
+      <div class="actions">
+        <a class="btn" href="${a.url}" target="_blank" rel="noopener">Read full article</a>
+      </div>
+    `;
+    // Make sure there are at least two short paragraphs
+    const ex = a.excerpt.length > 400 ? a.excerpt.slice(0, 400) + "…" : a.excerpt;
+    const p1 = document.createElement("p");
+    p1.textContent = ex.slice(0, Math.ceil(ex.length / 2)).trim();
+    const p2 = document.createElement("p");
+    p2.textContent = ex.slice(Math.ceil(ex.length / 2)).trim() || "—";
+    article.querySelector(".excerpt").append(p1, p2);
+    return article;
+  }
 
-        const imgHTML = it.image
-          ? `<div class="img-wrap"><img loading="lazy" referrerpolicy="no-referrer" src="${it.image}" alt=""></div>`
-          : '';
-
-        card.innerHTML = `
-          ${imgHTML}
-          <div class="body">
-            <div class="meta">${date}${source}</div>
-            <h3>${title}</h3>
-            <p class="excerpt">${preview.text}</p>
-            <div class="actions">
-              <a class="btn-light" target="_blank" rel="noopener" href="${link}">Read full story</a>
-              ${preview.truncated ? '<a href="#" class="read-more">Read more</a>' : ''}
-            </div>
-          </div>
-        `;
-
-        const more = card.querySelector('.read-more');
-        if (more){
-          more.addEventListener('click', e => {
-            e.preventDefault();
-            card.querySelector('.excerpt').textContent = sum;
-            more.remove();
-          });
-        }
-
-        feedEl.appendChild(card);
-      }
-    } catch (e){
-      console.error(e);
-      feedEl.innerHTML = '<p class="muted">Couldn’t load news right now.</p>';
+  (async function init() {
+    try {
+      const all = (await Promise.allSettled(FEEDS.map(fetchFeed)))
+        .flatMap(r => r.status === "fulfilled" ? r.value : []);
+      if (!all.length) throw new Error("No news items loaded.");
+      // sort newest first, cap to 18
+      all.sort((a,b) => b.date - a.date);
+      const items = all.slice(0, 18);
+      items.forEach(item => newsEl.appendChild(buildCard(item)));
+      statusEl.remove();
+    } catch (err) {
+      statusEl.className = "error";
+      statusEl.textContent = "Couldn’t load the news feed right now. Please refresh in a minute.";
+      console.error(err);
     }
-  }
-
-  document.addEventListener('DOMContentLoaded', loadNews);
-})();
-</script>
+  })();
+  </script>
 </body>
 </html>
-
