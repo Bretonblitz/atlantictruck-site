@@ -4,9 +4,9 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>News | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="News | Atlantic Truck & Equipment Repair">
+  <meta name="description" content="News and updates from Atlantic Truck & Equipment Repair.">
   <meta property="og:title" content="News | Atlantic Truck & Equipment Repair">
-  <meta property="og:description" content="News | Atlantic Truck & Equipment Repair">
+  <meta property="og:description" content="News and updates from Atlantic Truck & Equipment Repair.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_CA">
   <meta name="theme-color" content="#B9111B">
@@ -14,6 +14,7 @@
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
   <style>
+    /* Page-specific styles */
     .news-list { display:flex; flex-direction:column; gap:18px; }
     .news-item { border:1px solid #eee; border-radius:12px; padding:14px; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.06); }
     .news-head { display:flex; align-items:baseline; gap:10px; margin-bottom:8px; }
@@ -26,9 +27,10 @@
     .news-gallery .navbtn { border:1px solid #ddd; background:#fafafa; border-radius:10px; padding:6px 10px; cursor:pointer; user-select:none; }
     .news-gallery .navbtn:disabled { opacity:.4; cursor:default; }
     .news-gallery .frame { flex:1; display:flex; justify-content:center; }
-    /* CSS fallback; we’ll also set inline width to avoid “flash” before CSS applies */
     .news-gallery img { width:50%; height:auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.08); cursor:zoom-in; }
-    @media (max-width: 700px){ .news-gallery img { width:100%; } }
+    @media (max-width: 700px){
+      .news-gallery img { width:100%; }
+    }
 
     .news-actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn-light.btn-read { border:1px solid #ddd; border-radius:10px; padding:8px 12px; background:#fff; }
@@ -42,9 +44,6 @@
     .lightbox .lb-prev { left:20px; }
     .lightbox .lb-next { right:20px; }
   </style>
-
-  <!-- Tell global site.js to skip its old news renderer -->
-  <script>window.__DISABLE_GLOBAL_NEWS = true;</script>
 </head>
 <body>
 <!-- Emergency bar -->
@@ -91,6 +90,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
+    <!-- Smart CTA (same as other pages) -->
     <div class="header-cta sm-hide">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
@@ -100,9 +100,12 @@
 <section class="section">
   <div class="container">
     <h1>News</h1>
-    <div id="newsFeed" class="news-list" aria-live="polite"></div>
+    <div id="newsFeed" class="news-list" aria-live="polite">
+      <!-- JS renders up to 10 posts -->
+    </div>
     <div style="margin-top:14px">
-      <a class="btn-light" target="_blank" rel="noopener" href="https://www.facebook.com/profile.php?id=61579126693357">See more on Facebook</a>
+      <a class="btn-see-more" target="_blank" rel="noopener"
+         href="https://www.facebook.com/profile.php?id=61579126693357">See more on Facebook</a>
     </div>
   </div>
 </section>
@@ -132,11 +135,11 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:902-539-4574">902-539-4574</a></li>
+        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
         <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
         <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:902-565-1730">902-565-1730</a> / <a href="tel:902-565-7211">902-565-7211</a></li>
+        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -162,110 +165,130 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Load global (for smart CTA only) -->
+<!-- Global smart CTA -->
 <script src="/assets/js/site.js?v=20250815" defer></script>
 
-<!-- Self-contained news renderer -->
+<!-- Page script: 10 posts, 50-word text, manual slideshow, lightbox -->
 <script>
 (function(){
   const FEED = document.getElementById('newsFeed');
 
-  function fmtDateHalifax(iso){
-    try {
-      return new Intl.DateTimeFormat('en-CA',{ timeZone:'America/Halifax', year:'numeric', month:'short', day:'2-digit' }).format(new Date(iso));
-    } catch { return ''; }
-  }
-  async function fetchJSON(path){
+  function fmtDateISOToHalifax(iso){
     try{
-      const r = await fetch(path, { headers:{'Accept':'application/json'} });
-      if(!r.ok) throw new Error('HTTP '+r.status);
-      return await r.json();
-    }catch(e){ console.error(e); return {data:[]}; }
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('en-CA',{ timeZone:'America/Halifax', year:'numeric', month:'short', day:'2-digit' }).format(d);
+    }catch(_){ return ''; }
   }
-  function truncateWords(s, max){
-    const words=(s||'').trim().split(/\s+/);
-    if(words.length<=max) return { short:s||'', truncated:false };
-    return { short: words.slice(0,max).join(' ')+'…', truncated:true };
+  function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
+  function truncateWords(s, maxWords){
+    const words = s.trim().split(/\s+/);
+    if(words.length <= maxWords) return { short: s, truncated:false };
+    return { short: words.slice(0,maxWords).join(' ') + '…', truncated:true };
   }
-  function extractImages(p){
-    if (Array.isArray(p.images) && p.images.length) return dedupe(p.images);
-    return p.full_picture ? [p.full_picture] : [];
+  function canon(u){
+    try{ const x = new URL(u); return (x.origin + x.pathname).toLowerCase(); }
+    catch{ return (u||'').split('?')[0].toLowerCase(); }
   }
-  function dedupe(arr){
-    const seen=new Set(), out=[];
-    for(const u of arr){
-      const key=(String(u).split('?')[0]||'').toLowerCase();
-      if(!seen.has(key)){ seen.add(key); out.push(u); }
-    }
-    return out;
+  function unique(arr){ const seen=new Set(); const out=[]; arr.forEach(u=>{ const k=canon(u); if(k && !seen.has(k)){ seen.add(k); out.push(u);} }); return out; }
+
+  // Try to extract multiple images from different Graph shapes
+  function extractImages(post){
+    const urls = [];
+    // 1) Custom 'media' array (if your function supplies one)
+    if (Array.isArray(post.media)) urls.push(...post.media);
+
+    // 2) attachments -> subattachments (standard Graph API shape)
+    const at = post.attachments && post.attachments.data ? post.attachments.data : [];
+    at.forEach(a=>{
+      if (a.subattachments && a.subattachments.data) {
+        a.subattachments.data.forEach(sa=>{
+          const u = (sa.media && sa.media.image && sa.media.image.src) || sa.media?.source || sa.media?.url;
+          if (u) urls.push(u);
+        });
+      } else {
+        const u = (a.media && a.media.image && a.media.image.src) || a.media?.source || a.media?.url;
+        if (u) urls.push(u);
+      }
+    });
+
+    // 3) fallback - single image
+    if (post.full_picture) urls.push(post.full_picture);
+
+    return unique(urls);
   }
 
-  let LB=null, lbImg=null, lbPrev=null, lbNext=null, lbClose=null, lbImages=[], lbIdx=0;
+  // simple lightbox
+  let LB = null, lbImg = null, lbPrev = null, lbNext = null, lbClose = null;
+  let lbImages = [], lbIdx = 0;
   function ensureLightbox(){
-    if(LB) return;
-    LB=document.createElement('div');
-    LB.className='lightbox';
-    LB.innerHTML=`
+    if (LB) return;
+    LB = document.createElement('div');
+    LB.className = 'lightbox';
+    LB.innerHTML = `
       <button class="lb-btn lb-close" aria-label="Close">✕</button>
       <button class="lb-btn lb-prev" aria-label="Previous">‹</button>
       <img alt="Expanded image">
       <button class="lb-btn lb-next" aria-label="Next">›</button>
     `;
     document.body.appendChild(LB);
-    lbImg=LB.querySelector('img');
-    lbPrev=LB.querySelector('.lb-prev');
-    lbNext=LB.querySelector('.lb-next');
-    lbClose=LB.querySelector('.lb-close');
-    lbPrev.addEventListener('click', ()=> nav(-1));
-    lbNext.addEventListener('click', ()=> nav(1));
+    lbImg = LB.querySelector('img');
+    lbPrev = LB.querySelector('.lb-prev');
+    lbNext = LB.querySelector('.lb-next');
+    lbClose = LB.querySelector('.lb-close');
+
+    lbPrev.addEventListener('click', ()=>{ if(lbImages.length){ lbIdx = (lbIdx+lbImages.length-1)%lbImages.length; lbImg.src = lbImages[lbIdx]; } });
+    lbNext.addEventListener('click', ()=>{ if(lbImages.length){ lbIdx = (lbIdx+1)%lbImages.length; lbImg.src = lbImages[lbIdx]; } });
     lbClose.addEventListener('click', ()=> LB.classList.remove('open'));
     LB.addEventListener('click', (e)=>{ if(e.target===LB) LB.classList.remove('open'); });
     document.addEventListener('keydown', (e)=>{
       if(!LB.classList.contains('open')) return;
       if(e.key==='Escape') LB.classList.remove('open');
-      if(e.key==='ArrowLeft') nav(-1);
-      if(e.key==='ArrowRight') nav(1);
+      if(e.key==='ArrowLeft') lbPrev.click();
+      if(e.key==='ArrowRight') lbNext.click();
     });
   }
-  function openLightbox(images,start){
+  function openLightbox(images, start){
     ensureLightbox();
-    lbImages=images; lbIdx=start||0;
-    lbImg.src=lbImages[lbIdx];
+    lbImages = images;
+    lbIdx = start || 0;
+    lbImg.src = lbImages[lbIdx];
     LB.classList.add('open');
-  }
-  function nav(delta){
-    if(!lbImages.length) return;
-    lbIdx=(lbIdx+lbImages.length+delta)%lbImages.length;
-    lbImg.src=lbImages[lbIdx];
   }
 
   async function load(){
-    FEED.innerHTML='<div class="news-item"><div class="news-text muted">Loading…</div></div>';
-
-    const json = await fetchJSON('/.netlify/functions/get-facebook-posts?limit=10');
-    const posts = Array.isArray(json.data) ? json.data : [];
-    if(!posts.length){
-      FEED.innerHTML='<div class="news-item"><div class="news-text muted">No updates yet.</div></div>';
+    FEED.innerHTML = '<div class="news-item"><div class="news-text muted">Loading…</div></div>';
+    let json = { data: [] };
+    try {
+      // ask backend for attachments if supported (safe to ignore if not)
+      const res = await fetch('/.netlify/functions/get-facebook-posts?limit=10&attachments=1');
+      json = await res.json();
+    } catch(e){
+      FEED.innerHTML = '<div class="news-item"><div class="news-text muted">Couldn’t load posts right now.</div></div>';
       return;
     }
 
-    FEED.innerHTML='';
+    const posts = Array.isArray(json.data) ? json.data : [];
+    if(!posts.length){
+      FEED.innerHTML = '<div class="news-item"><div class="news-text muted">No updates yet.</div></div>';
+      return;
+    }
+
+    FEED.innerHTML = '';
     posts.forEach((p, idx)=>{
-      const date = fmtDateHalifax(p.created_time);
+      const date = fmtDateISOToHalifax(p.created_time);
       const images = extractImages(p);
-      const message = (p.message||'').trim();
-      const { short, truncated } = truncateWords(message, 50);
+      const messageRaw = (p.message||'').trim();
 
-      const item=document.createElement('article');
-      item.className='news-item';
+      // 50-word view with toggle
+      const { short, truncated } = truncateWords(messageRaw, 50);
 
+      const item = document.createElement('article');
+      item.className = 'news-item';
       const gallery = images.length ? `
         <div class="news-gallery" data-cur="0">
           <button class="navbtn prev" type="button" aria-label="Previous image" ${images.length<=1?'disabled':''}>‹</button>
           <div class="frame">
-            <!-- inline style prevents the “full then half” flash before CSS loads -->
-            <img src="${images[0]}" alt="Post image ${idx+1}" loading="lazy"
-                 style="width:50%;height:auto;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);cursor:zoom-in;">
+            <img src="${images[0]}" alt="Post image ${idx+1}" loading="lazy">
           </div>
           <button class="navbtn next" type="button" aria-label="Next image" ${images.length<=1?'disabled':''}>›</button>
         </div>
@@ -278,39 +301,40 @@
         </div>
         ${gallery}
         <div class="news-text">
-          <span class="short">${short.replace(/\n/g,'<br>')}</span>
-          ${truncated ? `<span class="full" style="display:none">${message.replace(/\n/g,'<br>')}</span>` : ''}
+          <span class="short">${escapeHTML(short)}</span>
+          ${truncated ? `<span class="full" style="display:none">${escapeHTML(messageRaw).replace(/\n/g,'<br>')}</span>` : ''}
         </div>
         <div class="news-actions">
           ${truncated ? `<button class="btn-light btn-read" type="button">Read more</button>` : ''}
         </div>
-        <div class="divider"></div>
+        ${idx < posts.length-1 ? '<div class="divider"></div>' : '' }
       `;
 
       // read more toggle
       if(truncated){
-        const btn=item.querySelector('.btn-read');
-        const shortEl=item.querySelector('.short');
-        const fullEl=item.querySelector('.full');
+        const btn = item.querySelector('.btn-read');
+        const shortEl = item.querySelector('.short');
+        const fullEl = item.querySelector('.full');
         btn.addEventListener('click', ()=>{
           const expand = fullEl.style.display==='none';
           fullEl.style.display = expand ? 'inline' : 'none';
-          shortEl.style.display = expand ? 'none'  : 'inline';
+          shortEl.style.display = expand ? 'none' : 'inline';
           btn.textContent = expand ? 'Show less' : 'Read more';
         });
       }
 
-      // slideshow + lightbox
+      // gallery controls & lightbox on image click
       if(images.length){
-        const g=item.querySelector('.news-gallery');
-        const img=g.querySelector('img');
-        const prev=g.querySelector('.prev');
-        const next=g.querySelector('.next');
-        let cur=0;
+        const g = item.querySelector('.news-gallery');
+        const img = g.querySelector('img');
+        const prev = g.querySelector('.prev');
+        const next = g.querySelector('.next');
+        let cur = 0;
+
         function update(){
-          img.src=images[cur];
-          prev.disabled=(cur===0);
-          next.disabled=(cur===images.length-1);
+          img.src = images[cur];
+          prev.disabled = (cur===0);
+          next.disabled = (cur===images.length-1);
         }
         prev.addEventListener('click', ()=>{ if(cur>0){ cur--; update(); }});
         next.addEventListener('click', ()=>{ if(cur<images.length-1){ cur++; update(); }});
