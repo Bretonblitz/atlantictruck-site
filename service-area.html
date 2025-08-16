@@ -12,7 +12,7 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/site.js?v=2"></script>
+  <script defer src="/assets/js/site.js?v=3"></script>
   <style>
     .eta-card { padding:14px; border:1px solid #eee; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.06); background:#fff; }
     .eta-table { width:100%; border-collapse:collapse; }
@@ -70,9 +70,11 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA -->
+    <!-- Red dispatch button (time-aware) -->
     <div class="header-cta sm-hide">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 902-539-4574">Call 902-539-4574</a>
+      <a id="dispatchBtn" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch 902-539-4574">
+        Call 24/7 Dispatch: <strong>902-539-4574</strong>
+      </a>
     </div>
   </div>
 </header>
@@ -80,30 +82,17 @@
 <section class="section">
   <div class="container">
     <h1>Service Area</h1>
-    <p>We cover Cape Breton and most of Nova Scotia. Dispatch and routing start at our Edwardsville shop.</p>
+    <p>We cover Cape Breton and most of Nova Scotia. ETAs below are conservative and rounded to the next 15 minutes.</p>
 
-    <!-- Image first -->
-    <figure style="margin:18px auto 10px; max-width:900px; text-align:center">
-      <img src="/assets/img/service-area.png" alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point" style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
-      <figcaption class="small muted" style="margin-top:6px">
-        Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
-      </figcaption>
-    </figure>
-
-    <!-- Quick facts -->
-    <div class="tiles" style="margin:14px 0 18px">
-      <div class="tile"><div class="body"><strong>Fast response</strong><div>24/7 heavy recovery & towing</div></div></div>
-      <div class="tile"><div class="body"><strong>Shop hours</strong><div>Mon–Fri, 8:00–4:30 (AST)</div></div></div>
-      <div class="tile"><div class="body"><strong>Coverage</strong><div>Cape Breton + most of Nova Scotia</div></div></div>
+    <!-- Status pill -->
+    <div style="margin:8px 0">
+      <span id="etaModePill" class="mode-pill">Checking…</span>
+      <span id="etaClock" class="small muted inline" aria-live="polite"></span>
     </div>
 
-    <!-- Typical response times -->
-    <div class="eta-card">
-      <h2 style="margin-bottom:8px">
-        Typical response times
-        <span id="etaModePill" class="mode-pill">Checking…</span>
-        <span id="etaClock" class="small muted inline" aria-live="polite"></span>
-      </h2>
+    <!-- ETA table -->
+    <div class="eta-card" style="margin:12px 0 16px">
+      <h2 style="margin:0 0 8px">Typical response times (from Edwardsville)</h2>
       <div class="responsive-table">
         <table class="eta-table" id="etaTable" aria-live="polite">
           <thead>
@@ -113,18 +102,31 @@
         </table>
       </div>
       <p class="small muted eta-note">
-        Estimates assume truck availability and normal conditions. Weather, load weight, traffic or road closures can extend ETAs.
+        During business hours we add ~15 min for dispatch; after hours we add ~30 min. Weather, load weight, traffic or road closures can extend ETAs.
       </p>
     </div>
 
-    <!-- Map (zoomed to show Sydney) -->
+    <!-- Image first -->
+    <figure style="margin:18px auto 10px; max-width:900px; text-align:center">
+      <img src="/assets/img/service-area.png"
+           alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point"
+           style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
+      <figcaption class="small muted" style="margin-top:6px">
+        Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
+      </figcaption>
+    </figure>
+
+    <!-- Map second; zoom widened to show Sydney, NS -->
     <div class="kv" style="height:480px; margin-top:18px">
-      <iframe title="Map - Atlantic Truck & Equipment Repair"
-              src="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9&output=embed"
-              width="100%" height="480" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
+      <iframe
+        title="Map - Atlantic Truck & Equipment Repair"
+        src="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9&output=embed"
+        width="100%" height="480" style="border:0;" loading="lazy" referrerpolicy="no-referrer-when-downgrade" allowfullscreen>
       </iframe>
     </div>
-    <p><a class="btn-light" target="_blank" rel="noopener" href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9">Open full map</a></p>
+
+    <p><a class="btn-light" target="_blank" rel="noopener"
+          href="https://www.google.com/maps?q=417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9&z=9">Open full map</a></p>
   </div>
 </section>
 
@@ -177,81 +179,82 @@
   </div>
 </footer>
 
+<!-- Mobile quick bar -->
 <div class="action-bar md-hide">
-  <a href="tel:9025394574">Call</a>
+  <a id="dispatchMobile" href="tel:9025394574">Dispatch</a>
   <a target="_blank" rel="noopener" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9&z=9">Directions</a>
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Smart CTA + dynamic ETAs (Halifax time, robust) -->
+<!-- Halifax-time smart dispatch button + dynamic ETAs -->
 <script>
 (function(){
-  // Get Halifax (America/Halifax) parts without parsing strings
+  // Halifax time (robust)
   function halifaxParts(){
-    const dtf = new Intl.DateTimeFormat('en-CA', {
-      timeZone: 'America/Halifax',
-      weekday: 'short', hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+    const f = new Intl.DateTimeFormat('en-CA',{
+      timeZone:'America/Halifax', weekday:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23'
     });
-    const parts = dtf.formatToParts(new Date());
-    let weekday='Mon', hour=0, minute=0;
+    const parts = f.formatToParts(new Date());
+    let wd='Mon', h=0, m=0, label=f.format(new Date());
     for(const p of parts){
-      if(p.type==='weekday') weekday = p.value;
-      if(p.type==='hour')    hour    = parseInt(p.value,10);
-      if(p.type==='minute')  minute  = parseInt(p.value,10);
+      if(p.type==='weekday') wd=p.value;
+      if(p.type==='hour') h=parseInt(p.value,10);
+      if(p.type==='minute') m=parseInt(p.value,10);
     }
-    return {weekday, hour, minute, label: dtf.format(new Date())};
+    return {wd,h,m,label};
   }
-
-  function inBizHoursHalifax(){
-    const {weekday, hour, minute} = halifaxParts();
-    if(weekday==='Sat' || weekday==='Sun') return false;
-    if(hour < 8)  return false;
-    if(hour > 16) return false;
-    if(hour === 16 && minute > 30) return false;
+  function inBizHours(){
+    const {wd,h,m} = halifaxParts();
+    if(wd==='Sat' || wd==='Sun') return false;
+    if(h < 8) return false;
+    if(h > 16) return false;
+    if(h===16 && m>30) return false;
     return true;
   }
-
   function ceil15(n){ return Math.ceil(n/15)*15; }
-
-  // Smart CTA flip
-  const cta = document.getElementById('smartCta');
-  function updateCTA(){
-    if(!cta) return;
-    if(inBizHoursHalifax()){
-      cta.textContent = 'Call 902-539-4574';
-      cta.href = 'tel:9025394574';
-      cta.setAttribute('aria-label','Call 902-539-4574');
-    } else {
-      cta.textContent = 'After-Hours: 902-565-1730';
-      cta.href = 'tel:9025651730';
-      cta.setAttribute('aria-label','Call After-Hours 902-565-1730');
-    }
+  function fmt(mins){
+    const H=Math.floor(mins/60), M=mins%60;
+    if(H===0) return `${M} min`;
+    if(M===0) return `${H} hr`;
+    return `${H} hr ${M} min`;
   }
 
-  // Base drive times (conservative), minutes from shop.
-  // Sydney is <= 60 min during business hours after rounding to 15.
-  const points = [
-    { place:'Sydney',           base:40 }, // +15 => 55 -> ceil15 => 60 (business)
-    { place:'North Sydney',     base:45 },
-    { place:'Sydney Mines',     base:50 },
-    { place:'Glace Bay',        base:55 },
-    { place:'New Waterford',    base:55 },
-    { place:'Eskasoni',         base:60 },
-    { place:'Baddeck',          base:75 },
-    { place:'Port Hawkesbury',  base:95 },
-    { place:'Antigonish',       base:120 }
-  ];
+  // Time-aware dispatch button (desktop + mobile)
+  function updateDispatchBtn(){
+    const business = inBizHours();
+    const num = business ? '902-539-4574' : '902-565-1730';
+    const tel = 'tel:' + num.replace(/[^0-9]/g,'');
+    const el = document.getElementById('dispatchBtn');
+    if(el){
+      el.href = tel;
+      el.setAttribute('aria-label','Call 24/7 Dispatch ' + num);
+      el.innerHTML = 'Call 24/7 Dispatch: <strong>' + num + '</strong>';
+    }
+    const m = document.getElementById('dispatchMobile');
+    if(m) m.href = tel;
+  }
 
-  const tbody = document.querySelector('#etaTable tbody');
-  const pill  = document.getElementById('etaModePill');
-  const clock = document.getElementById('etaClock');
+  // Base drives (conservative) from Edwardsville; Sydney <= 60 min typical in business hours
+  const BASE = {
+    "Sydney": 35,            // +15 => 50 -> ceil15 => 60
+    "North Sydney": 40,
+    "Sydney Mines": 45,
+    "Glace Bay": 55,
+    "New Waterford": 60,
+    "Eskasoni": 60,
+    "Baddeck": 70,
+    "Port Hawkesbury": 115,
+    "Antigonish": 145
+  };
 
   function renderETAs(){
-    if(!tbody || !pill) return;
-    const hal = halifaxParts();
-    const business = inBizHoursHalifax();
+    const pill = document.getElementById('etaModePill');
+    const clock = document.getElementById('etaClock');
+    const tbody = document.querySelector('#etaTable tbody');
+    if(!pill || !tbody) return;
 
-    // Overhead: +15 in hours, +30 after hours
+    const hal = halifaxParts();
+    const business = inBizHours();
     const overhead = business ? 15 : 30;
 
     pill.textContent = business ? 'Now: Business Hours' : 'Now: After Hours';
@@ -259,15 +262,15 @@
     if(clock) clock.textContent = `Now in Halifax: ${hal.label}`;
 
     tbody.innerHTML = '';
-    points.forEach(p=>{
-      const eta = ceil15(p.base + overhead);
+    Object.entries(BASE).forEach(([place, base])=>{
+      const typical = ceil15(base + overhead);
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${p.place}</td><td>~${p.base} min</td><td><strong>~${eta} min</strong></td>`;
+      tr.innerHTML = `<td>${place}</td><td>~${fmt(base)}</td><td><strong>~${fmt(typical)}</strong></td>`;
       tbody.appendChild(tr);
     });
   }
 
-  function tick(){ updateCTA(); renderETAs(); }
+  function tick(){ updateDispatchBtn(); renderETAs(); }
   tick();
   setInterval(tick, 60000);
 })();
