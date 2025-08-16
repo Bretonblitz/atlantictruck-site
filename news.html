@@ -26,12 +26,12 @@
     .news-gallery .navbtn { border:1px solid #ddd; background:#fafafa; border-radius:10px; padding:6px 10px; cursor:pointer; user-select:none; }
     .news-gallery .navbtn:disabled { opacity:.4; cursor:default; }
     .news-gallery .frame { flex:1; display:flex; justify-content:center; }
+    /* CSS fallback; we’ll also set inline width to avoid “flash” before CSS applies */
     .news-gallery img { width:50%; height:auto; border-radius:10px; box-shadow:0 4px 12px rgba(0,0,0,.08); cursor:zoom-in; }
     @media (max-width: 700px){ .news-gallery img { width:100%; } }
 
     .news-actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn-light.btn-read { border:1px solid #ddd; border-radius:10px; padding:8px 12px; background:#fff; }
-    .btn-see-more { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; }
 
     /* Lightbox */
     .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.8); display:none; align-items:center; justify-content:center; z-index:9999; }
@@ -42,6 +42,9 @@
     .lightbox .lb-prev { left:20px; }
     .lightbox .lb-next { right:20px; }
   </style>
+
+  <!-- Tell global site.js to skip its old news renderer -->
+  <script>window.__DISABLE_GLOBAL_NEWS = true;</script>
 </head>
 <body>
 <!-- Emergency bar -->
@@ -97,12 +100,9 @@
 <section class="section">
   <div class="container">
     <h1>News</h1>
-    <div id="newsFeed" class="news-list" aria-live="polite">
-      <!-- JS will render up to 10 posts -->
-    </div>
+    <div id="newsFeed" class="news-list" aria-live="polite"></div>
     <div style="margin-top:14px">
-      <a class="btn-see-more" target="_blank" rel="noopener"
-         href="https://www.facebook.com/profile.php?id=61579126693357">See more on Facebook</a>
+      <a class="btn-light" target="_blank" rel="noopener" href="https://www.facebook.com/profile.php?id=61579126693357">See more on Facebook</a>
     </div>
   </div>
 </section>
@@ -162,37 +162,31 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Only used for the smart CTA timing/phone swap -->
+<!-- Load global (for smart CTA only) -->
 <script src="/assets/js/site.js?v=20250815" defer></script>
 
-<!-- Self-contained news renderer (works with your current JSON) -->
+<!-- Self-contained news renderer -->
 <script>
 (function(){
   const FEED = document.getElementById('newsFeed');
 
   function fmtDateHalifax(iso){
     try {
-      return new Intl.DateTimeFormat('en-CA',{
-        timeZone:'America/Halifax', year:'numeric', month:'short', day:'2-digit'
-      }).format(new Date(iso));
+      return new Intl.DateTimeFormat('en-CA',{ timeZone:'America/Halifax', year:'numeric', month:'short', day:'2-digit' }).format(new Date(iso));
     } catch { return ''; }
   }
-
   async function fetchJSON(path){
     try{
-      const r = await fetch(path, { headers: { 'Accept':'application/json' }});
+      const r = await fetch(path, { headers:{'Accept':'application/json'} });
       if(!r.ok) throw new Error('HTTP '+r.status);
       return await r.json();
     }catch(e){ console.error(e); return {data:[]}; }
   }
-
   function truncateWords(s, max){
     const words=(s||'').trim().split(/\s+/);
     if(words.length<=max) return { short:s||'', truncated:false };
     return { short: words.slice(0,max).join(' ')+'…', truncated:true };
   }
-
-  // Prefer normalized array if present; else use full_picture.
   function extractImages(p){
     if (Array.isArray(p.images) && p.images.length) return dedupe(p.images);
     return p.full_picture ? [p.full_picture] : [];
@@ -206,7 +200,6 @@
     return out;
   }
 
-  // Simple lightbox
   let LB=null, lbImg=null, lbPrev=null, lbNext=null, lbClose=null, lbImages=[], lbIdx=0;
   function ensureLightbox(){
     if(LB) return;
@@ -249,9 +242,7 @@
   async function load(){
     FEED.innerHTML='<div class="news-item"><div class="news-text muted">Loading…</div></div>';
 
-    // Works with your current function output
     const json = await fetchJSON('/.netlify/functions/get-facebook-posts?limit=10');
-
     const posts = Array.isArray(json.data) ? json.data : [];
     if(!posts.length){
       FEED.innerHTML='<div class="news-item"><div class="news-text muted">No updates yet.</div></div>';
@@ -272,7 +263,9 @@
         <div class="news-gallery" data-cur="0">
           <button class="navbtn prev" type="button" aria-label="Previous image" ${images.length<=1?'disabled':''}>‹</button>
           <div class="frame">
-            <img src="${images[0]}" alt="Post image ${idx+1}" loading="lazy">
+            <!-- inline style prevents the “full then half” flash before CSS loads -->
+            <img src="${images[0]}" alt="Post image ${idx+1}" loading="lazy"
+                 style="width:50%;height:auto;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,.08);cursor:zoom-in;">
           </div>
           <button class="navbtn next" type="button" aria-label="Next image" ${images.length<=1?'disabled':''}>›</button>
         </div>
