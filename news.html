@@ -4,15 +4,33 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>News | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="Trucking & transportation headlines for Cape Breton and Atlantic Canada, curated for drivers and fleets.">
+  <meta name="description" content="Trucking and highway news with a focus on Cape Breton and Atlantic Canada.">
   <meta property="og:title" content="News | Atlantic Truck & Equipment Repair">
-  <meta property="og:description" content="Trucking & transportation headlines for Cape Breton and Atlantic Canada.">
+  <meta property="og:description" content="Latest trucking and highway updates for Cape Breton and Atlantic Canada.">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_CA">
   <meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
+
+  <style>
+    /* minimal layout touches for the feed */
+    .news-feed { display: grid; gap: 18px; }
+    .news-card { border:1px solid #e6e6e6; border-radius:12px; overflow:hidden; background:#fff; }
+    .news-card .img-wrap { width:100%; position:relative; overflow:hidden; background:#f5f5f5; }
+    .news-card img { width:100%; height:auto; display:block; }
+    .news-card .body { padding:14px; }
+    .news-card .meta { font-size:12px; color:#6b7280; margin-bottom:6px; }
+    .news-card h3 { margin:0 0 8px; font-size:18px; line-height:1.25; }
+    .news-card p { margin:0; }
+    .news-card .actions { margin-top:10px; display:flex; gap:10px; align-items:center; }
+    .read-more { color:#B9111B; font-weight:600; text-decoration:none; }
+    .sources { margin-top:16px; font-size:13px; color:#6b7280; }
+    .skeleton { border-radius:12px; height:140px; background:linear-gradient(90deg,#eee,#f5f5f5,#eee); animation:s 1.2s infinite; }
+    @keyframes s { 0%{background-position:-200px 0} 100%{background-position:calc(200px + 100%) 0} }
+    @media (min-width: 900px){ .news-feed { grid-template-columns: 1fr 1fr; } }
+  </style>
 </head>
 <body>
 <!-- Emergency bar -->
@@ -59,26 +77,27 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA (same behavior as your Contact/Service Area pages) -->
+    <!-- Smart CTA (same logic as other pages; site.js updates text/number by time) -->
     <div class="header-cta sm-hide">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
   </div>
 </header>
 
+<!-- Content -->
 <section class="section">
   <div class="container">
-    <h1>News &amp; Updates</h1>
-    <p class="muted">Fresh headlines from trusted sources in Nova Scotia and Atlantic Canada’s trucking &amp; transport scene.</p>
-
-    <div id="newsList" class="news-list" aria-live="polite"></div>
-
-    <div class="center" style="margin-top:16px">
-      <a class="btn-light" target="_blank" rel="noopener" href="https://www.google.com/search?q=trucking+news+Nova+Scotia&tbm=nws">See more news</a>
+    <h1>News</h1>
+    <div id="newsFeed" class="news-feed" aria-live="polite">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
+    <div style="margin-top:16px">
+      <a class="btn-light" target="_blank" rel="noopener" href="https://www.trucknews.com/">See more news</a>
     </div>
   </div>
 </section>
 
+<!-- Footer -->
 <footer class="site-footer">
   <div class="container grid-4">
     <div>
@@ -134,55 +153,74 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- JS: site utilities + page renderer -->
-<script src="/assets/js/site.js?v=20250815" defer></script>
+<!-- Your global site script (keeps the smart CTA behavior consistent) -->
+<script src="/assets/js/site.js?v=20250816" defer></script>
+
+<!-- Page-only script to render news -->
 <script>
-/* --- Render aggregated industry news --- */
-function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); }catch(_){ return ""; } }
-function esc(s=""){ return (s||"").replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c])); }
+(function(){
+  const feedEl = document.getElementById('newsFeed');
 
-async function loadNews(){
-  const wrap = document.getElementById('newsList');
-  if (!wrap) return;
-  wrap.innerHTML = '<div class="skeleton"></div>'.repeat(6);
+  const words = (s) => (s||'').trim().split(/\s+/);
+  const shortText = (s, max) => {
+    const w = words(s);
+    if (w.length <= max) return {text: s, truncated:false};
+    return {text: w.slice(0,max).join(' ') + '…', truncated:true};
+  };
+  const fmtDate = s => { try{ return new Date(s).toLocaleDateString(); }catch(_){ return ''; } };
 
-  let data = [];
-  try{
-    const res = await fetch('/.netlify/functions/get-industry-news?limit=10', { cache:'no-store' });
-    const json = await res.json();
-    data = json.data || [];
-  }catch(_){}
+  async function loadNews(){
+    try{
+      const res = await fetch('/.netlify/functions/get-truck-news?limit=10', { cache: 'no-store' });
+      const json = await res.json();
+      const items = (json && json.data) ? json.data : [];
+      feedEl.innerHTML = '';
+      if(!items.length){ feedEl.innerHTML = '<p class="muted">No recent articles.</p>'; return; }
 
-  wrap.innerHTML = '';
-  if (!data.length){
-    wrap.innerHTML = '<p class="muted">No recent articles right now.</p>';
-    return;
+      for(const it of items){
+        const card = document.createElement('article');
+        card.className = 'news-card';
+
+        const img = it.image ? `<div class="img-wrap"><img loading="lazy" src="${it.image}" alt=""></div>` : '';
+        const title = it.title || 'Untitled';
+        const date  = fmtDate(it.date);
+        const sum   = it.summary || '';
+        const preview = shortText(sum, 50);
+
+        card.innerHTML = `
+          ${img}
+          <div class="body">
+            <div class="meta">${date}${it.source ? ' • ' + it.source : ''}</div>
+            <h3>${title}</h3>
+            <p class="excerpt">${preview.text}</p>
+            <div class="actions">
+              <a class="btn-light" target="_blank" rel="noopener" href="${it.link}">Read full story</a>
+              ${preview.truncated ? '<a href="#" class="read-more">Read more</a>' : ''}
+            </div>
+          </div>
+        `;
+
+        // expand/collapse
+        const more = card.querySelector('.read-more');
+        if (more) {
+          more.addEventListener('click', e => {
+            e.preventDefault();
+            const p = card.querySelector('.excerpt');
+            p.textContent = sum;
+            more.remove();
+          });
+        }
+
+        feedEl.appendChild(card);
+      }
+    } catch(e){
+      console.error(e);
+      feedEl.innerHTML = '<p class="muted">Couldn’t load news right now.</p>';
+    }
   }
 
-  data.forEach(item => {
-    const art = document.createElement('article');
-    art.className = 'news-card';
-    // native image aspect (no cropping)
-    const img = item.image ? `<img src="${esc(item.image)}" alt="" loading="lazy">` : '';
-    const meta = `<div class="meta">${esc(item.source)} • ${fmtDate(item.dateIso)}</div>`;
-    const title = `<h2 class="h4" style="margin:6px 0">${esc(item.title)}</h2>`;
-    const body = `<div class="body">${item.excerptHtml || ''}</div>`;
-    const read = `<div style="margin-top:8px"><a class="btn-light" target="_blank" rel="noopener" href="${esc(item.url)}">Read full story</a></div>`;
-    art.innerHTML = (img ? `<div class="kv">${img}</div>` : '') + `<div class="content">${meta}${title}${body}${read}</div>`;
-    wrap.appendChild(art);
-  });
-}
-document.addEventListener('DOMContentLoaded', loadNews);
+  document.addEventListener('DOMContentLoaded', loadNews);
+})();
 </script>
-<style>
-/* small style touches for articles */
-.news-list { display:grid; gap:20px; }
-.news-card { border:1px solid #eee; border-radius:10px; overflow:hidden; background:#fff; }
-.news-card .kv img { display:block; width:100%; height:auto; }
-.news-card .content { padding:14px; }
-.news-card .meta { font-size:12px; color:#6b7280; }
-.skeleton { height:120px; background:linear-gradient(90deg,#eee,#f6f6f6,#eee); animation:s 1.2s infinite; border-radius:8px; }
-@keyframes s{0%{background-position:0 0}100%{background-position:200% 0}}
-</style>
 </body>
 </html>
