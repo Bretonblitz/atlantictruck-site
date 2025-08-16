@@ -13,6 +13,19 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
+  <style>
+    .eta-card { padding:14px; border:1px solid #eee; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.06); background:#fff; }
+    .eta-table { width:100%; border-collapse:collapse; }
+    .eta-table th, .eta-table td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; }
+    .eta-table th { font-weight:700; }
+    .eta-indicator { padding:10px 12px; border-radius:10px; font-weight:700; display:flex; align-items:center; gap:10px; border:1px solid transparent; }
+    .eta-indicator .dot { width:10px; height:10px; border-radius:999px; display:inline-block; }
+    .eta-indicator.on  { background:#e6f7ee; color:#0f5132; border-color:#b7ebc6; }   /* Business Hours (green) */
+    .eta-indicator.on .dot { background:#2e7d32; }
+    .eta-indicator.off { background:#fff2e2; color:#7a4a00; border-color:#ffd59a; }  /* After Hours (orange) */
+    .eta-indicator.off .dot { background:#f57c00; }
+    .small.muted.inline { display:inline-block; margin-left:8px; color:#6b7280; font-size:12px; }
+  </style>
 </head>
 <body>
 <!-- Emergency bar -->
@@ -81,25 +94,26 @@
       </figcaption>
     </figure>
 
-    <!-- Status pill + clock -->
-    <div style="margin:8px 0">
-      <span id="etaModePill" class="mode-pill">Checking…</span>
-      <span id="etaClock" class="small muted inline" aria-live="polite"></span>
+    <!-- Green/Orange indicator -->
+    <div id="etaIndicator" class="eta-indicator" aria-live="polite" style="margin:12px 0">
+      <span class="dot" aria-hidden="true"></span>
+      <span id="etaIndicatorText">Checking current mode…</span>
+      <span id="etaClock" class="small muted inline"></span>
     </div>
 
-    <!-- ETA table -->
+    <!-- ETA table (Typical only) -->
     <div class="eta-card" style="margin:12px 0 16px">
       <h2 style="margin:0 0 8px">Typical response times (from Edwardsville)</h2>
       <div class="responsive-table">
         <table class="eta-table" id="etaTable" aria-live="polite">
           <thead>
-            <tr><th>Location</th><th>Base drive</th><th>Typical response (now)</th></tr>
+            <tr><th>Location</th><th>Typical response (now)</th></tr>
           </thead>
           <tbody></tbody>
         </table>
       </div>
-      <p class="small muted eta-note">
-        During business hours we add ~15 min for dispatch; after hours we add ~30 min. Weather, load weight, traffic or road closures can extend ETAs.
+      <p class="small muted" style="margin-top:6px">
+        Weather, load weight, traffic or road closures can extend ETAs.
       </p>
     </div>
 
@@ -173,8 +187,10 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Site JS first (drives the red CTA number by time-of-day), then this page's ETA script -->
+<!-- Load global site JS (drives the red CTA) -->
 <script src="/assets/js/site.js?v=20250815" defer></script>
+
+<!-- Page-specific ETA logic -->
 <script>
 (function(){
   // Halifax time helpers
@@ -209,7 +225,7 @@
 
   // Base drives (conservative) from Edwardsville; Sydney <= 60 min typical in business hours
   const BASE = {
-    "Sydney": 35,            // +15 => 50 -> ceil15 => 60
+    "Sydney": 35,
     "North Sydney": 40,
     "Sydney Mines": 45,
     "Glace Bay": 55,
@@ -221,24 +237,30 @@
   };
 
   function renderETAs(){
-    const pill = document.getElementById('etaModePill');
+    const indicator = document.getElementById('etaIndicator');
+    const indicatorText = document.getElementById('etaIndicatorText');
     const clock = document.getElementById('etaClock');
     const tbody = document.querySelector('#etaTable tbody');
-    if(!pill || !tbody) return;
+    if(!indicator || !indicatorText || !tbody) return;
 
     const hal = halifaxParts();
     const business = inBizHours();
     const overhead = business ? 15 : 30;
 
-    pill.textContent = business ? 'Now: Business Hours' : 'Now: After Hours';
-    pill.className = 'mode-pill ' + (business ? 'on' : 'off');
-    if(clock) clock.textContent = `Now in Halifax: ${hal.label}`;
+    // Update the green/orange indicator
+    indicator.classList.toggle('on', business);
+    indicator.classList.toggle('off', !business);
+    indicatorText.textContent = business
+      ? 'Quoting Business Hours response times'
+      : 'Quoting After Hours response times';
+    clock.textContent = `Now in Halifax: ${hal.label}`;
 
+    // Build the table (Typical only)
     tbody.innerHTML = '';
     Object.entries(BASE).forEach(([place, base])=>{
       const typical = ceil15(base + overhead);
       const tr = document.createElement('tr');
-      tr.innerHTML = `<td>${place}</td><td>~${fmt(base)}</td><td><strong>~${fmt(typical)}</strong></td>`;
+      tr.innerHTML = `<td>${place}</td><td><strong>~${fmt(typical)}</strong></td>`;
       tbody.appendChild(tr);
     });
   }
