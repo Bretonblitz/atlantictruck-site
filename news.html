@@ -4,39 +4,44 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>News | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="News | Atlantic Truck & Equipment Repair">
+  <meta name="description" content="News and updates from Atlantic Truck & Equipment Repair.">
   <meta property="og:title" content="News | Atlantic Truck & Equipment Repair">
-  <meta property="og:description" content="News | Atlantic Truck & Equipment Repair">
-  <meta property="og:image" content="https://static.wixstatic.com/media/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg/v1/fill/w_980,h_426,al_c,q_85,enc_avif,quality_auto/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg">
-  <meta property="og:type" content="website"><meta property="og:locale" content="en_CA">
+  <meta property="og:description" content="News and updates from Atlantic Truck & Equipment Repair.">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_CA">
   <meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/site.js"></script>
+  <style>
+    /* Page-specific, light styles to get your exact layout */
+    .news-list { display: flex; flex-direction: column; gap: 18px; }
+    .news-item { border:1px solid #eee; border-radius:12px; padding:14px; background:#fff; box-shadow:0 6px 16px rgba(0,0,0,.06); }
+    .news-head { display:flex; align-items:baseline; gap:10px; margin-bottom:8px; }
+    .news-date { font-size:.9rem; color:#6b7280; }
+    .news-img { width:100%; height:auto; border-radius:10px; display:block; margin:8px 0; } /* native aspect */
+    .news-text { line-height:1.45; }
+    .news-actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+    .link-muted { color:#6b7280; text-decoration:underline; }
+    .divider { height:1px; background:#eee; margin:4px 0 0; }
+    .btn-see-more { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; }
+  </style>
 </head>
-  <section class="container">
-  <h1>News</h1>
-  <div id="newsFeed" class="news-grid"></div>
-</section>
-
-<!-- load site JS (cache-busted) -->
-<script src="/assets/js/site.js?v=20250815" defer></script>
-</body>
-</html>
-
 <body>
+<!-- Emergency bar -->
 <div class="emergency-bar">
   <div class="container row spread center">
     <strong>24/7 Emergency Recovery &amp; Towing</strong>
     <div class="row wrap">
-      <a class="link-invert" href="tel:9025651730">After Hours: 902‑565‑1730</a>
+      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
       <span class="sm-hide">|</span>
-      <a class="link-invert" href="tel:9025657211">902‑565‑7211</a>
-      <a class="btn-light sm-hide" href="/requests.html#service">Need help now</a>
+      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
+      <a class="btn-light sm-hide" href="/requests.html">Requests</a>
     </div>
   </div>
 </div>
+
+<!-- Header -->
 <header class="site-header">
   <div class="container row spread center">
     <a class="brand row center" href="/index.html">
@@ -61,20 +66,29 @@
           </ul>
         </li>
         <li><a href="/gallery.html">Gallery</a></li>
-        <li><a href="/news.html">News</a></li>
+        <li><a class="active" href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
         <li><a href="/requests.html">Requests</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <div class="header-cta sm-hide"><a class="btn" href="tel:9025394574">Call 902‑539‑4574</a></div>
+    <!-- Smart CTA (same as other pages; site.js swaps number by time-of-day) -->
+    <div class="header-cta sm-hide">
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+    </div>
   </div>
 </header>
 
 <section class="section">
   <div class="container">
-    <h1>News & Updates</h1>
-    <p class="muted">Latest posts from our Facebook page, shown here for fast loading.</p><div id="newsGrid" class="news-grid" aria-live="polite"></div>
+    <h1>News</h1>
+    <div id="newsFeed" class="news-list" aria-live="polite">
+      <!-- JS will render up to 10 posts here -->
+    </div>
+    <div style="margin-top:14px">
+      <a class="btn-see-more" target="_blank" rel="noopener"
+         href="https://www.facebook.com/profile.php?id=61579126693357">See more on Facebook</a>
+    </div>
   </div>
 </section>
 
@@ -103,11 +117,11 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902‑539‑4574</a></li>
+        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
         <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
         <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902‑565‑1730</a> / <a href="tel:9025657211">902‑565‑7211</a></li>
+        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -130,7 +144,102 @@
 <div class="action-bar md-hide">
   <a href="tel:9025394574">Call</a>
   <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
-  <a href="/requests.html#service">Book Service</a>
+  <a href="/requests.html">Requests</a>
 </div>
+
+<!-- Load site JS (smart CTA) -->
+<script src="/assets/js/site.js?v=20250815" defer></script>
+
+<!-- Page script: render up to 10 posts, 50-word text w/ Read more -->
+<script>
+(function(){
+  const FEED = document.getElementById('newsFeed');
+
+  function fmtDateISOToHalifax(iso){
+    try{
+      const d = new Date(iso);
+      return new Intl.DateTimeFormat('en-CA',{
+        timeZone:'America/Halifax',
+        year:'numeric', month:'short', day:'2-digit'
+      }).format(d);
+    }catch(_){ return ''; }
+  }
+
+  function escapeHTML(s){
+    return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;','\'':'&#39;'}[c]));
+  }
+
+  function truncateWords(s, maxWords){
+    const words = s.trim().split(/\s+/);
+    if(words.length <= maxWords) return {short: s, truncated: false};
+    return {short: words.slice(0, maxWords).join(' ') + '…', truncated: true};
+  }
+
+  async function load(){
+    FEED.innerHTML = '<div class="news-item"><div class="news-text muted">Loading…</div></div>';
+    let json = { data: [] };
+    try {
+      const res = await fetch('/.netlify/functions/get-facebook-posts?limit=10');
+      json = await res.json();
+    } catch(e){
+      FEED.innerHTML = '<div class="news-item"><div class="news-text muted">Couldn’t load posts right now.</div></div>';
+      return;
+    }
+
+    const posts = Array.isArray(json.data) ? json.data : [];
+    if(!posts.length){
+      FEED.innerHTML = '<div class="news-item"><div class="news-text muted">No updates yet.</div></div>';
+      return;
+    }
+
+    FEED.innerHTML = '';
+    posts.forEach((p, idx) => {
+      const date = fmtDateISOToHalifax(p.created_time);
+      const messageRaw = (p.message || '').trim();
+      const messageEscaped = escapeHTML(messageRaw).replace(/\n/g,'<br>');
+      // Word limit: 50 words
+      const temp = document.createElement('div');
+      temp.innerHTML = messageEscaped;
+      const textOnly = temp.textContent || temp.innerText || '';
+      const { short, truncated } = truncateWords(textOnly, 50);
+
+      const item = document.createElement('article');
+      item.className = 'news-item';
+      item.innerHTML = `
+        <div class="news-head">
+          <h2 class="h4" style="margin:0">Update</h2>
+          <div class="news-date">${date}</div>
+        </div>
+        ${p.full_picture ? `<img class="news-img" src="${p.full_picture}" alt="Post image">` : ''}
+        <div class="news-text">
+          <span class="short">${escapeHTML(short)}</span>
+          ${truncated ? `<span class="full" style="display:none">${messageEscaped}</span>` : ''}
+        </div>
+        <div class="news-actions">
+          ${truncated ? `<button class="btn-light btn-read" type="button">Read more</button>` : ''}
+          <a class="link-muted" target="_blank" rel="noopener" href="${p.permalink_url || '#'}">Open on Facebook</a>
+        </div>
+        ${idx < posts.length-1 ? '<div class="divider"></div>' : '' }
+      `;
+
+      if(truncated){
+        const btn = item.querySelector('.btn-read');
+        const shortEl = item.querySelector('.short');
+        const fullEl = item.querySelector('.full');
+        btn.addEventListener('click', ()=>{
+          const isShort = fullEl.style.display === 'none';
+          fullEl.style.display = isShort ? 'inline' : 'none';
+          shortEl.style.display = isShort ? 'none' : 'inline';
+          btn.textContent = isShort ? 'Show less' : 'Read more';
+        });
+      }
+
+      FEED.appendChild(item);
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', load);
+})();
+</script>
 </body>
 </html>
