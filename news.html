@@ -34,6 +34,7 @@
 
     .news-actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
     .btn-light.btn-read { border:1px solid #ddd; border-radius:10px; padding:8px 12px; background:#fff; }
+    .btn-see-more { display:inline-block; padding:10px 14px; border-radius:10px; border:1px solid #ddd; }
 
     /* Lightbox */
     .lightbox { position:fixed; inset:0; background:rgba(0,0,0,.8); display:none; align-items:center; justify-content:center; z-index:9999; }
@@ -90,7 +91,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA (same as other pages) -->
+    <!-- Smart CTA (same as other pages; /assets/js/site.js swaps label/number by time) -->
     <div class="header-cta sm-hide">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
@@ -181,40 +182,42 @@
   }
   function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;' }[c])); }
   function truncateWords(s, maxWords){
-    const words = s.trim().split(/\s+/);
-    if(words.length <= maxWords) return { short: s, truncated:false };
+    const words = (s||'').trim().split(/\s+/);
+    if(words.length <= maxWords) return { short: s||'', truncated:false };
     return { short: words.slice(0,maxWords).join(' ') + '…', truncated:true };
   }
-  function canon(u){
-    try{ const x = new URL(u); return (x.origin + x.pathname).toLowerCase(); }
-    catch{ return (u||'').split('?')[0].toLowerCase(); }
-  }
-  function unique(arr){ const seen=new Set(); const out=[]; arr.forEach(u=>{ const k=canon(u); if(k && !seen.has(k)){ seen.add(k); out.push(u);} }); return out; }
 
-  // Try to extract multiple images from different Graph shapes
+  // Prefer normalized array from backend; fall back if needed
   function extractImages(post){
-    const urls = [];
-    // 1) Custom 'media' array (if your function supplies one)
-    if (Array.isArray(post.media)) urls.push(...post.media);
+    if (Array.isArray(post.images) && post.images.length) return dedupe(post.images);
 
-    // 2) attachments -> subattachments (standard Graph API shape)
+    const urls = [];
+    const pushMedia = (m) => {
+      if (!m) return;
+      const src = m.image?.src || m.source || m.url;
+      if (src) urls.push(src);
+    };
+
     const at = post.attachments && post.attachments.data ? post.attachments.data : [];
     at.forEach(a=>{
-      if (a.subattachments && a.subattachments.data) {
-        a.subattachments.data.forEach(sa=>{
-          const u = (sa.media && sa.media.image && sa.media.image.src) || sa.media?.source || sa.media?.url;
-          if (u) urls.push(u);
-        });
+      if (a.subattachments?.data?.length) {
+        a.subattachments.data.forEach(sa=>pushMedia(sa.media));
       } else {
-        const u = (a.media && a.media.image && a.media.image.src) || a.media?.source || a.media?.url;
-        if (u) urls.push(u);
+        pushMedia(a.media);
       }
     });
 
-    // 3) fallback - single image
     if (post.full_picture) urls.push(post.full_picture);
+    return dedupe(urls);
+  }
 
-    return unique(urls);
+  function dedupe(arr){
+    const seen=new Set(), out=[];
+    for(const u of arr){
+      const key = (String(u).split('?')[0]||'').toLowerCase();
+      if(!seen.has(key)){ seen.add(key); out.push(u); }
+    }
+    return out;
   }
 
   // simple lightbox
