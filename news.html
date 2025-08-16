@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>News | Atlantic Truck & Equipment Repair</title>
-  <meta name="description" content="Trucking and highway news with a focus on Cape Breton and Atlantic Canada.">
+  <meta name="description" content="Latest trucking and highway updates for Cape Breton and Atlantic Canada.">
   <meta property="og:title" content="News | Atlantic Truck & Equipment Repair">
   <meta property="og:description" content="Latest trucking and highway updates for Cape Breton and Atlantic Canada.">
   <meta property="og:type" content="website">
@@ -15,21 +15,20 @@
   <link rel="stylesheet" href="/assets/css/style.css">
 
   <style>
-    /* minimal layout touches for the feed */
+    /* Local-only styles to make the feed look great with your base CSS */
     .news-feed { display: grid; gap: 18px; }
+    @media (min-width: 900px){ .news-feed { grid-template-columns: 1fr 1fr; } }
     .news-card { border:1px solid #e6e6e6; border-radius:12px; overflow:hidden; background:#fff; }
-    .news-card .img-wrap { width:100%; position:relative; overflow:hidden; background:#f5f5f5; }
+    .news-card .img-wrap { background:#f5f5f5; }
     .news-card img { width:100%; height:auto; display:block; }
     .news-card .body { padding:14px; }
     .news-card .meta { font-size:12px; color:#6b7280; margin-bottom:6px; }
     .news-card h3 { margin:0 0 8px; font-size:18px; line-height:1.25; }
     .news-card p { margin:0; }
-    .news-card .actions { margin-top:10px; display:flex; gap:10px; align-items:center; }
+    .news-card .actions { margin-top:10px; display:flex; gap:10px; align-items:center; flex-wrap: wrap; }
     .read-more { color:#B9111B; font-weight:600; text-decoration:none; }
-    .sources { margin-top:16px; font-size:13px; color:#6b7280; }
     .skeleton { border-radius:12px; height:140px; background:linear-gradient(90deg,#eee,#f5f5f5,#eee); animation:s 1.2s infinite; }
     @keyframes s { 0%{background-position:-200px 0} 100%{background-position:calc(200px + 100%) 0} }
-    @media (min-width: 900px){ .news-feed { grid-template-columns: 1fr 1fr; } }
   </style>
 </head>
 <body>
@@ -77,7 +76,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Smart CTA (same logic as other pages; site.js updates text/number by time) -->
+    <!-- Smart CTA (site.js updates text/number by time-of-day) -->
     <div class="header-cta sm-hide">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
@@ -153,67 +152,74 @@
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Your global site script (keeps the smart CTA behavior consistent) -->
+<!-- Global site JS (keeps smart CTA consistent across pages) -->
 <script src="/assets/js/site.js?v=20250816" defer></script>
 
-<!-- Page-only script to render news -->
+<!-- Page-only script to render the news list -->
 <script>
 (function(){
   const feedEl = document.getElementById('newsFeed');
 
-  const words = (s) => (s||'').trim().split(/\s+/);
-  const shortText = (s, max) => {
+  function words(s){ return (s||'').trim().split(/\s+/); }
+  function shortText(s, maxWords){
     const w = words(s);
-    if (w.length <= max) return {text: s, truncated:false};
-    return {text: w.slice(0,max).join(' ') + '…', truncated:true};
-  };
-  const fmtDate = s => { try{ return new Date(s).toLocaleDateString(); }catch(_){ return ''; } };
+    if (w.length <= maxWords) return { text: s, truncated: false };
+    return { text: w.slice(0, maxWords).join(' ') + '…', truncated: true };
+  }
+  function fmtDate(s){ try{ return new Date(s).toLocaleDateString(); } catch(_){ return ''; } }
 
   async function loadNews(){
     try{
-      const res = await fetch('/.netlify/functions/get-truck-news?limit=10', { cache: 'no-store' });
+      const res  = await fetch('/.netlify/functions/get-truck-news?limit=10', { cache: 'no-store' });
       const json = await res.json();
       const items = (json && json.data) ? json.data : [];
       feedEl.innerHTML = '';
-      if(!items.length){ feedEl.innerHTML = '<p class="muted">No recent articles.</p>'; return; }
 
-      for(const it of items){
-        const card = document.createElement('article');
-        card.className = 'news-card';
+      if (!items.length){
+        feedEl.innerHTML = '<p class="muted">No recent articles.</p>';
+        return;
+      }
 
-        const img = it.image ? `<div class="img-wrap"><img loading="lazy" src="${it.image}" alt=""></div>` : '';
+      for (const it of items){
         const title = it.title || 'Untitled';
+        const link  = it.link || '#';
         const date  = fmtDate(it.date);
+        const source= it.source ? ` • ${it.source}` : '';
         const sum   = it.summary || '';
         const preview = shortText(sum, 50);
 
+        const card = document.createElement('article');
+        card.className = 'news-card';
+
+        const imgHTML = it.image
+          ? `<div class="img-wrap"><img loading="lazy" referrerpolicy="no-referrer" src="${it.image}" alt=""></div>`
+          : '';
+
         card.innerHTML = `
-          ${img}
+          ${imgHTML}
           <div class="body">
-            <div class="meta">${date}${it.source ? ' • ' + it.source : ''}</div>
+            <div class="meta">${date}${source}</div>
             <h3>${title}</h3>
             <p class="excerpt">${preview.text}</p>
             <div class="actions">
-              <a class="btn-light" target="_blank" rel="noopener" href="${it.link}">Read full story</a>
+              <a class="btn-light" target="_blank" rel="noopener" href="${link}">Read full story</a>
               ${preview.truncated ? '<a href="#" class="read-more">Read more</a>' : ''}
             </div>
           </div>
         `;
 
-        // expand/collapse
         const more = card.querySelector('.read-more');
-        if (more) {
+        if (more){
           more.addEventListener('click', e => {
             e.preventDefault();
-            const p = card.querySelector('.excerpt');
-            p.textContent = sum;
+            card.querySelector('.excerpt').textContent = sum;
             more.remove();
           });
         }
 
         feedEl.appendChild(card);
       }
-    } catch(e){
+    } catch (e){
       console.error(e);
       feedEl.innerHTML = '<p class="muted">Couldn’t load news right now.</p>';
     }
@@ -224,3 +230,4 @@
 </script>
 </body>
 </html>
+
