@@ -7,23 +7,12 @@
   <meta name="description" content="We cover Cape Breton and most of Nova Scotia. Dispatch and routing originate from our Edwardsville shop.">
   <meta property="og:title" content="Service Area | Atlantic Truck & Equipment Repair">
   <meta property="og:description" content="We cover Cape Breton and most of Nova Scotia. Dispatch and routing originate from our Edwardsville shop.">
-  <meta property="og:type" content="website"><meta property="og:locale" content="en_CA">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="en_CA">
   <meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
-  <script defer src="/assets/js/site.js?v=3"></script>
-  <style>
-    .eta-card { padding:14px; border:1px solid #eee; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,.06); background:#fff; }
-    .eta-table { width:100%; border-collapse:collapse; }
-    .eta-table th, .eta-table td { padding:10px 8px; border-bottom:1px solid #eee; text-align:left; }
-    .eta-table th { font-weight:700; }
-    .eta-note { margin-top:8px; }
-    .mode-pill { display:inline-block; padding:4px 10px; border-radius:999px; font-size:12px; font-weight:600; background:#f3f4f6; color:#374151; border:1px solid #e5e7eb; margin-left:8px; }
-    .mode-pill.on  { background:#e6f7ee; color:#0f5132; border-color:#b7ebc6; }  /* Business Hours */
-    .mode-pill.off { background:#fff2cc; color:#7a5900; border-color:#ffe58f; }  /* After Hours   */
-    .small.muted.inline { display:inline-block; margin-left:8px; color:#6b7280; font-size:12px; }
-  </style>
 </head>
 <body>
 <!-- Emergency bar -->
@@ -70,11 +59,9 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <!-- Red dispatch button (time-aware) -->
+    <!-- EXACT same smart CTA as Contact page (site.js controls the number) -->
     <div class="header-cta sm-hide">
-      <a id="dispatchBtn" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch 902-539-4574">
-        Call 24/7 Dispatch: <strong>902-539-4574</strong>
-      </a>
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
   </div>
 </header>
@@ -84,7 +71,17 @@
     <h1>Service Area</h1>
     <p>We cover Cape Breton and most of Nova Scotia. ETAs below are conservative and rounded to the next 15 minutes.</p>
 
-    <!-- Status pill -->
+    <!-- Image FIRST (centered) -->
+    <figure style="margin:18px auto 10px; max-width:900px; text-align:center">
+      <img src="/assets/img/service-area.png"
+           alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point"
+           style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
+      <figcaption class="small muted" style="margin-top:6px">
+        Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
+      </figcaption>
+    </figure>
+
+    <!-- Status pill + clock -->
     <div style="margin:8px 0">
       <span id="etaModePill" class="mode-pill">Checking…</span>
       <span id="etaClock" class="small muted inline" aria-live="polite"></span>
@@ -106,17 +103,7 @@
       </p>
     </div>
 
-    <!-- Image first -->
-    <figure style="margin:18px auto 10px; max-width:900px; text-align:center">
-      <img src="/assets/img/service-area.png"
-           alt="Primary service area – Cape Breton Island highlighted with Edwardsville as the starting point"
-           style="width:100%; height:auto; border-radius:10px; box-shadow:0 6px 24px rgba(0,0,0,.14)">
-      <figcaption class="small muted" style="margin-top:6px">
-        Primary coverage: Cape Breton Island &amp; most of Nova Scotia. Dispatch from Edwardsville.
-      </figcaption>
-    </figure>
-
-    <!-- Map second; zoom widened to show Sydney, NS -->
+    <!-- Map (zoom widened to show Sydney, NS) -->
     <div class="kv" style="height:480px; margin-top:18px">
       <iframe
         title="Map - Atlantic Truck & Equipment Repair"
@@ -181,15 +168,16 @@
 
 <!-- Mobile quick bar -->
 <div class="action-bar md-hide">
-  <a id="dispatchMobile" href="tel:9025394574">Dispatch</a>
+  <a href="tel:9025394574">Call</a>
   <a target="_blank" rel="noopener" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9&z=9">Directions</a>
   <a href="/requests.html">Requests</a>
 </div>
 
-<!-- Halifax-time smart dispatch button + dynamic ETAs -->
+<!-- Site JS first (drives the red CTA number by time-of-day), then this page's ETA script -->
+<script src="/assets/js/site.js?v=20250815" defer></script>
 <script>
 (function(){
-  // Halifax time (robust)
+  // Halifax time helpers
   function halifaxParts(){
     const f = new Intl.DateTimeFormat('en-CA',{
       timeZone:'America/Halifax', weekday:'short', hour:'2-digit', minute:'2-digit', hourCycle:'h23'
@@ -217,21 +205,6 @@
     if(H===0) return `${M} min`;
     if(M===0) return `${H} hr`;
     return `${H} hr ${M} min`;
-  }
-
-  // Time-aware dispatch button (desktop + mobile)
-  function updateDispatchBtn(){
-    const business = inBizHours();
-    const num = business ? '902-539-4574' : '902-565-1730';
-    const tel = 'tel:' + num.replace(/[^0-9]/g,'');
-    const el = document.getElementById('dispatchBtn');
-    if(el){
-      el.href = tel;
-      el.setAttribute('aria-label','Call 24/7 Dispatch ' + num);
-      el.innerHTML = 'Call 24/7 Dispatch: <strong>' + num + '</strong>';
-    }
-    const m = document.getElementById('dispatchMobile');
-    if(m) m.href = tel;
   }
 
   // Base drives (conservative) from Edwardsville; Sydney <= 60 min typical in business hours
@@ -270,9 +243,8 @@
     });
   }
 
-  function tick(){ updateDispatchBtn(); renderETAs(); }
-  tick();
-  setInterval(tick, 60000);
+  renderETAs();
+  setInterval(renderETAs, 60000);
 })();
 </script>
 </body>
