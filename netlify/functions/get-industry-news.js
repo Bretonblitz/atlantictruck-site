@@ -1,211 +1,142 @@
-// /netlify/functions/get-industry-news.js
-// Node 18+ (fetch is built-in). No env vars needed.
+// netlify/functions/get-truck-news.js
+// Node 18+ (fetch built-in). One file deploy. No extra deps needed.
 
 const FEEDS = [
-  // Canadian trucking industry (long-form posts)
-  { name: "TruckNews", url: "https://www.trucknews.com/feed/?post_type=blog", weight: 2 },
-  // Regional / Atlantic
-  { name: "CTV Atlantic", url: "https://atlantic.ctvnews.ca/rss/ctv-news-atlantic-public-rss-1.822315", weight: 2 },
-  { name: "Global Halifax", url: "https://globalnews.ca/halifax/feed/", weight: 2 },
-  { name: "CBC Nova Scotia", url: "https://rss.cbc.ca/lineup/canada-novascotia.xml", weight: 3 },
-  // Official provincial advisories (useful for closures/incidents)
-  { name: "NS Traffic Advisories", url: "https://novascotia.ca/news/rss/traffic.asp", weight: 1 },
+  // Canada-first trucking + Atlantic/NS general news
+  { name: 'TruckNews', url: 'https://www.trucknews.com/feed/' },                               // :contentReference[oaicite:0]{index=0}
+  { name: 'Global Halifax', url: 'https://globalnews.ca/halifax/feed/' },                      // :contentReference[oaicite:1]{index=1}
+  { name: 'CTV Atlantic', url: 'https://atlantic.ctvnews.ca/rss/ctv-news-atlantic-top-stories-1.1073369?ot=sdk.AjaxTarget&o=5' }, // :contentReference[oaicite:2]{index=2}
+  { name: 'CBC Nova Scotia', url: 'https://www.cbc.ca/webfeed/rss/rss-ns' },                   // 
+  { name: 'NS Gov – All News', url: 'https://news-feeds.novascotia.ca/en' },                  // JSON feed of NS releases (auto content) :contentReference[oaicite:4]{index=4}
+  { name: 'NS Gov – Traffic Advisories', url: 'https://novascotia.ca/news/rss/' }             // landing lists traffic/news RSS :contentReference[oaicite:5]{index=5}
 ];
 
-// Prefer Atlantic terms when picking articles
-const ATLANTIC_TERMS = [
-  "cape breton","sydney","nova scotia","halifax","dartmouth","antigonish",
-  "newfoundland","new brunswick","pei","prince edward island","atlantic canada",
-  "cbrm","port hawkesbury","glace bay","stellarton","truro","bridgewater","yarmouth"
+// Simple XML → items parser (no external libs)
+function stripTags(html = '') {
+  return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+}
+function getTag(xml, tag) {
+  const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, 'i'));
+  return m ? m[1].trim() : '';
+}
+function* eachItem(xml) {
+  const items = xml.match(/<item[\s\S]*?<\/item>/gi) || xml.match(/"items"\s*:\s*\[/i) ? [] : [];
+  // Try RSS <item>
+  const rssItems = xml.match(/<item[\s\S]*?<\/item>/gi) || [];
+  for (const raw of rssItems) yield { raw, type: 'rss' };
+  // Try Atom <entry>
+  const atomItems = xml.match(/<entry[\s\S]*?<\/entry>/gi) || [];
+  for (const raw of atomItems) yield { raw, type: 'atom' };
+  // Try NS JSON feed (news-feeds.novascotia.ca returns JSON)
+  if (/^\s*\{/.test(xml)) {
+    try {
+      const j = JSON.parse(xml);
+      if (Array.isArray(j.items)) {
+        for (const it of j.items) yield { json: it, type: 'json' };
+      }
+    } catch { /* ignore */ }
+  }
+}
+function toAbs(href, base) {
+  try { return new URL(href, base).toString(); } catch { return href || ''; }
+}
+function pickImageFrom(raw, base) {
+  // Try media:content, enclosure, og:image in description
+  const media = raw.match(/<media:content[^>]+url="([^"]+)"/i);
+  if (media) return toAbs(media[1], base);
+  const encl = raw.match(/<enclosure[^>]+url="([^"]+)"/i);
+  if (encl) return toAbs(encl[1], base);
+  const desc = getTag(raw, 'description');
+  const img = (desc.match(/<img[^>]+src="([^"]+)"/i) || [])[1];
+  if (img) return toAbs(img, base);
+  return '';
+}
+const REGION_WEIGHT = [
+  /cape\s*breton/i, /sydney\b/i, /\bns\b|\bnova scotia/i,
+  /halifax/i, /antigonish/i, /port hawkesbury/i, /atlantic canada|new brunswick|pei|newfoundland/i
 ];
+
+function scoreItem(t, sum) {
+  const hay = `${t} ${sum}`.toLowerCase();
+  let s = 0;
+  for (const rx of REGION_WEIGHT) if (rx.test(hay)) s += 5;
+  if (/truck|trucking|transport|tow|highway|wreck|semi|18[- ]?wheeler|fleet/i.test(hay)) s += 3;
+  return s;
+}
+
+async function fetchText(u) {
+  const ctrl = new AbortController();
+  const id = setTimeout(() => ctrl.abort(), 9000);
+  try {
+    const res = await fetch(u, { signal: ctrl.signal, headers: { 'User-Agent': 'NetlifyFunction/TruckNews' }});
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.text();
+  } finally { clearTimeout(id); }
+}
 
 export async function handler(event) {
   try {
-    const limit = clampInt((event.queryStringParameters||{}).limit, 10, 1, 20);
+    const qs = event.queryStringParameters || {};
+    const limit = Math.min(10, Math.max(1, parseInt(qs.limit || '10', 10)));
 
-    // 1) Fetch & parse feeds in parallel
-    const rawItems = (await Promise.all(
-      FEEDS.map(async f => {
-        try {
-          const res = await fetch(f.url, { headers: { "User-Agent": "NetlifyFunction/1.0" } });
-          if (!res.ok) throw new Error(`${res.status}`);
-          const xml = await res.text();
-          const items = parseRSS(xml).map(it => ({ ...it, _source: f.name, _feedUrl: f.url, _weight: f.weight }));
-          return items;
-        } catch {
-          return [];
+    const texts = await Promise.allSettled(FEEDS.map(f => fetchText(f.url).then(t => ({ f, t }))));
+
+    const items = [];
+    for (const r of texts) {
+      if (r.status !== 'fulfilled') continue;
+      const { f, t } = r.value;
+      for (const blk of eachItem(t)) {
+        if (blk.type === 'json') {
+          const it = blk.json;
+          const title = it.title || '';
+          const link  = toAbs(it.url || it.external_url || '', f.url);
+          const date  = it.date_published || it.published || it.date_modified || it.updated || '';
+          const desc  = stripTags(it.content_html || it.summary || '');
+          const image = it.image || '';
+          if (!title || !link) continue;
+          items.push({ source: f.name, title, link, date, image, summary: desc });
+        } else {
+          const raw = blk.raw;
+          const title = stripTags(getTag(raw, 'title'));
+          const link  = toAbs(getTag(raw, 'link') || (raw.match(/<guid[^>]*>([\s\S]*?)<\/guid>/i)||[])[1] || '', f.url);
+          const date  = getTag(raw, 'pubDate') || getTag(raw, 'updated') || getTag(raw, 'published') || '';
+          const desc  = stripTags(getTag(raw, 'description') || getTag(raw, 'summary'));
+          const image = pickImageFrom(raw, f.url);
+          if (!title || !link) continue;
+          items.push({ source: f.name, title, link, date, image, summary: desc });
         }
-      })
-    )).flat();
+      }
+    }
 
-    if (!rawItems.length) return json(200, { data: [] });
+    // De-dup by canonical link
+    const seen = new Set();
+    const canon = u => {
+      try { const x = new URL(u); return `${x.origin}${x.pathname}`.toLowerCase(); }
+      catch { return (u||'').split('?')[0].toLowerCase(); }
+    };
+    const uniq = [];
+    for (const it of items) {
+      const k = canon(it.link);
+      if (seen.has(k)) continue;
+      seen.add(k);
+      uniq.push(it);
+    }
 
-    // 2) Normalize + try to ensure 2+ paragraph excerpts (fetch page if short)
-    const enriched = await enrichItems(rawItems);
-
-    // 3) Rank: prefer Atlantic mentions; then by recency
-    const now = Date.now();
-    const scored = enriched.map(it => {
-      const hay = `${it.title} ${stripTags(it.excerptHtml)}`.toLowerCase();
-      const atlHits = ATLANTIC_TERMS.reduce((n, term) => n + (hay.includes(term) ? 1 : 0), 0);
-      const recencyDays = Math.max(1, (now - (new Date(it.dateIso||now)).getTime())/86400000);
-      const score = (atlHits*10) + it._weight - Math.log(recencyDays+1);
-      return { ...it, score };
+    // Score + sort (prefer local + trucking terms), newest first as tiebreak
+    uniq.forEach(it => it._score = scoreItem(it.title, it.summary));
+    uniq.sort((a,b) => {
+      const da = Date.parse(a.date || 0), db = Date.parse(b.date || 0);
+      if (b._score !== a._score) return b._score - a._score;
+      return (db||0) - (da||0);
     });
 
-    // 4) Sort by score desc, then date desc; uniq by URL; cap to limit
-    const uniq = [];
-    const seen = new Set();
-    for (const it of scored.sort((a,b)=> b.score - a.score || ((new Date(b.dateIso)) - (new Date(a.dateIso))))) {
-      const key = (it.url||'').split('?')[0].toLowerCase();
-      if (!key || seen.has(key)) continue;
-      seen.add(key);
-      uniq.push(pickClientFields(it));
-      if (uniq.length >= limit) break;
-    }
-
-    // Cache ~5 minutes
-    return json(200, { data: uniq }, { "Cache-Control": "public, max-age=300" });
-  } catch (e) {
-    return json(500, { error: "Server error", details: String(e) });
-  }
-}
-
-/* ---------------- helpers ---------------- */
-
-function clampInt(v, def, min, max){
-  const n = parseInt(v ?? def, 10);
-  return isFinite(n) ? Math.max(min, Math.min(max, n)) : def;
-}
-
-function stripTags(html=''){
-  return html.replace(/<script[\s\S]*?<\/script>/gi,'')
-             .replace(/<style[\s\S]*?<\/style>/gi,'')
-             .replace(/<\/?[^>]+>/g,' ')
-             .replace(/\s+/g,' ')
-             .trim();
-}
-
-function firstParagraphs(html='', minParas=2, maxParas=4){
-  // Grab the first few <p> tags from HTML
-  const out = [];
-  const re = /<p[^>]*>([\s\S]*?)<\/p>/gi;
-  let m;
-  while ((m = re.exec(html)) && out.length < maxParas){
-    const txt = m[1].trim();
-    // ignore super-short/useless paragraphs
-    if (stripTags(txt).length >= 40) out.push(txt);
-  }
-  // If still too short, fall back to splitting by periods
-  if (out.length < minParas){
-    const text = stripTags(html);
-    const parts = text.split(/(?<=[.!?])\s+/).slice(0, 6);
-    if (parts.join(' ').length > 120){
-      // make para-sized chunks ~2 sentences each
-      const paras = [];
-      let buf = '';
-      for (const sent of parts){
-        buf += (buf ? ' ' : '') + sent;
-        if (buf.length > 160){ paras.push(buf); buf=''; }
-      }
-      if (buf) paras.push(buf);
-      while (out.length < maxParas && paras.length) out.push(paras.shift());
-    }
-  }
-  return out.length ? `<p>${out.join('</p><p>')}</p>` : '';
-}
-
-function pick(s, ...keys){ const o={}; for(const k of keys) if (k in s) o[k]=s[k]; return o; }
-
-function pickClientFields(it){
-  return pick(it, 'title','url','dateIso','source','image','excerptHtml');
-}
-
-function json(status, body, extra={}){
-  return { statusCode: status, headers: { "Content-Type": "application/json", ...extra }, body: JSON.stringify(body) };
-}
-
-function parseTag(block, tag){
-  const rx = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
-  const m = rx.exec(block);
-  return m ? m[1].trim() : '';
-}
-function parseMedia(block){
-  // media:content or enclosure
-  const m1 = /<media:content[^>]*url="([^"]+)"/i.exec(block);
-  if (m1) return m1[1];
-  const m2 = /<enclosure[^>]*url="([^"]+)"/i.exec(block);
-  if (m2) return m2[1];
-  return '';
-}
-
-function parseRSS(xml){
-  // simple item splitter
-  const items = [];
-  const reItem = /<item[\s\S]*?<\/item>/gi;
-  let m;
-  while ((m = reItem.exec(xml))){
-    const it = m[0];
-    const title = decode(parseTag(it, 'title'));
-    const link  = decode(parseTag(it, 'link'));
-    const pub   = decode(parseTag(it, 'pubDate')) || decode(parseTag(it, 'dc:date')) || '';
-    const desc  = decode(parseTag(it, 'description'));
-    const enc   = decode(parseTag(it, 'content:encoded'));
-    const media = parseMedia(it);
-    items.push({ title, link, pubDate: pub, description: desc, contentEncoded: enc, media });
-  }
-  return items;
-}
-
-function decode(s=''){
-  // very basic HTML entity decode
-  return s.replace(/<!\[CDATA\[(.*?)\]\]>/gs, '$1')
-          .replace(/&amp;/g, '&')
-          .replace(/&lt;/g, '<')
-          .replace(/&gt;/g, '>')
-          .replace(/&quot;/g, '"')
-          .replace(/&#39;/g, "'");
-}
-
-async function fetchArticle(url){
-  try{
-    const res = await fetch(url, { headers: { "User-Agent": "NetlifyFunction/1.0" } });
-    if (!res.ok) return null;
-    const html = await res.text();
-    const og = /<meta[^>]+property=["']og:image["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1] || '';
-    // collect <p> tags (best-effort; avoids paywalled bodies)
-    const paras = firstParagraphs(html, 2, 4);
-    return { ogImage: og, parasHtml: paras };
-  }catch{ return null; }
-}
-
-async function enrichItems(items){
-  const tasks = items.map(async it => {
-    const source = new URL(it.link || "https://example.com").hostname.replace(/^www\./,'');
-    const dateIso = (it.pubDate ? new Date(it.pubDate) : new Date());
-    // Prefer content:encoded; else description
-    let bodyHtml = it.contentEncoded && it.contentEncoded.length > 60 ? it.contentEncoded : it.description || '';
-    let excerptHtml = firstParagraphs(bodyHtml, 2, 4);
-
-    // If still too short, fetch article and extract first paragraphs + OG image
-    let image = it.media || '';
-    if (stripTags(excerptHtml).length < 140 || !image){
-      const fetched = await fetchArticle(it.link);
-      if (fetched){
-        if (stripTags(excerptHtml).length < 140 && fetched.parasHtml) excerptHtml = fetched.parasHtml;
-        if (!image && fetched.ogImage) image = fetched.ogImage;
-      }
-    }
-
+    // Trim to limit
     return {
-      title: it.title || '(untitled)',
-      url: it.link,
-      dateIso: isFinite(dateIso) ? dateIso.toISOString() : new Date().toISOString(),
-      source,
-      image,
-      excerptHtml
+      statusCode: 200,
+      headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' },
+      body: JSON.stringify({ data: uniq.slice(0, limit) })
     };
-  });
-
-  return Promise.all(tasks);
+  } catch (e) {
+    return { statusCode: 500, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ error: String(e) }) };
+  }
 }
