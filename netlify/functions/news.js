@@ -25,7 +25,6 @@ exports.handler = async function (event) {
 
     // Hard-coded, non-traffic feeds
     var feeds = [
-      'https://www.halifax.ca/news/rss-feed',                   // Halifax municipality – all news
       'https://novascotia.ca/news/rss/rss.asp',                 // Nova Scotia Gov – all releases (contains some traffic; filtered below)
       'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',   // CBC Nova Scotia
       'https://globalnews.ca/halifax/feed',                     // Global News Halifax
