@@ -15,8 +15,10 @@
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
   <style>
-    /* Minimal extras to slot into your existing theme */
     .news-intro { margin-top: 6px; }
+    .inline-note { margin:10px 0 20px; }
+    .inline-note a { display:inline-block; padding:6px 10px; border-radius:999px; background:#f5f5f5; text-decoration:none; }
+    .inline-note a:hover { text-decoration:underline; }
     .news-grid { display:grid; gap:16px; grid-template-columns: repeat(3,minmax(0,1fr)); }
     @media (max-width: 980px){ .news-grid{grid-template-columns: repeat(2,minmax(0,1fr));} }
     @media (max-width: 640px){ .news-grid{grid-template-columns: 1fr;} }
@@ -34,7 +36,6 @@
   </style>
 </head>
 <body>
-<!-- Emergency bar -->
 <div class="emergency-bar">
   <div class="container row spread center">
     <strong>24/7 Emergency Recovery &amp; Towing</strong>
@@ -47,7 +48,6 @@
   </div>
 </div>
 
-<!-- Header -->
 <header class="site-header">
   <div class="container row spread center">
     <a class="brand row center" href="/index.html">
@@ -84,13 +84,14 @@
   </div>
 </header>
 
-<!-- Hero / News -->
 <section class="section">
   <div class="container">
     <h1>News</h1>
     <p class="muted news-intro">Fresh trucking headlines and Atlantic Canada updates. We pull from trusted industry and local sources.</p>
+    <div class="inline-note">
+      <a href="/traffic.html">Looking for road closures &amp; traffic advisories? See the Traffic page →</a>
+    </div>
 
-    <!-- News grid -->
     <div id="newsGrid" class="news-grid" aria-live="polite"></div>
     <div id="newsStatus" class="muted-center" style="margin-top:12px"></div>
     <div style="text-align:center">
@@ -99,7 +100,6 @@
   </div>
 </section>
 
-<!-- Footer -->
 <footer class="site-footer">
   <div class="container grid-4">
     <div>
@@ -163,11 +163,10 @@
   const PLACEHOLDER =
     'https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png';
 
-  // Atlantic/Nova Scotia–centric client fallback feeds (used only if the server function yields no items)
+  // Client fallback (used ONLY if server returns nothing); NO traffic feeds here
   const FEEDS = [
     { name: 'Halifax – All News',     url: 'https://www.halifax.ca/news/rss-feed' },
     { name: 'NS Gov – All Releases',  url: 'https://novascotia.ca/news/rss/rss.asp' },
-    { name: 'NS Gov – Traffic',       url: 'https://novascotia.ca/news/rss/traffic.asp' },
     { name: 'CBC Nova Scotia',        url: 'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia' },
     { name: 'Global News Halifax',    url: 'https://globalnews.ca/halifax/feed' },
     { name: 'The Loadstar',           url: 'https://theloadstar.com/feed/' },
@@ -175,16 +174,13 @@
     { name: 'Transport Topics',       url: 'https://www.ttnews.com/rss.xml' }
   ];
 
-  // Domains whose thumbnails we force-resolve from the article page (their RSS images are often missing/blocked)
-  const FORCE_IMAGE_RESOLVE_HOSTS = [
-    'theloadstar.com',
-    'www.theloadstar.com'
-  ];
-
-  // Optional: rss2json API key for client fallback
+  const FORCE_IMAGE_RESOLVE_HOSTS = ['theloadstar.com', 'www.theloadstar.com'];
   const RSS2JSON_API_KEY = '';
 
   const MAX_INITIAL = 12;
+  const CAP_PER_HOST = 4; // extra guard for client fallback
+  const usedImages = new Set();
+
   let combined = [];
   let rendered = 0;
 
@@ -193,12 +189,10 @@
 
   async function init(){
     try {
-      // Prefer server (Netlify function) first
       const serverItems = await tryServer();
       if (serverItems && serverItems.length) {
         combined = normalizeServerItems(serverItems);
       } else {
-        // Fallback: client-side RSS with Atlantic-focused sources
         combined = await fetchAllFeedsClient();
       }
     } catch (e) {
@@ -217,16 +211,19 @@
       return;
     }
 
+    // newest first + cap per host (client side safety)
     combined.sort((a,b)=> b.date - a.date);
+    combined = capPerHost(combined, CAP_PER_HOST);
+
     statusEl.textContent = '';
     renderMore(MAX_INITIAL);
-    startImageHydration(); // fix thumbnails (e.g., The Loadstar) after first render
+    startImageHydration();
 
     if (combined.length > rendered) {
       loadMoreBtn.style.display = 'inline-block';
       loadMoreBtn.addEventListener('click', ()=>{
         renderMore(12);
-        startImageHydration(); // hydrate newly added cards too
+        startImageHydration();
       });
     }
   }
@@ -255,9 +252,7 @@
   async function fetchAllFeedsClient(){
     const results = await Promise.allSettled(FEEDS.map(fetchFeedClient));
     const items = [];
-    for (const r of results){
-      if (r.status === 'fulfilled') items.push(...r.value);
-    }
+    for (const r of results){ if (r.status === 'fulfilled') items.push(...r.value); }
     if (!items.length) throw new Error('No items from client RSS');
     return items;
   }
@@ -266,14 +261,11 @@
     const base = 'https://api.rss2json.com/v1/api.json';
     const params = new URLSearchParams({ rss_url: feed.url, count: '12' });
     if (RSS2JSON_API_KEY) params.set('api_key', RSS2JSON_API_KEY);
-
     const endpoint = `${base}?${params.toString()}`;
     const res = await fetch(endpoint);
     if (!res.ok) throw new Error(`Fetch failed: ${feed.name}`);
     const data = await res.json();
-    if (!data || data.status !== 'ok' || !Array.isArray(data.items)) {
-      throw new Error(`Bad feed: ${feed.name}`);
-    }
+    if (!data || data.status !== 'ok' || !Array.isArray(data.items)) throw new Error(`Bad feed: ${feed.name}`);
     const srcTitle = (data.feed && data.feed.title) || feed.name;
     return data.items.map(item => mapClientItem(srcTitle, item)).filter(Boolean);
   }
@@ -304,6 +296,18 @@
   function harden(u){ if (!u) return ''; return u.startsWith('//') ? 'https:' + u : u; }
   function stripHTML(html){ const d = document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; }
 
+  function capPerHost(arr, max){
+    const out = [];
+    const counter = Object.create(null);
+    for (const a of arr) {
+      const h = hostFromLink(a.link);
+      counter[h] = (counter[h] || 0);
+      if (counter[h] < max) { out.push(a); counter[h]++; }
+    }
+    return out;
+  }
+  function hostFromLink(u){ try { return new URL(u).hostname.toLowerCase(); } catch(e){ return 'unknown'; } }
+
   // ---------- Render ----------
   function renderMore(count){
     const slice = combined.slice(rendered, rendered + count);
@@ -318,11 +322,21 @@
     const card = document.createElement('article');
     card.className = 'news-card';
     card.dataset.link  = a.link;
-    card.dataset.image = a.image || '';
+
+    // avoid reusing the same image URL if we can
+    let imgSrc = a.image || '';
+    let needsHydration = false;
+    if (!imgSrc || usedImages.has(imgSrc)) {
+      imgSrc = PLACEHOLDER;
+      needsHydration = true;
+    } else {
+      usedImages.add(imgSrc);
+    }
+
     const dateText = a.date.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
     card.innerHTML = `
       <a href="${a.link}" target="_blank" rel="noopener" aria-label="${escapeHTML(a.title)}">
-        <img class="news-thumb" src="${a.image || PLACEHOLDER}" alt="" loading="lazy">
+        <img class="news-thumb" src="${imgSrc}" alt="" loading="lazy" ${needsHydration ? 'data-missing="1"' : ''}>
       </a>
       <div class="news-body">
         <div class="news-meta">
@@ -331,9 +345,7 @@
         </div>
         <h3 class="news-title"><a href="${a.link}" target="_blank" rel="noopener">${escapeHTML(a.title)}</a></h3>
         ${a.summary ? `<p class="muted">${escapeHTML(a.summary)}</p>` : ''}
-        <div class="news-actions">
-          <a class="link" href="${a.link}" target="_blank" rel="noopener">Read more →</a>
-        </div>
+        <div class="news-actions"><a class="link" href="${a.link}" target="_blank" rel="noopener">Read more →</a></div>
       </div>
     `;
     const img = card.querySelector('img');
@@ -344,26 +356,16 @@
   function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
   // ---------- Smart image hydration ----------
-  // For any card with a missing/placeholder image, or for domains listed in FORCE_IMAGE_RESOLVE_HOSTS,
-  // fetch the article's og:image/twitter:image via the Netlify `news-image` function and swap it in.
   function startImageHydration(){
     const cards = Array.from(newsGrid.querySelectorAll('.news-card'));
     const jobs = cards
       .filter(card => {
-        const url  = card.dataset.link || '';
-        const img  = card.dataset.image || '';
-        const host = safeHost(url);
-        const isPlaceholder = !img || img === PLACEHOLDER;
-        const force = host && FORCE_IMAGE_RESOLVE_HOSTS.includes(host);
-        return isPlaceholder || force;
+        const img = card.querySelector('img');
+        return !img || img.getAttribute('data-missing') === '1' || FORCE_IMAGE_RESOLVE_HOSTS.includes(hostFromLink(card.dataset.link));
       })
       .map(card => () => hydrateCardImage(card));
 
-    runQueue(jobs, 2); // concurrency = 2
-  }
-
-  function safeHost(u){
-    try { return new URL(u).host.toLowerCase(); } catch(e){ return ''; }
+    runQueue(jobs, 2);
   }
 
   async function hydrateCardImage(card){
@@ -374,35 +376,30 @@
       if (!res.ok) return;
       const data = await res.json();
       const newImg = (data && data.image) ? data.image : '';
-      if (newImg) {
+      if (newImg && !usedImages.has(newImg)) {
         const img = card.querySelector('img');
-        if (img && (img.src === PLACEHOLDER || FORCE_IMAGE_RESOLVE_HOSTS.includes(safeHost(url)))) {
-          img.src = newImg;
-          card.dataset.image = newImg;
-        }
+        img.src = newImg;
+        img.removeAttribute('data-missing');
+        usedImages.add(newImg);
       }
-    } catch(e){
-      /* ignore; keep placeholder */
-    }
+    } catch(e){ /* ignore */ }
   }
 
   function runQueue(tasks, concurrency){
     let idx = 0, active = 0;
-    return new Promise(resolve => {
-      const next = () => {
-        if (idx >= tasks.length && active === 0) return resolve();
-        while (active < concurrency && idx < tasks.length) {
-          const fn = tasks[idx++]; active++;
-          Promise.resolve().then(fn).finally(()=>{ active--; next(); });
-        }
-      };
-      next();
-    });
+    const next = () => {
+      if (idx >= tasks.length && active === 0) return;
+      while (active < concurrency && idx < tasks.length) {
+        const fn = tasks[idx++]; active++;
+        Promise.resolve().then(fn).finally(()=>{ active--; next(); });
+      }
+    };
+    next();
   }
 })();
 </script>
 
-<!-- Load JS at end + cache-bust so updates take effect -->
 <script src="/assets/js/site.js?v=20250815" defer></script>
 </body>
 </html>
+
