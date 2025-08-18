@@ -156,32 +156,60 @@
 <!-- Page JS -->
 <script>
 (function(){
-  var newsGrid   = document.getElementById('newsGrid');
-  var statusEl   = document.getElementById('newsStatus');
-  var loadMoreBtn= document.getElementById('loadMoreBtn');
+  const newsGrid    = document.getElementById('newsGrid');
+  const statusEl    = document.getElementById('newsStatus');
+  const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-  var PLACEHOLDER =
+  const PLACEHOLDER =
     'https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png';
 
-  var MAX_INITIAL = 12;
-  var combined = [];
-  var rendered = 0;
+  // Atlantic/Nova Scotia–centric client fallback feeds (used only if the server function yields no items)
+  const FEEDS = [
+    { name: 'Halifax – All News',     url: 'https://www.halifax.ca/news/rss-feed' },
+    { name: 'NS Gov – All Releases',  url: 'https://novascotia.ca/news/rss/rss.asp' },
+    { name: 'NS Gov – Traffic',       url: 'https://novascotia.ca/news/rss/traffic.asp' },
+    { name: 'CBC Nova Scotia',        url: 'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia' },
+    { name: 'Global News Halifax',    url: 'https://globalnews.ca/halifax/feed' },
+    { name: 'The Loadstar',           url: 'https://theloadstar.com/feed/' },
+    { name: 'TruckNews',              url: 'https://www.trucknews.com/rss/' },
+    { name: 'Transport Topics',       url: 'https://www.ttnews.com/rss.xml' }
+  ];
+
+  // Domains whose thumbnails we force-resolve from the article page (their RSS images are often missing/blocked)
+  const FORCE_IMAGE_RESOLVE_HOSTS = [
+    'theloadstar.com',
+    'www.theloadstar.com'
+  ];
+
+  // Optional: rss2json API key for client fallback
+  const RSS2JSON_API_KEY = '';
+
+  const MAX_INITIAL = 12;
+  let combined = [];
+  let rendered = 0;
 
   statusEl.textContent = 'Loading news…';
   window.addEventListener('DOMContentLoaded', init);
 
   async function init(){
     try {
-      var serverItems = await tryServer();
+      // Prefer server (Netlify function) first
+      const serverItems = await tryServer();
       if (serverItems && serverItems.length) {
         combined = normalizeServerItems(serverItems);
       } else {
-        throw new Error('Server had no items');
+        // Fallback: client-side RSS with Atlantic-focused sources
+        combined = await fetchAllFeedsClient();
       }
     } catch (e) {
-      console.error('Server fetch failed:', e);
-      statusEl.textContent = 'Could not load news right now.';
-      return;
+      console.warn('Server fetch failed, using client fallback:', e);
+      try {
+        combined = await fetchAllFeedsClient();
+      } catch (err) {
+        console.error(err);
+        statusEl.textContent = 'Could not load news right now.';
+        return;
+      }
     }
 
     if (!combined.length){
@@ -189,109 +217,187 @@
       return;
     }
 
-    combined.sort(function(a,b){ return b.date - a.date; });
+    combined.sort((a,b)=> b.date - a.date);
     statusEl.textContent = '';
     renderMore(MAX_INITIAL);
+    startImageHydration(); // fix thumbnails (e.g., The Loadstar) after first render
 
     if (combined.length > rendered) {
       loadMoreBtn.style.display = 'inline-block';
-      loadMoreBtn.addEventListener('click', function(){ renderMore(12); });
+      loadMoreBtn.addEventListener('click', ()=>{
+        renderMore(12);
+        startImageHydration(); // hydrate newly added cards too
+      });
     }
-
-    // kick off image hydration for any missing thumbnails
-    setupLazyImageHydration();
   }
 
+  // ---------- Server (Netlify function) ----------
   async function tryServer(){
-    var r = await fetch('/.netlify/functions/news', { cache: 'no-store' });
+    const r = await fetch('/.netlify/functions/news', { cache: 'no-store' });
     if (!r.ok) throw new Error('news function not available');
-    var data = await r.json();
+    const data = await r.json();
     if (!data || !Array.isArray(data.items) || !data.items.length) throw new Error('no items from server');
     return data.items;
   }
 
   function normalizeServerItems(items){
-    return items.map(function(a){
-      return {
-        source: a.source || 'News',
-        title:  a.title  || 'Untitled',
-        link:   a.link   || '#',
-        date:   new Date(a.date || Date.now()),
-        image:  a.image  || '',
-        summary:(a.summary || '').trim()
-      };
-    });
+    return items.map(a => ({
+      source: a.source || 'News',
+      title:  a.title  || 'Untitled',
+      link:   a.link   || '#',
+      date:   new Date(a.date || Date.now()),
+      image:  a.image  || '',
+      summary:(a.summary || '').trim()
+    }));
   }
 
+  // ---------- Client-side RSS fallback ----------
+  async function fetchAllFeedsClient(){
+    const results = await Promise.allSettled(FEEDS.map(fetchFeedClient));
+    const items = [];
+    for (const r of results){
+      if (r.status === 'fulfilled') items.push(...r.value);
+    }
+    if (!items.length) throw new Error('No items from client RSS');
+    return items;
+  }
+
+  async function fetchFeedClient(feed){
+    const base = 'https://api.rss2json.com/v1/api.json';
+    const params = new URLSearchParams({ rss_url: feed.url, count: '12' });
+    if (RSS2JSON_API_KEY) params.set('api_key', RSS2JSON_API_KEY);
+
+    const endpoint = `${base}?${params.toString()}`;
+    const res = await fetch(endpoint);
+    if (!res.ok) throw new Error(`Fetch failed: ${feed.name}`);
+    const data = await res.json();
+    if (!data || data.status !== 'ok' || !Array.isArray(data.items)) {
+      throw new Error(`Bad feed: ${feed.name}`);
+    }
+    const srcTitle = (data.feed && data.feed.title) || feed.name;
+    return data.items.map(item => mapClientItem(srcTitle, item)).filter(Boolean);
+  }
+
+  function mapClientItem(source, item){
+    const date = new Date(item.pubDate || item.isoDate || item.published || Date.now());
+    const image = extractImage(item) || '';
+    const summary = stripHTML(item.description || item.content || '').trim().slice(0, 300);
+    const link = item.link || '#';
+    const title = item.title || 'Untitled';
+    return { source, title, link, date, image, summary };
+  }
+
+  function extractImage(item){
+    if (item.thumbnail) return harden(item.thumbnail);
+    if (item.enclosure) {
+      const e = item.enclosure.link || item.enclosure.url;
+      const t = (item.enclosure.type || '').toLowerCase();
+      if (e && (/\.(png|jpe?g|webp|gif)(\?|$)/i.test(e) || t.startsWith('image/'))) {
+        return harden(e);
+      }
+    }
+    const html = item.content || item.content_encoded || item.description || '';
+    const m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
+    return m ? harden(m[1]) : '';
+  }
+
+  function harden(u){ if (!u) return ''; return u.startsWith('//') ? 'https:' + u : u; }
+  function stripHTML(html){ const d = document.createElement('div'); d.innerHTML = html; return d.textContent || d.innerText || ''; }
+
+  // ---------- Render ----------
   function renderMore(count){
-    var slice = combined.slice(rendered, rendered + count);
-    var frag = document.createDocumentFragment();
-    for (var i = 0; i < slice.length; i++) frag.appendChild(renderCard(slice[i]));
+    const slice = combined.slice(rendered, rendered + count);
+    const frag = document.createDocumentFragment();
+    slice.forEach(a => frag.appendChild(renderCard(a)));
     newsGrid.appendChild(frag);
     rendered += slice.length;
     if (rendered >= combined.length) loadMoreBtn.style.display = 'none';
   }
 
   function renderCard(a){
-    var card = document.createElement('article');
+    const card = document.createElement('article');
     card.className = 'news-card';
-    var dateText = a.date.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
-    var needs = !a.image;
-    card.innerHTML = ''
-      + '<a href="'+escapeAttr(a.link)+'" target="_blank" rel="noopener" aria-label="'+escapeAttr(a.title)+'">'
-      + '  <img class="news-thumb" src="'+(a.image || PLACEHOLDER)+'" alt="" loading="lazy"'
-      + (needs ? ' data-article="'+escapeAttr(a.link)+'" data-missing="1"' : '')
-      + '  >'
-      + '</a>'
-      + '<div class="news-body">'
-      + '  <div class="news-meta">'
-      + '    <span class="chip">'+escapeHTML(a.source || 'News')+'</span>'
-      + '    <span>'+escapeHTML(dateText)+'</span>'
-      + '  </div>'
-      + '  <h3 class="news-title"><a href="'+escapeAttr(a.link)+'" target="_blank" rel="noopener">'+escapeHTML(a.title)+'</a></h3>'
-      + (a.summary ? '<p class="muted">'+escapeHTML(a.summary)+'</p>' : '')
-      + '  <div class="news-actions"><a class="link" href="'+escapeAttr(a.link)+'" target="_blank" rel="noopener">Read more →</a></div>'
-      + '</div>';
-    var img = card.querySelector('img');
-    img.onerror = function(){ img.src = PLACEHOLDER; img.onerror = null; };
+    card.dataset.link  = a.link;
+    card.dataset.image = a.image || '';
+    const dateText = a.date.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+    card.innerHTML = `
+      <a href="${a.link}" target="_blank" rel="noopener" aria-label="${escapeHTML(a.title)}">
+        <img class="news-thumb" src="${a.image || PLACEHOLDER}" alt="" loading="lazy">
+      </a>
+      <div class="news-body">
+        <div class="news-meta">
+          <span class="chip">${escapeHTML(a.source || 'News')}</span>
+          <span>${escapeHTML(dateText)}</span>
+        </div>
+        <h3 class="news-title"><a href="${a.link}" target="_blank" rel="noopener">${escapeHTML(a.title)}</a></h3>
+        ${a.summary ? `<p class="muted">${escapeHTML(a.summary)}</p>` : ''}
+        <div class="news-actions">
+          <a class="link" href="${a.link}" target="_blank" rel="noopener">Read more →</a>
+        </div>
+      </div>
+    `;
+    const img = card.querySelector('img');
+    img.onerror = () => { img.src = PLACEHOLDER; img.onerror = null; };
     return card;
   }
 
-  function escapeHTML(s){ return (s||'').replace(/[&<>\"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
-  function escapeAttr(s){ return escapeHTML(String(s||'')).replace(/"/g, '&quot;'); }
+  function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 
-  // -------- Lazy hydrate missing images --------
-  function setupLazyImageHydration(){
-    var missing = Array.prototype.slice.call(document.querySelectorAll('img[data-missing="1"][data-article]'));
-    if (!missing.length) return;
+  // ---------- Smart image hydration ----------
+  // For any card with a missing/placeholder image, or for domains listed in FORCE_IMAGE_RESOLVE_HOSTS,
+  // fetch the article's og:image/twitter:image via the Netlify `news-image` function and swap it in.
+  function startImageHydration(){
+    const cards = Array.from(newsGrid.querySelectorAll('.news-card'));
+    const jobs = cards
+      .filter(card => {
+        const url  = card.dataset.link || '';
+        const img  = card.dataset.image || '';
+        const host = safeHost(url);
+        const isPlaceholder = !img || img === PLACEHOLDER;
+        const force = host && FORCE_IMAGE_RESOLVE_HOSTS.includes(host);
+        return isPlaceholder || force;
+      })
+      .map(card => () => hydrateCardImage(card));
 
-    if ('IntersectionObserver' in window) {
-      var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(entry){
-          if (!entry.isIntersecting) return;
-          io.unobserve(entry.target);
-          hydrateOne(entry.target);
-        });
-      }, { rootMargin: '400px' });
-      missing.forEach(function(img){ io.observe(img); });
-    } else {
-      // fallback: hydrate first 8 immediately
-      missing.slice(0, 8).forEach(hydrateOne);
+    runQueue(jobs, 2); // concurrency = 2
+  }
+
+  function safeHost(u){
+    try { return new URL(u).host.toLowerCase(); } catch(e){ return ''; }
+  }
+
+  async function hydrateCardImage(card){
+    const url = card.dataset.link;
+    if (!url) return;
+    try {
+      const res = await fetch('/.netlify/functions/news-image?u=' + encodeURIComponent(url), { cache: 'no-store' });
+      if (!res.ok) return;
+      const data = await res.json();
+      const newImg = (data && data.image) ? data.image : '';
+      if (newImg) {
+        const img = card.querySelector('img');
+        if (img && (img.src === PLACEHOLDER || FORCE_IMAGE_RESOLVE_HOSTS.includes(safeHost(url)))) {
+          img.src = newImg;
+          card.dataset.image = newImg;
+        }
+      }
+    } catch(e){
+      /* ignore; keep placeholder */
     }
   }
 
-  function hydrateOne(imgEl){
-    var article = imgEl.getAttribute('data-article');
-    if (!article) return;
-    fetch('/.netlify/functions/news-image?u=' + encodeURIComponent(article))
-      .then(function(r){ return r.json(); })
-      .then(function(x){
-        if (x && x.image) {
-          imgEl.src = x.image;
-          imgEl.removeAttribute('data-missing');
+  function runQueue(tasks, concurrency){
+    let idx = 0, active = 0;
+    return new Promise(resolve => {
+      const next = () => {
+        if (idx >= tasks.length && active === 0) return resolve();
+        while (active < concurrency && idx < tasks.length) {
+          const fn = tasks[idx++]; active++;
+          Promise.resolve().then(fn).finally(()=>{ active--; next(); });
         }
-      })
-      .catch(function(){ /* silently ignore */ });
+      };
+      next();
+    });
   }
 })();
 </script>
