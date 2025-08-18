@@ -263,8 +263,8 @@ function getAttrRaw(tagXml, attr) {
   var m = tagXml.match(re);
   return m ? decodeHTML(m[1]) : '';
 }
-function cdata(s) { var m = s.match(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/i); return m ? m[1] : s; }
-function stripHTML(html) { return (html || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' '); }
+function cdata(s) { var m = s.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i); return m ? m[1] : s; }
+function stripHTML(html) { return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' '); }
 function decodeHTML(s) {
   s = String(s || '');
   s = s.replace(/&amp;/g, '&'); s = s.replace(/&lt;/g, '<'); s = s.replace(/&gt;/g, '>');
@@ -272,7 +272,7 @@ function decodeHTML(s) {
 }
 function preferLargeVariant(u) {
   if (!u) return u;
-  var m = u.match(/(.*)-\\d+x\\d+(\\.[a-zA-Z0-9]+)(\\?.*)?$/);
+  var m = u.match(/(.*)-\d+x\d+(\.[a-zA-Z0-9]+)(\?.*)?$/);
   if (m) return m[1] + m[2] + (m[3] || '');
   return u;
 }
