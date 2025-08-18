@@ -36,7 +36,7 @@ async function renderHomepageSidebar(){
 
 async function renderNews(){
   // supports either #newsGrid (new) or #newsFeed (old)
-  const grid = document.getElementById('newsGrid') || document.getElementById('newsFeed');
+  const grid = document.getElementById('newsFeed'); // legacy-only; new News page owns #newsGrid
   if(!grid) return;
   grid.innerHTML='<div class="skeleton"></div>'.repeat(6);
 
