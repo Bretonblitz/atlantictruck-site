@@ -1,10 +1,10 @@
 // netlify/functions/news.js
-// Direct RSS fetch + lightweight XML parsing (no external services).
+// Direct RSS fetch + robust image extraction (with og:image fallback).
 // Returns { items: [{source,title,link,date,image,summary}, ...] }
 
 exports.handler = async (event) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*', // lock to your domain if you prefer
+    'Access-Control-Allow-Origin': '*', // lock to your domain if preferred
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Cache-Control': 'public, max-age=300, s-maxage=600',
@@ -26,28 +26,28 @@ exports.handler = async (event) => {
 
     const feeds = feedsCSV.split(',').map(s => s.trim()).filter(Boolean);
 
+    // 1) Pull and parse items from each feed
     const results = await Promise.allSettled(feeds.map(fetchAndParseFeed));
-    const items = [];
+    let items = [];
     for (const r of results) {
       if (r.status === 'fulfilled') items.push(...r.value);
-      else console.warn('Feed failed:', r.reason && String(r.reason));
+      else console.warn('Feed failed:', String(r.reason || 'unknown'));
     }
-
     if (!items.length) {
-      return {
-        statusCode: 502,
-        headers,
-        body: JSON.stringify({ items: [], error: 'No items from feeds (RSS fetch/parse failed).' })
-      };
+      return { statusCode: 502, headers, body: JSON.stringify({ items: [], error: 'No items from feeds.' }) };
     }
 
+    // 2) Try to enrich missing images via og:image (cap the work so it stays fast)
     items.sort((a, b) => b.date - a.date);
+    await fillMissingImages(items, /*maxFetches*/ 8, /*timeoutMs*/ 2500);
+
+    // 3) Trim and return
     const out = items.slice(0, limit).map(x => ({
       source: x.source,
       title: x.title,
       link: x.link,
       date: x.date.toISOString(),
-      image: x.image,
+      image: x.image || '',
       summary: x.summary
     }));
 
@@ -57,11 +57,11 @@ exports.handler = async (event) => {
   }
 };
 
-// ---- RSS helpers (no deps) ----
+// ============ RSS parsing (no dependencies) ============
+
 async function fetchAndParseFeed(feedUrl) {
   const res = await fetch(feedUrl, {
     headers: {
-      // some publishers serve different markup to bots; this helps
       'User-Agent': 'Mozilla/5.0 (compatible; AtlanticTruckBot/1.0; +https://www.atlantictruck.ca/)',
       'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
     }
@@ -69,7 +69,7 @@ async function fetchAndParseFeed(feedUrl) {
   if (!res.ok) throw new Error(`HTTP ${res.status} for ${feedUrl}`);
   const xml = await res.text();
 
-  const source = getTagText(xml, 'title') || new URL(feedUrl).hostname;
+  const sourceTitle = getTagText(xml, 'title') || new URL(feedUrl).hostname;
   const isRSS = /<rss\b|<channel\b/i.test(xml);
   const isAtom = /<feed\b/i.test(xml);
 
@@ -81,12 +81,15 @@ async function fetchAndParseFeed(feedUrl) {
 
   const items = [];
   for (const block of blocks) {
-    const title =
+    const title = stripHTML(
       getTagText(block, 'title') ||
-      getAttr(block, 'title', 'type'); // atom sometimes
+      getAttr(block, 'title', 'type') || // atom edge
+      ''
+    );
+
     // Link: RSS <link> or Atom <link href="...">
-    let link = getTagText(block, 'link');
-    if (!link) link = getAttr(block, 'link', 'href') || '';
+    let link = getTagText(block, 'link') || getAttr(block, 'link', 'href') || '';
+    // Robust absolutization happens later when we build image URLs
 
     const pub =
       getTagText(block, 'pubDate') ||
@@ -94,74 +97,57 @@ async function fetchAndParseFeed(feedUrl) {
       getTagText(block, 'updated') ||
       '';
 
-    const rawDesc =
-      getTagText(block, 'description') ||
+    // Prefer content:encoded -> description -> content/summary
+    const rawHtml =
+      getTagText(block, 'content:encoded') ||
       getTagText(block, 'content') ||
+      getTagText(block, 'description') ||
       getTagText(block, 'summary') ||
       '';
 
-    const enclosure =
-      getAttr(block, 'enclosure', 'url') ||
-      getAttr(block, 'media:content', 'url') ||
-      getAttr(block, 'media:thumbnail', 'url') ||
-      '';
+    // Gather all image candidates from common tags
+    const candidates = collectImageCandidates(block);
 
-    const imgFromHtml = firstImgSrc(rawDesc);
-    const image = harden(enclosure || imgFromHtml || '');
+    // Also scan the HTML body for <img>
+    const htmlImg = firstImgSrc(rawHtml);
+    if (htmlImg) candidates.push({ url: htmlImg, w: 0, h: 0, score: 40 });
+
+    // Pick best candidate and normalize it
+    const best = selectBestImage(candidates);
+    const image = absolutize(best?.url || '', link, feedUrl);
 
     const date = pub ? new Date(pub) : new Date();
-    const summary = stripHTML(rawDesc).slice(0, 300).trim();
+    const summary = stripHTML(rawHtml).slice(0, 300).trim();
 
-    // filter out junk
-    if (!title && !link) continue;
+    if (!title && !link) continue; // skip junk
 
     items.push({
-      source: stripHTML(source),
-      title: stripHTML(title) || 'Untitled',
+      source: stripHTML(sourceTitle),
+      title: title || 'Untitled',
       link: link || '#',
       date: isValidDate(date) ? date : new Date(),
-      image,
+      image: image || '',
       summary
     });
   }
   return items;
 }
 
-function getTagText(xml, tag) {
-  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i');
-  const m = xml.match(re);
-  return m ? decodeHTML(cdata(m[1]).trim()) : '';
-}
-function getAttr(xml, tag, attr) {
-  const re = new RegExp(`<${tag}\\b[^>]*\\b${attr}=["']([^"']+)["'][^>]*\\/?>`, 'i');
-  const m = xml.match(re);
-  return m ? decodeHTML(m[1]) : '';
-}
-function firstImgSrc(html) {
-  const m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m ? decodeHTML(m[1]) : '';
-}
-function stripHTML(html) {
-  return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ');
-}
-function cdata(s) {
-  // unwrap <![CDATA[ ... ]]>
-  const m = s.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i);
-  return m ? m[1] : s;
-}
-function decodeHTML(s) {
-  return s
-    .replace(/&amp;/g, '&')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
-}
-function harden(u) {
-  if (!u) return '';
-  if (u.startsWith('//')) return 'https:' + u;
-  return u;
-}
-function isValidDate(d) {
-  return d instanceof Date && !isNaN(d.valueOf());
-}
+function collectImageCandidates(blockXml) {
+  const out = [];
+
+  // <enclosure url="..." type="image/jpeg" width="..." height="..."/>
+  const encl = blockXml.match(/<enclosure\b[^>]*>/gi) || [];
+  for (const tag of encl) {
+    const url = getAttrRaw(tag, 'url');
+    const type = (getAttrRaw(tag, 'type') || '').toLowerCase();
+    const w = parseInt(getAttrRaw(tag, 'width') || '0', 10) || 0;
+    const h = parseInt(getAttrRaw(tag, 'height') || '0', 10) || 0;
+    if (url) out.push({ url, w, h, score: scoreCandidate(url, type, w, h) });
+  }
+
+  // <media:content url="...">, <media:thumbnail url="...">, <media:group><media:content ...>
+  const mediaTags = blockXml.match(/<(media:content|media:thumbnail)\b[^>]*>/gi) || [];
+  for (const tag of mediaTags) {
+    const url = getAttrRaw(tag, 'url');
+    const type = (getAttrRaw(tag, '
