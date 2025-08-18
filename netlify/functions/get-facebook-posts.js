@@ -1,4 +1,4 @@
-// netlify/functions/fb-posts.js
+ netlify/functions/fb-posts.js
 // Fetch latest public posts from a Facebook Page using env vars.
 // Env required in Netlify UI:
 //   FB_PAGE_ID = 766439739884645
