@@ -284,3 +284,9 @@ function absolutize(u, baseLink, feedUrl) {
 }
 function isValidDate(d) { return d instanceof Date && !isNaN(d.valueOf()); }
 function safeHost(u) { try { return new URL(u).hostname; } catch (e) { return 'News'; } }
+
+// ---- missing helper that caused your error ----
+function firstImgSrc(html) {
+  var m = (html || '').match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? decodeHTML(m[1]) : '';
+}
