@@ -1,6 +1,6 @@
 // netlify/functions/news.js
 // Fast RSS merge (no article scraping) + debug mode.
-// CommonJS + ASCII-only for Netlify compatibility.
+// Uses a hard-coded Atlantic/Nova Scotia–centric feed list.
 
 exports.handler = async function (event) {
   var headers = {
@@ -18,19 +18,22 @@ exports.handler = async function (event) {
   var DEBUG = String(qs.debug || '').toLowerCase() === '1';
 
   try {
+    // Tunables (still overridable via env if you want; or just edit here)
     var limit   = Number(process.env.NEWS_LIMIT || 30);
     var perFeed = Number(process.env.NEWS_PER_FEED || 10);
-    var timeout = Number(process.env.FEED_TIMEOUT_MS || 2500);
+    var timeout = Number(process.env.FEED_TIMEOUT_MS || 3000);
 
-    var feedsCSV = process.env.FEED_URLS || (
-      'https://www.trucknews.com/rss/,' +
-      'https://www.ttnews.com/rss.xml,' +
-      'https://atlantic.ctvnews.ca/rss/ctv-news-atlantic-public-rss-1.822315,' +
-      'https://www.freightwaves.com/feed,' +
-      'https://theloadstar.com/feed/,' +
-      'https://www.cbc.ca/cmlink/rss-canada-ns'
-    );
-    var feeds = feedsCSV.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    // HARD-CODED FEEDS (Atlantic Canada + trucking context)
+    var feeds = [
+      'https://www.halifax.ca/news/rss-feed',                         // Halifax municipality – all news
+      'https://novascotia.ca/news/rss/rss.asp',                       // Nova Scotia Government – all releases
+      'https://novascotia.ca/news/rss/traffic.asp',                   // Nova Scotia – traffic/advisories
+      'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',         // CBC Nova Scotia
+      'https://globalnews.ca/halifax/feed',                           // Global News Halifax
+      'https://theloadstar.com/feed/',                                // The Loadstar (freight/ports)
+      'https://www.trucknews.com/rss/',                               // TruckNews (Canada)
+      'https://www.ttnews.com/rss.xml'                                // Transport Topics (industry macro)
+    ];
 
     var debugFeeds = [];
     var promises = feeds.map(function (u) { return fetchFeedFast(u, perFeed, timeout, DEBUG, debugFeeds); });
@@ -42,7 +45,7 @@ exports.handler = async function (event) {
       if (r.status === 'fulfilled' && Array.isArray(r.value)) items = items.concat(r.value);
     }
 
-    // Filter out corporate HR fluff
+    // Filter out HR/corporate announcement fluff
     items = items.filter(function (it) { return !isCorporateHR(it.title); });
 
     if (!items.length) {
@@ -274,7 +277,6 @@ function preferLargeVariant(u) {
   if (!u) return u;
   var m = u.match(/(.*)-\d+x\d+(\.[a-zA-Z0-9]+)(\?.*)?$/);
   if (m) return m[1] + m[2] + (m[3] || '');
-  return u;
 }
 function absolutize(u, baseLink, feedUrl) {
   if (!u) return '';
@@ -285,7 +287,7 @@ function absolutize(u, baseLink, feedUrl) {
 function isValidDate(d) { return d instanceof Date && !isNaN(d.valueOf()); }
 function safeHost(u) { try { return new URL(u).hostname; } catch (e) { return 'News'; } }
 
-// ---- missing helper that caused your error ----
+// helper for raw HTML snippets inside RSS
 function firstImgSrc(html) {
   var m = (html || '').match(/<img[^>]+src=["']([^"']+)["']/i);
   return m ? decodeHTML(m[1]) : '';
