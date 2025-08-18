@@ -1,6 +1,6 @@
 // netlify/functions/news.js
 // Fast RSS merge (no article scraping) + debug mode.
-// Uses a hard-coded Atlantic/Nova Scotia–centric feed list.
+// Atlantic/Nova Scotia news only (NO traffic feeds) + max 4 items per site.
 
 exports.handler = async function (event) {
   var headers = {
@@ -18,34 +18,35 @@ exports.handler = async function (event) {
   var DEBUG = String(qs.debug || '').toLowerCase() === '1';
 
   try {
-    // Tunables (still overridable via env if you want; or just edit here)
     var limit   = Number(process.env.NEWS_LIMIT || 30);
     var perFeed = Number(process.env.NEWS_PER_FEED || 10);
     var timeout = Number(process.env.FEED_TIMEOUT_MS || 3000);
+    var MAX_PER_HOST = 4;
 
-    // HARD-CODED FEEDS (Atlantic Canada + trucking context)
+    // HARD-CODED (non-traffic) feeds
     var feeds = [
-      'https://www.halifax.ca/news/rss-feed',                         // Halifax municipality – all news
-      'https://novascotia.ca/news/rss/rss.asp',                       // Nova Scotia Government – all releases
-      'https://novascotia.ca/news/rss/traffic.asp',                   // Nova Scotia – traffic/advisories
-      'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',         // CBC Nova Scotia
-      'https://globalnews.ca/halifax/feed',                           // Global News Halifax
-      'https://theloadstar.com/feed/',                                // The Loadstar (freight/ports)
-      'https://www.trucknews.com/rss/',                               // TruckNews (Canada)
-      'https://www.ttnews.com/rss.xml'                                // Transport Topics (industry macro)
+      'https://www.halifax.ca/news/rss-feed',                   // Halifax municipality – all news
+      'https://novascotia.ca/news/rss/rss.asp',                 // Nova Scotia Gov – all releases
+      'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',   // CBC Nova Scotia
+      'https://globalnews.ca/halifax/feed',                     // Global News Halifax
+      'https://theloadstar.com/feed/',                          // Loadstar (freight/ports)
+      'https://www.trucknews.com/rss/',                         // TruckNews (Canada)
+      'https://www.ttnews.com/rss.xml'                          // Transport Topics (industry macro)
     ];
 
     var debugFeeds = [];
-    var promises = feeds.map(function (u) { return fetchFeedFast(u, perFeed, timeout, DEBUG, debugFeeds); });
-    var settled = await Promise.allSettled(promises);
+    var settled = await Promise.allSettled(
+      feeds.map(function (u) { return fetchFeedFast(u, perFeed, timeout, DEBUG, debugFeeds); })
+    );
 
     var items = [];
     for (var i = 0; i < settled.length; i++) {
-      var r = settled[i];
-      if (r.status === 'fulfilled' && Array.isArray(r.value)) items = items.concat(r.value);
+      if (settled[i].status === 'fulfilled' && Array.isArray(settled[i].value)) {
+        items = items.concat(settled[i].value);
+      }
     }
 
-    // Filter out HR/corporate announcement fluff
+    // Remove HR/corporate fluff
     items = items.filter(function (it) { return !isCorporateHR(it.title); });
 
     if (!items.length) {
@@ -55,9 +56,21 @@ exports.handler = async function (event) {
       return respond(headers, 502, bodyNoItems);
     }
 
-    // newest first and trim
+    // newest first
     items.sort(function(a,b){ return b.date - a.date; });
-    items = items.slice(0, limit);
+
+    // cap per website (host) to 4
+    var perHostCount = Object.create(null);
+    var capped = [];
+    for (var j = 0; j < items.length; j++) {
+      var h = hostFromLink(items[j].link);
+      perHostCount[h] = (perHostCount[h] || 0);
+      if (perHostCount[h] < MAX_PER_HOST) {
+        capped.push(items[j]);
+        perHostCount[h]++;
+      }
+    }
+    items = capped.slice(0, limit);
 
     var bodyOK = {
       items: items.map(function(x){
@@ -277,6 +290,7 @@ function preferLargeVariant(u) {
   if (!u) return u;
   var m = u.match(/(.*)-\d+x\d+(\.[a-zA-Z0-9]+)(\?.*)?$/);
   if (m) return m[1] + m[2] + (m[3] || '');
+  return u;
 }
 function absolutize(u, baseLink, feedUrl) {
   if (!u) return '';
@@ -286,9 +300,5 @@ function absolutize(u, baseLink, feedUrl) {
 }
 function isValidDate(d) { return d instanceof Date && !isNaN(d.valueOf()); }
 function safeHost(u) { try { return new URL(u).hostname; } catch (e) { return 'News'; } }
-
-// helper for raw HTML snippets inside RSS
-function firstImgSrc(html) {
-  var m = (html || '').match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m ? decodeHTML(m[1]) : '';
-}
+function hostFromLink(u){ try { return new URL(u).hostname.toLowerCase(); } catch(e){ return 'unknown'; } }
+function firstImgSrc(html) { var m = (html || '').match(/<img[^>]+src=["']([^"']+)["']/i); return m ? decodeHTML(m[1]) : ''; }
