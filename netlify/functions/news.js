@@ -1,6 +1,6 @@
 // netlify/functions/news.js
-// Fast RSS merge (no article scraping) + debug mode.
-// Atlantic/Nova Scotia news only (NO traffic feeds) + max 4 items per site.
+// Atlantic/Nova Scotia news (NO traffic unless Cape Breton), no sexual content,
+// max 4 items per site, fast RSS parse + debug.
 
 exports.handler = async function (event) {
   var headers = {
@@ -18,18 +18,18 @@ exports.handler = async function (event) {
   var DEBUG = String(qs.debug || '').toLowerCase() === '1';
 
   try {
-    var limit   = Number(process.env.NEWS_LIMIT || 30);
-    var perFeed = Number(process.env.NEWS_PER_FEED || 10);
-    var timeout = Number(process.env.FEED_TIMEOUT_MS || 3000);
+    var limit        = Number(process.env.NEWS_LIMIT || 30);
+    var perFeed      = Number(process.env.NEWS_PER_FEED || 10);
+    var timeout      = Number(process.env.FEED_TIMEOUT_MS || 3000);
     var MAX_PER_HOST = 4;
 
-    // HARD-CODED (non-traffic) feeds
+    // Hard-coded, non-traffic feeds
     var feeds = [
       'https://www.halifax.ca/news/rss-feed',                   // Halifax municipality – all news
-      'https://novascotia.ca/news/rss/rss.asp',                 // Nova Scotia Gov – all releases
+      'https://novascotia.ca/news/rss/rss.asp',                 // Nova Scotia Gov – all releases (contains some traffic; filtered below)
       'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',   // CBC Nova Scotia
       'https://globalnews.ca/halifax/feed',                     // Global News Halifax
-      'https://theloadstar.com/feed/',                          // Loadstar (freight/ports)
+      'https://theloadstar.com/feed/',                          // The Loadstar (freight/ports)
       'https://www.trucknews.com/rss/',                         // TruckNews (Canada)
       'https://www.ttnews.com/rss.xml'                          // Transport Topics (industry macro)
     ];
@@ -46,8 +46,19 @@ exports.handler = async function (event) {
       }
     }
 
-    // Remove HR/corporate fluff
+    // --- Content filtering ---
+    // 1) Remove HR/corporate fluff (CEO appointments, etc.)
     items = items.filter(function (it) { return !isCorporateHR(it.title); });
+
+    // 2) Remove sexual content
+    items = items.filter(function (it) { return !isSexualContent(it.title, it.summary); });
+
+    // 3) Remove traffic-related items UNLESS mention Cape Breton/CBRM explicitly
+    items = items.filter(function (it) {
+      var isTraffic = isTrafficRelated(it.title, it.summary);
+      if (!isTraffic) return true;
+      return mentionsCapeBreton(it.title, it.summary, it.link);
+    });
 
     if (!items.length) {
       var bodyNoItems = DEBUG
@@ -195,6 +206,7 @@ async function fetchTextWithTimeout(url, ms) {
   }
 }
 
+// ---------- filters ----------
 function isCorporateHR(title) {
   if (!title) return false;
   var t = title.toLowerCase();
@@ -207,6 +219,49 @@ function isCorporateHR(title) {
   ];
   for (var i = 0; i < patterns.length; i++) {
     if (t.indexOf(patterns[i]) !== -1) return true;
+  }
+  return false;
+}
+
+function isSexualContent(title, summary) {
+  var txt = (String(title || '') + ' ' + String(summary || '')).toLowerCase();
+  var patterns = [
+    'sexual', 'voyeur', 'voyeurism', 'sex offender', 'sex-related', 'sex related',
+    'porn', 'pornography', 'explicit', 'luring', 'child exploit', 'child pornography',
+    'rape', 'indecent', 'inappropriate touching', 'grooming', 'in camera in washroom'
+  ];
+  for (var i = 0; i < patterns.length; i++) {
+    if (txt.indexOf(patterns[i]) !== -1) return true;
+  }
+  return false;
+}
+
+function isTrafficRelated(title, summary) {
+  var txt = (String(title || '') + ' ' + String(summary || '')).toLowerCase();
+  var phrases = [
+    'traffic advisory', 'traffic alert', 'traffic delays', 'traffic update',
+    'road closure', 'lane closure', 'lane reduction', 'detour', 'bridge closure',
+    'bridge repairs', 'roadwork', 'road work', 'paving', 'maintenance work',
+    'closed to traffic', 'reduced to one lane'
+  ];
+  for (var i = 0; i < phrases.length; i++) {
+    if (txt.indexOf(phrases[i]) !== -1) return true;
+  }
+  // heuristics: "closure on Hwy/Highway/Route + number"
+  if (/\b(closure|closed|detour)\b.*\b(hwy|highway|route|trunk|ns-\d+)\b/i.test(txt)) return true;
+  return false;
+}
+
+function mentionsCapeBreton(title, summary, link) {
+  var txt = (String(title || '') + ' ' + String(summary || '') + ' ' + String(link || '')).toLowerCase();
+  var places = [
+    'cape breton', 'cbrm', 'sydney', 'glace bay', 'north sydney', 'sydney mines',
+    'new waterford', 'louisbourg', 'baddeck', 'eskasoni', 'membertou',
+    'ingonish', 'whycocomagh', 'port hawkesbury', 'inverness', 'mabou',
+    "st. peter", 'arichat', 'isle madame'
+  ];
+  for (var i = 0; i < places.length; i++) {
+    if (txt.indexOf(places[i]) !== -1) return true;
   }
   return false;
 }
