@@ -86,17 +86,7 @@ function extractImage(item) {
   return m ? harden(m[1]) : '';
 }
 
-function stripHTML(html) { const el = new (globalThis.DOMParser ? DOMParser : FakeDOMParser)(); return plain(el, html); }
-// Tiny fallback if DOMParser isn’t available in this runtime:
-function plain(parser, html) {
-  try {
-    if (typeof window === 'undefined') {
-      // server: cheap fallback
-      return html.replace(/<[^>]*>/g, ' ');
-    }
-  } catch {}
-  const div = document.createElement('div'); div.innerHTML = html; return div.textContent || '';
-}
+function stripHTML(html){ return (html||'').replace(/<[^>]*>/g,' ').replace(/\s+/g,' ').trim(); }
 function harden(u){ if (!u) return ''; return u.startsWith('//') ? 'https:' + u : u; }
 
 function json(body, status, headers) {
