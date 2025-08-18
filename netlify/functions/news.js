@@ -1,5 +1,6 @@
 // netlify/functions/news.js
-// Fast RSS merge: no per-article scraping. We hydrate images client-side.
+// Fast RSS merge (no article scraping) + debug mode.
+// CommonJS + ASCII-only for Netlify compatibility.
 
 exports.handler = async function (event) {
   var headers = {
@@ -13,9 +14,14 @@ exports.handler = async function (event) {
     return { statusCode: 204, headers: headers, body: '' };
   }
 
+  var qs = (event && event.queryStringParameters) || {};
+  var DEBUG = String(qs.debug || '').toLowerCase() === '1';
+
   try {
-    var limit = Number(process.env.NEWS_LIMIT || 30);
+    var limit   = Number(process.env.NEWS_LIMIT || 30);
     var perFeed = Number(process.env.NEWS_PER_FEED || 10);
+    var timeout = Number(process.env.FEED_TIMEOUT_MS || 2500);
+
     var feedsCSV = process.env.FEED_URLS || (
       'https://www.trucknews.com/rss/,' +
       'https://www.ttnews.com/rss.xml,' +
@@ -24,14 +30,11 @@ exports.handler = async function (event) {
       'https://theloadstar.com/feed/,' +
       'https://www.cbc.ca/cmlink/rss-canada-ns'
     );
-
     var feeds = feedsCSV.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
 
-    var FEED_TIMEOUT_MS = Number(process.env.FEED_TIMEOUT_MS || 2500);
-
-    var settled = await Promise.allSettled(
-      feeds.map(function (u) { return fetchFeedFast(u, perFeed, FEED_TIMEOUT_MS); })
-    );
+    var debugFeeds = [];
+    var promises = feeds.map(function (u) { return fetchFeedFast(u, perFeed, timeout, DEBUG, debugFeeds); });
+    var settled = await Promise.allSettled(promises);
 
     var items = [];
     for (var i = 0; i < settled.length; i++) {
@@ -43,27 +46,36 @@ exports.handler = async function (event) {
     items = items.filter(function (it) { return !isCorporateHR(it.title); });
 
     if (!items.length) {
-      return respond(headers, 502, { items: [], error: 'No items from feeds.' });
+      var bodyNoItems = DEBUG
+        ? { items: [], error: 'No items from feeds.', debug: { feeds: debugFeeds } }
+        : { items: [], error: 'No items from feeds.' };
+      return respond(headers, 502, bodyNoItems);
     }
 
-    // sort newest first and trim
+    // newest first and trim
     items.sort(function(a,b){ return b.date - a.date; });
     items = items.slice(0, limit);
 
-    return respond(headers, 200, {
+    var bodyOK = {
       items: items.map(function(x){
         return {
           source: x.source,
-          title: x.title,
-          link: x.link,
-          date: x.date.toISOString(),
-          image: x.image || '',
-          summary: x.summary
+          title:  x.title,
+          link:   x.link,
+          date:   x.date.toISOString(),
+          image:  x.image || '',
+          summary:x.summary
         };
       })
-    });
+    };
+    if (DEBUG) bodyOK.debug = { feeds: debugFeeds };
+
+    return respond(headers, 200, bodyOK);
   } catch (e) {
-    return respond(headers, 500, { items: [], error: String(e) });
+    var bodyErr = DEBUG
+      ? { items: [], error: String(e), debug: { message: 'Unhandled error in news.js' } }
+      : { items: [], error: String(e) };
+    return respond(headers, 500, bodyErr);
   }
 };
 
@@ -71,55 +83,80 @@ function respond(headers, code, obj) {
   return { statusCode: code, headers: headers, body: JSON.stringify(obj) };
 }
 
-// ---- no-deps RSS fetch with timeout, no article scraping ----
-async function fetchFeedFast(feedUrl, perFeed, timeoutMs) {
-  var xml = await fetchTextWithTimeout(feedUrl, timeoutMs);
-  var sourceTitle = getTagText(xml, 'title') || safeHost(feedUrl);
-  var isRSS = /<rss\b|<channel\b/i.test(xml);
-  var isAtom = /<feed\b/i.test(xml);
-  var blocks = isRSS ? (xml.match(/<item[\s\S]*?<\/item>/gi) || [])
-                     : (isAtom ? (xml.match(/<entry[\s\S]*?<\/entry>/gi) || []) : []);
-  var items = [];
-  for (var i = 0; i < blocks.length && items.length < perFeed; i++) {
-    var block = blocks[i];
-    var title = stripHTML(getTagText(block, 'title') || getAttr(block, 'title', 'type') || '');
-    var link = getTagText(block, 'link') || getAttr(block, 'link', 'href') || '';
-    var pub  = getTagText(block, 'pubDate') || getTagText(block, 'published') || getTagText(block, 'updated') || '';
-    var rawHtml = getTagText(block, 'content:encoded') ||
-                  getTagText(block, 'content') ||
-                  getTagText(block, 'description') ||
-                  getTagText(block, 'summary') || '';
+// ---- fetch a single RSS feed quickly, record debug info ----
+async function fetchFeedFast(feedUrl, perFeed, timeoutMs, DEBUG, debugFeeds) {
+  var started = Date.now();
+  var debug = { url: feedUrl, ok: false, status: 0, durationMs: 0, itemCount: 0, error: '' };
 
-    // quick image candidates: enclosure/media/html <img>
-    var candidates = collectImageCandidates(block);
-    var htmlImg = firstImgSrc(rawHtml);
-    if (htmlImg) candidates.push({ url: htmlImg, w: 0, h: 0, score: scoreCandidate(htmlImg, '', 0, 0) });
+  try {
+    var fx = await fetchTextWithTimeout(feedUrl, timeoutMs);
+    debug.status = fx.status;
+    debug.durationMs = fx.durationMs;
 
-    var best = selectBestImage(candidates);
-    var image = absolutize(best && best.url ? best.url : '', link, feedUrl);
-    image = preferLargeVariant(image);
+    if (!fx.ok) {
+      debug.error = fx.error || ('HTTP ' + fx.status);
+      if (DEBUG) debugFeeds.push(debug);
+      return [];
+    }
 
-    var date = pub ? new Date(pub) : new Date();
-    var summary = stripHTML(rawHtml).slice(0, 300).trim();
+    var xml = fx.text;
+    var sourceTitle = getTagText(xml, 'title') || safeHost(feedUrl);
+    var isRSS = /<rss\b|<channel\b/i.test(xml);
+    var isAtom = /<feed\b/i.test(xml);
+    var blocks = isRSS ? (xml.match(/<item[\s\S]*?<\/item>/gi) || [])
+                       : (isAtom ? (xml.match(/<entry[\s\S]*?<\/entry>/gi) || []) : []);
 
-    if (!title && !link) continue;
+    var items = [];
+    for (var i = 0; i < blocks.length && items.length < perFeed; i++) {
+      var block = blocks[i];
+      var title = stripHTML(getTagText(block, 'title') || getAttr(block, 'title', 'type') || '');
+      var link  = getTagText(block, 'link') || getAttr(block, 'link', 'href') || '';
+      var pub   = getTagText(block, 'pubDate') || getTagText(block, 'published') || getTagText(block, 'updated') || '';
+      var raw   = getTagText(block, 'content:encoded') || getTagText(block, 'content') ||
+                  getTagText(block, 'description') || getTagText(block, 'summary') || '';
 
-    items.push({
-      source: stripHTML(sourceTitle),
-      title: title || 'Untitled',
-      link: link || '#',
-      date: isValidDate(date) ? date : new Date(),
-      image: image || '',
-      summary: summary
-    });
+      var cands = collectImageCandidates(block);
+      var htmlImg = firstImgSrc(raw);
+      if (htmlImg) cands.push({ url: htmlImg, w: 0, h: 0, score: scoreCandidate(htmlImg, '', 0, 0) });
+
+      var best  = selectBestImage(cands);
+      var image = absolutize(best && best.url ? best.url : '', link, feedUrl);
+      image = preferLargeVariant(image);
+
+      var date = pub ? new Date(pub) : new Date();
+      var summary = stripHTML(raw).slice(0, 300).trim();
+
+      if (!title && !link) continue;
+
+      items.push({
+        source: stripHTML(sourceTitle),
+        title:  title || 'Untitled',
+        link:   link || '#',
+        date:   isValidDate(date) ? date : new Date(),
+        image:  image || '',
+        summary: summary
+      });
+    }
+
+    debug.ok = true;
+    debug.itemCount = items.length;
+    if (DEBUG) debugFeeds.push(debug);
+    return items;
+  } catch (e) {
+    debug.durationMs = Date.now() - started;
+    debug.error = String(e);
+    if (DEBUG) debugFeeds.push(debug);
+    return [];
   }
-  return items;
 }
 
+// ---- tiny fetch with timeout ----
 async function fetchTextWithTimeout(url, ms) {
   var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   var timer = null;
   if (controller) timer = setTimeout(function(){ controller.abort(); }, ms);
+  var out = { ok: false, text: '', status: 0, durationMs: 0, error: '' };
+  var t0 = Date.now();
   try {
     var res = await fetch(url, {
       signal: controller ? controller.signal : undefined,
@@ -128,9 +165,16 @@ async function fetchTextWithTimeout(url, ms) {
         'Accept': 'application/rss+xml, application/atom+xml, application/xml, text/xml;q=0.9, */*;q=0.8'
       }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
-    return await res.text();
+    out.status = res.status;
+    if (!res.ok) { out.error = 'HTTP ' + res.status; return out; }
+    out.text = await res.text();
+    out.ok = true;
+    return out;
+  } catch (e) {
+    out.error = String(e && e.name === 'AbortError' ? 'Timeout' : e);
+    return out;
   } finally {
+    out.durationMs = Date.now() - t0;
     if (timer) clearTimeout(timer);
   }
 }
@@ -219,8 +263,8 @@ function getAttrRaw(tagXml, attr) {
   var m = tagXml.match(re);
   return m ? decodeHTML(m[1]) : '';
 }
-function cdata(s) { var m = s.match(/<!\[CDATA\[([\s\S]*?)\]\]>/i); return m ? m[1] : s; }
-function stripHTML(html) { return (html || '').replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' '); }
+function cdata(s) { var m = s.match(/<!\\[CDATA\\[([\\s\\S]*?)\\]\\]>/i); return m ? m[1] : s; }
+function stripHTML(html) { return (html || '').replace(/<[^>]*>/g, ' ').replace(/\\s+/g, ' '); }
 function decodeHTML(s) {
   s = String(s || '');
   s = s.replace(/&amp;/g, '&'); s = s.replace(/&lt;/g, '<'); s = s.replace(/&gt;/g, '>');
@@ -228,7 +272,7 @@ function decodeHTML(s) {
 }
 function preferLargeVariant(u) {
   if (!u) return u;
-  var m = u.match(/(.*)-\d+x\d+(\.[a-zA-Z0-9]+)(\?.*)?$/);
+  var m = u.match(/(.*)-\\d+x\\d+(\\.[a-zA-Z0-9]+)(\\?.*)?$/);
   if (m) return m[1] + m[2] + (m[3] || '');
   return u;
 }
