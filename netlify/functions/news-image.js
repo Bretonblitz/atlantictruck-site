@@ -1,5 +1,5 @@
 // netlify/functions/news-image.js
-// Returns { image: "<url>" } by scraping an article's <meta property="og:image"> etc.
+// Scrapes an article's og:image/twitter:image/etc. Supports ?debug=1.
 
 exports.handler = async function (event) {
   var headers = {
@@ -12,12 +12,24 @@ exports.handler = async function (event) {
   if (event && event.httpMethod === 'OPTIONS') {
     return { statusCode: 204, headers: headers, body: '' };
   }
-  var u = event && event.queryStringParameters && event.queryStringParameters.u;
+
+  var qs = (event && event.queryStringParameters) || {};
+  var DEBUG = String(qs.debug || '').toLowerCase() === '1';
+  var u = qs.u;
+
   if (!u) return { statusCode: 400, headers: headers, body: JSON.stringify({ error: 'Missing u' }) };
 
   try {
     var timeout = Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 2500);
-    var html = await fetchTextWithTimeout(u, timeout);
+    var fx = await fetchTextWithTimeout(u, timeout);
+
+    var dbg = { url: u, ok: fx.ok, status: fx.status, durationMs: fx.durationMs, error: fx.error || '' };
+    if (!fx.ok) {
+      var bodyBad = DEBUG ? { image: '', debug: dbg } : { image: '' };
+      return { statusCode: 200, headers: headers, body: JSON.stringify(bodyBad) };
+    }
+
+    var html = fx.text;
     var img =
       metaContent(html, 'property', 'og:image') ||
       metaContent(html, 'property', 'og:image:secure_url') ||
@@ -29,9 +41,12 @@ exports.handler = async function (event) {
       firstImgSrc(html) ||
       '';
     img = absolutize(img, u, u);
-    return { statusCode: 200, headers: headers, body: JSON.stringify({ image: img || '' }) };
+
+    var bodyOK = DEBUG ? { image: img || '', debug: dbg } : { image: img || '' };
+    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyOK) };
   } catch (e) {
-    return { statusCode: 200, headers: headers, body: JSON.stringify({ image: '' }) };
+    var bodyErr = DEBUG ? { image: '', debug: { url: u, error: String(e) } } : { image: '' };
+    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyErr) };
   }
 };
 
@@ -39,6 +54,8 @@ async function fetchTextWithTimeout(url, ms) {
   var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
   var timer = null;
   if (controller) timer = setTimeout(function(){ controller.abort(); }, ms);
+  var out = { ok: false, text: '', status: 0, durationMs: 0, error: '' };
+  var t0 = Date.now();
   try {
     var res = await fetch(url, {
       signal: controller ? controller.signal : undefined,
@@ -47,9 +64,16 @@ async function fetchTextWithTimeout(url, ms) {
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
       }
     });
-    if (!res.ok) throw new Error('HTTP ' + res.status + ' for ' + url);
-    return await res.text();
+    out.status = res.status;
+    if (!res.ok) { out.error = 'HTTP ' + res.status; return out; }
+    out.text = await res.text();
+    out.ok = true;
+    return out;
+  } catch (e) {
+    out.error = String(e && e.name === 'AbortError' ? 'Timeout' : e);
+    return out;
   } finally {
+    out.durationMs = Date.now() - t0;
     if (timer) clearTimeout(timer);
   }
 }
