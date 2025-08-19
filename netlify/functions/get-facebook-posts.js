@@ -1,23 +1,25 @@
 // netlify/functions/get-facebook-posts.js
-// Fetch latest posts from a Facebook Page via Graph API, with debug output.
+// Fetch recent Facebook Page posts with debug + env alias support.
 //
-// Required Netlify env vars (Site settings → Build & deploy → Environment):
-//   FB_PAGE_ID = 61579126693357          // your page id (numbers only)
-//   FB_PAGE_ACCESS_TOKEN = <PAGE_TOKEN>  // a Page Access Token (NOT a user token)
-// Optional (recommended for extra security / debug):
+// Env (set in Netlify → Site settings → Build & deploy → Environment):
+//   FB_PAGE_ID = <your page id, e.g. 61579126693357>
+//   FB_PAGE_ACCESS_TOKEN = <your Page Access Token>
+// Optional:
 //   FB_GRAPH_VERSION = v20.0
 //   FB_POSTS_LIMIT   = 10
-//   FB_APP_ID        = <your app id>
-//   FB_APP_SECRET    = <your app secret>  // enables appsecret_proof & token debug
+//   FB_APP_ID        = <app id>              // enables token debug + appsecret_proof
+//   FB_APP_SECRET    = <app secret>
 //
-// Use: /.netlify/functions/get-facebook-posts
-// Debug: /.netlify/functions/get-facebook-posts?debug=1
-// Force endpoint: ?source=published (default) or ?source=posts
+// Endpoint:
+//   /.netlify/functions/get-facebook-posts
+// Debug:
+//   /.netlify/functions/get-facebook-posts?debug=1
+// Force edge: ?source=posts (fallback to /posts instead of /published_posts)
 // Limit override: ?limit=5
 
-export default async (req, context) => {
+export default async (req) => {
   const headers = {
-    'Access-Control-Allow-Origin': '*', // you can lock this to your domain
+    'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Content-Type': 'application/json',
@@ -31,22 +33,50 @@ export default async (req, context) => {
     const source = (url.searchParams.get('source') || 'published').toLowerCase(); // 'published' | 'posts'
     const limitQ = url.searchParams.get('limit');
 
-    const PAGE_ID     = process.env.FB_PAGE_ID;
-    // accept either var name for convenience
-    const PAGE_TOKEN  = process.env.FB_PAGE_ACCESS_TOKEN || process.env.FB_PAGE_TOKEN;
-    const GRAPH_VER   = process.env.FB_GRAPH_VERSION || 'v20.0';
-    const LIMIT       = Number(limitQ || process.env.FB_POSTS_LIMIT || 10);
-    const APP_ID      = process.env.FB_APP_ID || '';
-    const APP_SECRET  = process.env.FB_APP_SECRET || '';
+    // --- Accept multiple alias names to avoid name mismatch issues ---
+    const PAGE_ID =
+      process.env.FB_PAGE_ID ||
+      process.env.FB_PAGEID ||            // alias
+      process.env.FACEBOOK_PAGE_ID ||     // alias
+      '';
+
+    const PAGE_TOKEN =
+      process.env.FB_PAGE_ACCESS_TOKEN ||
+      process.env.FB_ACCESS_TOKEN ||      // alias
+      process.env.FB_PAGE_TOKEN ||        // alias
+      process.env.FACEBOOK_PAGE_TOKEN ||  // alias
+      '';
+
+    const GRAPH_VER = process.env.FB_GRAPH_VERSION || 'v20.0';
+    const LIMIT = Number(limitQ || process.env.FB_POSTS_LIMIT || 10);
+
+    const APP_ID = process.env.FB_APP_ID || '';
+    const APP_SECRET = process.env.FB_APP_SECRET || '';
+
+    // --- DEBUG: show which env vars are visible (names only, not values) ---
+    const fbEnvPresence = {
+      FB_PAGE_ID: !!process.env.FB_PAGE_ID,
+      FB_PAGEID: !!process.env.FB_PAGEID,
+      FACEBOOK_PAGE_ID: !!process.env.FACEBOOK_PAGE_ID,
+      FB_PAGE_ACCESS_TOKEN: !!process.env.FB_PAGE_ACCESS_TOKEN,
+      FB_ACCESS_TOKEN: !!process.env.FB_ACCESS_TOKEN,
+      FB_PAGE_TOKEN: !!process.env.FB_PAGE_TOKEN,
+      FACEBOOK_PAGE_TOKEN: !!process.env.FACEBOOK_PAGE_TOKEN,
+      FB_GRAPH_VERSION: !!process.env.FB_GRAPH_VERSION,
+      FB_POSTS_LIMIT: !!process.env.FB_POSTS_LIMIT,
+      FB_APP_ID: !!process.env.FB_APP_ID,
+      FB_APP_SECRET: !!process.env.FB_APP_SECRET
+    };
 
     if (!PAGE_ID || !PAGE_TOKEN) {
-      return json({ error: 'Missing FB_PAGE_ID or FB_PAGE_ACCESS_TOKEN in env.' }, 500, headers);
+      return json({
+        error: 'Missing FB_PAGE_ID or FB_PAGE_ACCESS_TOKEN in env.',
+        hint: 'Check exact names + redeploy after adding env vars.',
+        ...(DEBUG ? { debug: { fbEnvPresence } } : {})
+      }, 500, headers);
     }
 
-    // endpoint: published_posts (preferred) or posts (fallback/legacy)
     const edge = source === 'posts' ? 'posts' : 'published_posts';
-
-    // Fields to retrieve (covers photos, albums, and basic post text)
     const fields = [
       'id',
       'message',
@@ -62,10 +92,10 @@ export default async (req, context) => {
     g.searchParams.set('limit', String(LIMIT));
     g.searchParams.set('access_token', PAGE_TOKEN);
 
-    // Add appsecret_proof if we can (recommended in prod)
+    // appsecret_proof if available
     if (APP_SECRET) {
       const proof = await hmacSha256Hex(PAGE_TOKEN, APP_SECRET);
-      g.searchParams.set('appsecret_proof', proof);
+      if (proof) g.searchParams.set('appsecret_proof', proof);
     }
 
     const t0 = Date.now();
@@ -79,31 +109,26 @@ export default async (req, context) => {
     const tookMs = Date.now() - t0;
 
     if (!res.ok) {
-      return json(
-        {
-          error: 'Facebook API error',
-          status: res.status,
-          details: redactFbError(raw),
-          ...(DEBUG ? { debug: { tookMs, endpoint: redactURL(g) } } : {})
-        },
-        res.status,
-        headers
-      );
+      return json({
+        error: 'Facebook API error',
+        status: res.status,
+        details: redactFbError(raw),
+        ...(DEBUG ? { debug: { tookMs, endpoint: redactURL(g), fbEnvPresence } } : {})
+      }, res.status, headers);
     }
 
     const data = Array.isArray(raw.data) ? raw.data : [];
     const items = data.map(mapFBPost).filter(Boolean);
 
     const body = { items };
-
     if (DEBUG) {
       body.debug = {
         tookMs,
         count: items.length,
         endpoint: redactURL(g),
+        fbEnvPresence,
         paging: raw.paging ? Object.keys(raw.paging) : [],
-        // Optional token introspection (only if APP_ID/SECRET set)
-        token: APP_ID && APP_SECRET ? await debugToken(PAGE_TOKEN, APP_ID, APP_SECRET, GRAPH_VER) : undefined
+        token: (APP_ID && APP_SECRET) ? await debugToken(PAGE_TOKEN, APP_ID, APP_SECRET, GRAPH_VER) : undefined
       };
     }
 
@@ -113,31 +138,18 @@ export default async (req, context) => {
   }
 };
 
-// ---------- Mapping & helpers ----------
-
+// ---------- helpers ----------
 function mapFBPost(p) {
   const message = (p.message || p.story || '').trim();
   const created = new Date(p.created_time || Date.now());
   const link = p.permalink_url || '#';
-
-  // Image selection: prefer full_picture, then attachments tree, then first subattachment
   const img = extractImage(p);
-
-  // Filter out totally empty posts (no text + no image)
   if (!message && !img) return null;
-
-  return {
-    id: p.id,
-    message,
-    date: created.toISOString(),
-    link,
-    image: img || ''
-  };
+  return { id: p.id, message, date: created.toISOString(), link, image: img || '' };
 }
 
 function extractImage(p) {
   if (p.full_picture) return p.full_picture;
-
   const a = p.attachments && p.attachments.data && p.attachments.data[0];
   if (a) {
     if (a.media && a.media.image && a.media.image.src) return a.media.image.src;
@@ -145,17 +157,14 @@ function extractImage(p) {
       const sub = a.subattachments.data.find(s => s.media && s.media.image && s.media.image.src);
       if (sub && sub.media && sub.media.image) return sub.media.image.src;
     }
-    if (a.target && a.target.url) return a.target.url; // sometimes a direct image
+    if (a.target && a.target.url) return a.target.url;
     if (a.url) return a.url;
   }
   return '';
 }
 
 function json(body, status = 200, headers = {}) {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers
-  });
+  return new Response(JSON.stringify(body), { status, headers });
 }
 
 function redactURL(u) {
@@ -177,32 +186,22 @@ function redactFbError(err) {
   }
 }
 
-// HMAC-SHA256(token, app_secret) → hex (works in Node or Edge runtimes)
+// HMAC-SHA256(token, secret) → hex
 async function hmacSha256Hex(token, secret) {
-  // Try Web Crypto
   if (globalThis.crypto && globalThis.crypto.subtle) {
     const enc = new TextEncoder();
-    const key = await crypto.subtle.importKey(
-      'raw',
-      enc.encode(secret),
-      { name: 'HMAC', hash: 'SHA-256' },
-      false,
-      ['sign']
-    );
+    const key = await crypto.subtle.importKey('raw', enc.encode(secret), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
     const sig = await crypto.subtle.sign('HMAC', key, enc.encode(token));
     return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
   }
-  // Fallback to Node crypto
   try {
     const { createHmac } = await import('node:crypto');
     return createHmac('sha256', secret).update(token).digest('hex');
   } catch {
-    // As a last resort, skip proof (safe failure)
     return '';
   }
 }
 
-// Optional token introspection (DEBUG only if APP_ID/SECRET set)
 async function debugToken(pageToken, appId, appSecret, ver = 'v20.0') {
   try {
     const u = new URL(`https://graph.facebook.com/${ver}/debug_token`);
@@ -223,4 +222,3 @@ async function debugToken(pageToken, appId, appSecret, ver = 'v20.0') {
     return { ok: false, error: String(e) };
   }
 }
-
