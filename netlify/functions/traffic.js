@@ -20,10 +20,18 @@ exports.handler = async function (event) {
     var perFeed = Number(process.env.TRAFFIC_PER_FEED || 20);
     var timeout = Number(process.env.FEED_TIMEOUT_MS || 3000);
 
-    // Traffic feeds (you can add more later)
-    var feeds = [
-      'https://novascotia.ca/news/rss/traffic.asp'
-    ];
+// netlify/functions/traffic.js — replace the feeds array with this
+var feeds = [
+  // Nova Scotia traffic advisories
+  'https://novascotia.ca/news/rss/traffic.asp',
+
+  // Environment Canada CAP/RSS alerts (weather) for Atlantic provinces
+  'https://alerts.weather.gc.ca/rss/cap/ns.xml',
+  'https://alerts.weather.gc.ca/rss/cap/nb.xml',
+  'https://alerts.weather.gc.ca/rss/cap/pe.xml',
+  'https://alerts.weather.gc.ca/rss/cap/nl.xml'
+];
+
 
     var debugFeeds = [];
     var settled = await Promise.allSettled(
