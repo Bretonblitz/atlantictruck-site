@@ -23,15 +23,28 @@ exports.handler = async function (event) {
     var timeout      = Number(process.env.FEED_TIMEOUT_MS || 3000);
     var MAX_PER_HOST = 4;
 
-    // Hard-coded, non-traffic feeds
-    var feeds = [
-      'https://novascotia.ca/news/rss/rss.asp',                 // Nova Scotia Gov – all releases (contains some traffic; filtered below)
-      'https://www.cbc.ca/webfeed/rss/rss-canada-novascotia',   // CBC Nova Scotia
-      'https://globalnews.ca/halifax/feed',                     // Global News Halifax
-      'https://theloadstar.com/feed/',                          // The Loadstar (freight/ports)
-      'https://www.trucknews.com/rss/',                         // TruckNews (Canada)
-      'https://www.ttnews.com/rss.xml'                          // Transport Topics (industry macro)
-    ];
+    // netlify/functions/news.js  — replace the feeds array with this
+var feeds = [
+  // Canada trucking / logistics
+  'https://www.trucknews.com/rss/',
+  'https://theloadstar.com/feed/',
+  'https://www.freightwaves.com/feed',
+
+  // Regional broadcasters – Atlantic
+  'https://globalnews.ca/halifax/feed/',
+  'https://globalnews.ca/new-brunswick/feed/',
+
+  // CBC provincial “lineup” feeds
+  'https://rss.cbc.ca/lineup/canada-novascotia.xml',
+  'https://rss.cbc.ca/lineup/canada-newbrunswick.xml',
+  'https://rss.cbc.ca/lineup/canada-pei.xml',
+  'https://rss.cbc.ca/lineup/canada-newfoundland.xml',
+
+  // NL local + Canadian logistics
+  'https://vocm.com/feed/',
+  'https://www.insidelogistics.ca/feed/'
+];
+
 
     var debugFeeds = [];
     var settled = await Promise.allSettled(
