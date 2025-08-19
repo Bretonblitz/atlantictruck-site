@@ -13,6 +13,15 @@
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="stylesheet" href="/assets/css/style.css">
+  <!-- Minimal styles for the sidebar FB list -->
+  <style>
+    .fb-posts { display: grid; gap: 12px; }
+    .fb-item { display: grid; grid-template-columns: 96px 1fr; gap: 10px; align-items: start; }
+    .fb-item img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; background: #f3f3f3; }
+    .fb-item .meta { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .fb-item p { margin: 0; color: #333; }
+    @media (max-width: 820px){ .fb-item { grid-template-columns: 72px 1fr; } .fb-item img{ width:72px; height:72px; } }
+  </style>
   <!-- removed script from head; added at end of body with a cache-buster -->
 </head>
 <body>
@@ -99,7 +108,7 @@
       <aside>
         <div class="card">
           <h3 class="section-title">Latest on Facebook</h3>
-          <div id="fbSidebar" class="fb-posts" aria-live="polite"></div>
+          <div id="fbSidebar" class="fb-posts" aria-live="polite">Loading Facebook…</div>
           <div style="margin-top:10px"><a class="btn-light" target="_blank" rel="noopener" href="https://www.facebook.com/profile.php?id=61579126693357">Open Facebook</a></div>
         </div>
       </aside>
@@ -161,6 +170,60 @@
   <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
   <a href="/requests.html#service">Book Service</a>
 </div>
+
+<!-- Facebook sidebar loader -->
+<script>
+(function(){
+  const wrap = document.getElementById('fbSidebar');
+  if (!wrap) return;
+
+  const ENDPOINT = '/.netlify/functions/get-facebook-posts?limit=3'; // sidebar: show 3 posts
+  const PLACEHOLDER = ''; // leave blank; if image fails we just drop it
+
+  fetch(ENDPOINT)
+    .then(r => r.json())
+    .then(data => {
+      if (!data || !Array.isArray(data.items) || data.items.length === 0) {
+        wrap.textContent = 'No recent posts.';
+        return;
+      }
+      const frag = document.createDocumentFragment();
+      data.items.forEach(it => {
+        const img = it.image || PLACEHOLDER;
+        const link = it.link || '#';
+        const msg  = (it.message || '').trim();
+        const iso  = it.date || it.createdISO || '';
+        const d    = iso ? new Date(iso) : new Date();
+        const when = d.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
+
+        const el = document.createElement('article');
+        el.className = 'fb-item';
+        el.innerHTML = `
+          ${img ? `<a href="${escapeAttr(link)}" target="_blank" rel="noopener"><img src="${escapeAttr(img)}" alt="" loading="lazy"></a>` : `<div></div>`}
+          <div>
+            <div class="meta">${escapeHTML(when)}</div>
+            ${msg ? `<p>${escapeHTML(msg).slice(0, 240)}${msg.length>240?'…':''}</p>` : `<p class="muted">Photo update</p>`}
+            <div class="news-actions" style="margin-top:6px">
+              <a class="link" href="${escapeAttr(link)}" target="_blank" rel="noopener">Open on Facebook →</a>
+            </div>
+          </div>
+        `;
+        const imgEl = el.querySelector('img');
+        if (imgEl) imgEl.onerror = () => { imgEl.parentElement.replaceWith(document.createElement('div')); };
+        frag.appendChild(el);
+      });
+      wrap.innerHTML = '';
+      wrap.appendChild(frag);
+    })
+    .catch(err => {
+      console.error('FB posts load failed:', err);
+      wrap.textContent = 'Could not load Facebook posts.';
+    });
+
+  function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+  function escapeAttr(s){ return escapeHTML(String(s||'')).replace(/"/g, '&quot;'); }
+})();
+</script>
 
 <!-- Load JS at end + cache-bust so you get the latest file -->
 <script src="/assets/js/site.js?v=20250815" defer></script>
