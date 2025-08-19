@@ -1,35 +1,52 @@
- netlify/functions/fb-posts.js
-// Fetch latest public posts from a Facebook Page using env vars.
-// Env required in Netlify UI:
-//   FB_PAGE_ID = 766439739884645
-//   FB_PAGE_ACCESS_TOKEN = EAA7FJwBfHX0BPLAsLkycY0shUViEk9gPKZB90QKx9BZBpdZAqmmlPxKudPukFppqoCFovy8pSIwfZBAtXj7hpg3f7lsTpFsjGVTJBqsO2V0eeZCPnKd4fKwcSsZBeq73boYY78AjRF1uDwUWZAjWq34TZBHUvAf34voBLisbnHtryHuZAuI0edfFO1LmE5693rNwmqCBc1FgQq0R8YLUYox7CYJpG
-// Optional:
+// netlify/functions/get-facebook-posts.js
+// Fetch latest posts from a Facebook Page via Graph API, with debug output.
+//
+// Required Netlify env vars (Site settings → Build & deploy → Environment):
+//   FB_PAGE_ID = 61579126693357          // your page id (numbers only)
+//   FB_PAGE_ACCESS_TOKEN = <PAGE_TOKEN>  // a Page Access Token (NOT a user token)
+// Optional (recommended for extra security / debug):
 //   FB_GRAPH_VERSION = v20.0
-//   FB_POSTS_LIMIT = 15
+//   FB_POSTS_LIMIT   = 10
+//   FB_APP_ID        = <your app id>
+//   FB_APP_SECRET    = <your app secret>  // enables appsecret_proof & token debug
+//
+// Use: /.netlify/functions/get-facebook-posts
+// Debug: /.netlify/functions/get-facebook-posts?debug=1
+// Force endpoint: ?source=published (default) or ?source=posts
+// Limit override: ?limit=5
 
 export default async (req, context) => {
-  // Basic CORS
   const headers = {
-    'Access-Control-Allow-Origin': '*', // or your domain: 'https://www.atlantictruck.ca'
+    'Access-Control-Allow-Origin': '*', // you can lock this to your domain
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
-    'Cache-Control': 'public, max-age=600, s-maxage=900'
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=120, s-maxage=300'
   };
-  if (req.method === 'OPTIONS') {
-    return new Response('', { status: 204, headers });
-  }
+  if (req.method === 'OPTIONS') return new Response('', { status: 204, headers });
 
   try {
-    const pageId = process.env.FB_PAGE_ID;
-    const token = process.env.FB_PAGE_ACCESS_TOKEN;
-    const version = process.env.FB_GRAPH_VERSION || 'v20.0';
-    const limit = Number(process.env.FB_POSTS_LIMIT || 15);
+    const url = new URL(req.url);
+    const DEBUG = (url.searchParams.get('debug') || '0').toLowerCase() === '1';
+    const source = (url.searchParams.get('source') || 'published').toLowerCase(); // 'published' | 'posts'
+    const limitQ = url.searchParams.get('limit');
 
-    if (!pageId || !token) {
-      return json({ error: 'Missing FB_PAGE_ID or FB_PAGE_ACCESS_TOKEN' }, 500, headers);
+    const PAGE_ID     = process.env.FB_PAGE_ID;
+    // accept either var name for convenience
+    const PAGE_TOKEN  = process.env.FB_PAGE_ACCESS_TOKEN || process.env.FB_PAGE_TOKEN;
+    const GRAPH_VER   = process.env.FB_GRAPH_VERSION || 'v20.0';
+    const LIMIT       = Number(limitQ || process.env.FB_POSTS_LIMIT || 10);
+    const APP_ID      = process.env.FB_APP_ID || '';
+    const APP_SECRET  = process.env.FB_APP_SECRET || '';
+
+    if (!PAGE_ID || !PAGE_TOKEN) {
+      return json({ error: 'Missing FB_PAGE_ID or FB_PAGE_ACCESS_TOKEN in env.' }, 500, headers);
     }
 
-    // Pull posts with fields useful for rendering (pictures, message, link)
+    // endpoint: published_posts (preferred) or posts (fallback/legacy)
+    const edge = source === 'posts' ? 'posts' : 'published_posts';
+
+    // Fields to retrieve (covers photos, albums, and basic post text)
     const fields = [
       'id',
       'message',
@@ -40,56 +57,96 @@ export default async (req, context) => {
       'attachments{media_type,description,media,target,url,subattachments}'
     ].join(',');
 
-    const url = new URL(`https://graph.facebook.com/${version}/${pageId}/posts`);
-    url.searchParams.set('fields', fields);
-    url.searchParams.set('limit', String(limit));
-    url.searchParams.set('access_token', token);
+    const g = new URL(`https://graph.facebook.com/${GRAPH_VER}/${encodeURIComponent(PAGE_ID)}/${edge}`);
+    g.searchParams.set('fields', fields);
+    g.searchParams.set('limit', String(LIMIT));
+    g.searchParams.set('access_token', PAGE_TOKEN);
 
-    const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
-    const data = await res.json();
-
-    if (!res.ok) {
-      return json({ error: 'Facebook API error', details: data }, res.status, headers);
+    // Add appsecret_proof if we can (recommended in prod)
+    if (APP_SECRET) {
+      const proof = await hmacSha256Hex(PAGE_TOKEN, APP_SECRET);
+      g.searchParams.set('appsecret_proof', proof);
     }
 
-    const items = (data.data || []).map(mapPost).filter(Boolean);
-    return json({ items }, 200, headers);
+    const t0 = Date.now();
+    const res = await fetch(g, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (AtlanticTruckFB/1.0)',
+        'Accept': 'application/json'
+      }
+    });
+    const raw = await res.json().catch(() => ({}));
+    const tookMs = Date.now() - t0;
 
+    if (!res.ok) {
+      return json(
+        {
+          error: 'Facebook API error',
+          status: res.status,
+          details: redactFbError(raw),
+          ...(DEBUG ? { debug: { tookMs, endpoint: redactURL(g) } } : {})
+        },
+        res.status,
+        headers
+      );
+    }
+
+    const data = Array.isArray(raw.data) ? raw.data : [];
+    const items = data.map(mapFBPost).filter(Boolean);
+
+    const body = { items };
+
+    if (DEBUG) {
+      body.debug = {
+        tookMs,
+        count: items.length,
+        endpoint: redactURL(g),
+        paging: raw.paging ? Object.keys(raw.paging) : [],
+        // Optional token introspection (only if APP_ID/SECRET set)
+        token: APP_ID && APP_SECRET ? await debugToken(PAGE_TOKEN, APP_ID, APP_SECRET, GRAPH_VER) : undefined
+      };
+    }
+
+    return json(body, 200, headers);
   } catch (err) {
-    return json({ error: 'Server error', details: String(err) }, 500, { 'Content-Type': 'application/json', ...headers });
+    return json({ error: 'Server error', details: String(err) }, 500, headers);
   }
 };
 
-function mapPost(p) {
+// ---------- Mapping & helpers ----------
+
+function mapFBPost(p) {
   const message = (p.message || p.story || '').trim();
   const created = new Date(p.created_time || Date.now());
-  const image = extractImage(p);
   const link = p.permalink_url || '#';
 
-  // Filter out totally empty posts
-  if (!message && !image) return null;
+  // Image selection: prefer full_picture, then attachments tree, then first subattachment
+  const img = extractImage(p);
+
+  // Filter out totally empty posts (no text + no image)
+  if (!message && !img) return null;
 
   return {
     id: p.id,
     message,
-    createdISO: created.toISOString(),
-    createdHuman: created.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }),
-    image,
-    link
+    date: created.toISOString(),
+    link,
+    image: img || ''
   };
 }
 
 function extractImage(p) {
   if (p.full_picture) return p.full_picture;
 
-  // attachments tree
   const a = p.attachments && p.attachments.data && p.attachments.data[0];
-  if (a && a.media && a.media.image && a.media.image.src) return a.media.image.src;
-
-  // subattachments (albums/multi-photos)
-  if (a && a.subattachments && a.subattachments.data) {
-    const sub = a.subattachments.data.find(s => s.media && s.media.image && s.media.image.src);
-    if (sub) return sub.media.image.src;
+  if (a) {
+    if (a.media && a.media.image && a.media.image.src) return a.media.image.src;
+    if (a.subattachments && Array.isArray(a.subattachments.data)) {
+      const sub = a.subattachments.data.find(s => s.media && s.media.image && s.media.image.src);
+      if (sub && sub.media && sub.media.image) return sub.media.image.src;
+    }
+    if (a.target && a.target.url) return a.target.url; // sometimes a direct image
+    if (a.url) return a.url;
   }
   return '';
 }
@@ -97,6 +154,73 @@ function extractImage(p) {
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { 'Content-Type': 'application/json', ...headers }
+    headers
   });
 }
+
+function redactURL(u) {
+  const copy = new URL(u.toString());
+  if (copy.searchParams.has('access_token')) copy.searchParams.set('access_token', '***');
+  if (copy.searchParams.has('appsecret_proof')) copy.searchParams.set('appsecret_proof', '***');
+  return copy.toString();
+}
+
+function redactFbError(err) {
+  try {
+    const e = JSON.parse(JSON.stringify(err || {}));
+    if (e.error && e.error.message) {
+      e.error.message = String(e.error.message).replace(/access_token=[^&\s]+/g, 'access_token=***');
+    }
+    return e;
+  } catch {
+    return { error: String(err) };
+  }
+}
+
+// HMAC-SHA256(token, app_secret) → hex (works in Node or Edge runtimes)
+async function hmacSha256Hex(token, secret) {
+  // Try Web Crypto
+  if (globalThis.crypto && globalThis.crypto.subtle) {
+    const enc = new TextEncoder();
+    const key = await crypto.subtle.importKey(
+      'raw',
+      enc.encode(secret),
+      { name: 'HMAC', hash: 'SHA-256' },
+      false,
+      ['sign']
+    );
+    const sig = await crypto.subtle.sign('HMAC', key, enc.encode(token));
+    return Array.from(new Uint8Array(sig)).map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+  // Fallback to Node crypto
+  try {
+    const { createHmac } = await import('node:crypto');
+    return createHmac('sha256', secret).update(token).digest('hex');
+  } catch {
+    // As a last resort, skip proof (safe failure)
+    return '';
+  }
+}
+
+// Optional token introspection (DEBUG only if APP_ID/SECRET set)
+async function debugToken(pageToken, appId, appSecret, ver = 'v20.0') {
+  try {
+    const u = new URL(`https://graph.facebook.com/${ver}/debug_token`);
+    u.searchParams.set('input_token', pageToken);
+    u.searchParams.set('access_token', `${appId}|${appSecret}`);
+    const r = await fetch(u);
+    const j = await r.json();
+    if (!j || !j.data) return { ok: false };
+    const d = j.data;
+    return {
+      ok: !!d.is_valid,
+      type: d.type,
+      app_id: d.app_id,
+      expires_at: d.expires_at || null,
+      scopes: d.scopes || []
+    };
+  } catch (e) {
+    return { ok: false, error: String(e) };
+  }
+}
+
