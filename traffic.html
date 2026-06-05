@@ -47,18 +47,19 @@
 </div>
 
 <header class="site-header">
-  <div class="container header-inner">
+  <div class="header-inner">
     <a class="brand" href="/index.html">
-      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
-      <div>
+      <picture class="logo-picture">
+        <source srcset="/assets/img/logo.webp" type="image/webp">
+        <source srcset="/assets/img/logo.png" type="image/png">
+        <img class="logo" alt="Atlantic Truck &amp; Equipment Repair" src="/assets/img/logo.png">
+      </picture>
+      <div class="brand-text">
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
-      <span></span><span></span><span></span>
-    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
         <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
@@ -73,15 +74,18 @@
         </li>
         <li><a href="/fleet-accounts.html">Fleet Accounts</a></li>
         <li><a href="/gallery.html">Gallery</a></li>
-        <li><a href="/news.html">News</a></li>
+        <li><a href="/news.html" class="active">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
         <li><a href="/requests.html">Book Service</a></li>
         <li><a href="/about.html">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('navList').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
     <div class="header-cta">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call service line">Call 902-539-4574</a>
     </div>
   </div>
 </header>
@@ -99,54 +103,46 @@
 <section class="section compact">
   <div class="container">
 
-    <!-- 511 NS Embed -->
+    <!-- 511 NS Road Conditions -->
     <div class="kicker" style="margin-bottom:.75rem">Live road conditions</div>
-    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:800;margin:0 0 .75rem">Nova Scotia 511 — Live Traffic Map</h2>
-    <p class="muted" style="margin-bottom:1.25rem">Real-time road conditions, closures, and incidents across Nova Scotia. Data from <a href="https://511.novascotia.ca/" target="_blank" rel="noopener">511.novascotia.ca</a>.</p>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:800;margin:0 0 .75rem">Nova Scotia 511 — Road Conditions</h2>
+    <p class="muted" style="margin-bottom:1.25rem">Official Nova Scotia road advisories. The 511 NS map cannot be embedded due to government security restrictions — click below to open it directly.</p>
 
-    <div style="position:relative;background:var(--light);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:2rem">
-      <!-- 511 NS iframe embed -->
-      <iframe
-        id="ns511frame"
-        src="https://511.novascotia.ca/"
-        width="100%"
-        height="600"
-        frameborder="0"
-        loading="lazy"
-        title="Nova Scotia 511 live traffic map"
-        allow="geolocation"
-        style="display:block;border:none;width:100%;min-height:500px"
-        onload="document.getElementById('ns511loading').style.display='none'"
-      ></iframe>
-      <!-- Loading state -->
-      <div id="ns511loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--light);gap:12px;pointer-events:none">
-        <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite"></div>
-        <p class="muted" style="margin:0;font-size:.875rem">Loading 511 traffic map…</p>
-      </div>
-      <!-- Fallback if iframe blocked -->
-      <div id="ns511fallback" style="display:none;padding:2rem;text-align:center">
-        <p style="margin-bottom:1rem;color:var(--muted)">The 511 map couldn't load in this window. Open it directly:</p>
-        <a class="btn" href="https://511.novascotia.ca/" target="_blank" rel="noopener">Open 511 Nova Scotia →</a>
-      </div>
+    <!-- 511 NS direct links -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:2rem">
+      <a href="https://511.novascotia.ca/" target="_blank" rel="noopener"
+         style="display:flex;align-items:center;gap:14px;background:var(--ink);color:#fff;border-radius:var(--radius-lg);padding:20px 22px;text-decoration:none;transition:opacity .15s"
+         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg width="36" height="36" fill="none" stroke="#fff" stroke-width="1.5" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7M9 20l6-3M9 20V7m6 13l4.553 2.276A1 1 0 0 0 21 21.382V10.618a1 1 0 0 0-.553-.894L15 7m0 13V7M9 7l6-3"/></svg>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:2px">Open 511 NS Map</div>
+          <div style="font-size:.8rem;opacity:.7">Full interactive map — opens in new tab</div>
+        </div>
+      </a>
+      <a href="https://511.novascotia.ca/en/Reports" target="_blank" rel="noopener"
+         style="display:flex;align-items:center;gap:14px;background:var(--brand);color:#fff;border-radius:var(--radius-lg);padding:20px 22px;text-decoration:none;transition:opacity .15s"
+         onmouseover="this.style.opacity='.85'" onmouseout="this.style.opacity='1'">
+        <svg width="36" height="36" fill="none" stroke="#fff" stroke-width="1.5" viewBox="0 0 24 24" style="flex-shrink:0"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/><line x1="9" y1="12" x2="15" y2="12"/><line x1="9" y1="16" x2="15" y2="16"/></svg>
+        <div>
+          <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.1rem;margin-bottom:2px">511 NS Reports</div>
+          <div style="font-size:.8rem;opacity:.7">Closures &amp; incidents list — opens in new tab</div>
+        </div>
+      </a>
     </div>
 
-    <script>
-    // If iframe fails to load after 8s, show fallback link
-    setTimeout(function(){
-      const frame = document.getElementById('ns511frame');
-      const loading = document.getElementById('ns511loading');
-      const fallback = document.getElementById('ns511fallback');
-      if(loading && loading.style.display !== 'none'){
-        if(loading) loading.style.display='none';
-        if(fallback) fallback.style.display='block';
-        if(frame) frame.style.display='none';
-      }
-    }, 8000);
-    </script>
-
-    <style>
-    @keyframes spin { to { transform:rotate(360deg); } }
-    </style>
+    <!-- Helpful context for drivers -->
+    <div class="card" style="margin-bottom:2rem">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;margin-bottom:10px">Quick reference — Cape Breton routes</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;font-size:.875rem">
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Hwy 105</strong> — Trans-Canada (CB)</div>
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Canso Causeway</strong> — CB to mainland</div>
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Hwy 125</strong> — Sydney Bypass</div>
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Hwy 19</strong> — Ceilidh Trail</div>
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Hwy 104</strong> — Trans-Canada (NS)</div>
+        <div style="padding:10px 12px;background:var(--light);border-radius:var(--radius-sm)"><strong>Sydney Harbour Bridge</strong> — Whitney Pier</div>
+      </div>
+      <p class="muted" style="margin:10px 0 0;font-size:.8125rem">For active road incidents on any of these routes, open the 511 NS map above.</p>
+    </div>
 
     <!-- Advisory feed below map -->
     <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">

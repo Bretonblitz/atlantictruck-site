@@ -50,18 +50,19 @@
 </div>
 
 <header class="site-header">
-  <div class="container header-inner">
+  <div class="header-inner">
     <a class="brand" href="/index.html">
-      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
-      <div>
+      <picture class="logo-picture">
+        <source srcset="/assets/img/logo.webp" type="image/webp">
+        <source srcset="/assets/img/logo.png" type="image/png">
+        <img class="logo" alt="Atlantic Truck &amp; Equipment Repair" src="/assets/img/logo.png">
+      </picture>
+      <div class="brand-text">
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
-      <span></span><span></span><span></span>
-    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
         <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
@@ -79,13 +80,15 @@
         <li><a href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
         <li><a href="/requests.html">Book Service</a></li>
-        <li><a class="active" href="/about.html">About</a></li>
+        <li><a href="/about.html" class="active">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('navList').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
-    <!-- Smart CTA: text/target changes by time-of-day (set by site.js) -->
     <div class="header-cta">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call service line">Call 902-539-4574</a>
     </div>
   </div>
 </header>
@@ -161,13 +164,18 @@
         <div class="card">
           <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:14px">Key contacts</div>
           <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
+            
             <li style="display:flex;align-items:center;gap:12px">
-              <div style="width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">D</div>
-              <div><div style="font-weight:600">Donnie</div><div style="font-size:.8rem;color:var(--muted)">Owner / Operations</div></div>
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">JS</div>
+              <div><div style="font-weight:600">James S.</div><div style="font-size:.8rem;color:var(--muted)">Service Manager — shop inquiries &amp; bookings</div></div>
             </li>
             <li style="display:flex;align-items:center;gap:12px">
-              <div style="width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">J</div>
-              <div><div style="font-weight:600">James</div><div style="font-size:.8rem;color:var(--muted)">Service — shop inquiries &amp; bookings</div></div>
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">TM</div>
+              <div><div style="font-weight:600">Trevor M.</div><div style="font-size:.8rem;color:var(--muted)">Parts Manager</div></div>
+            </li>
+            <li style="display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">KC</div>
+              <div><div style="font-weight:600">Kiersten C.</div><div style="font-size:.8rem;color:var(--muted)">Accounting</div></div>
             </li>
           </ul>
           <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
@@ -182,11 +190,12 @@
 
 <section class="section">
   <div class="container">
+    <section class="section">
+  <div class="container">
     <div class="kicker">The people</div>
     <h2 class="section-title" style="margin-bottom:.5rem">Meet the <span>Team</span></h2>
-    <p style="color:var(--muted);margin-bottom:2.5rem;max-width:600px">12 professionals committed to keeping Atlantic Canada's commercial fleets on the road. Photos coming soon — names and faces you'll recognise.</p>
+    <p style="color:var(--muted);margin-bottom:2.5rem;max-width:600px">11 professionals committed to keeping Atlantic Canada's commercial fleets on the road.</p>
 
-    <!-- Office & Management -->
     <div style="margin-bottom:2.5rem">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
         <div style="height:3px;width:32px;background:var(--brand);border-radius:2px"></div>
@@ -194,49 +203,38 @@
       </div>
       <div class="staff-grid">
         <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/donald_shaw.webp" type="image/webp">
-          <source srcset="/assets/img/staff/donald_shaw.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/donald_shaw.jpg" alt="Donald Shaw" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-donald_shaw').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-donald_shaw" style="width:88px;height:88px;border-radius:50%;background:#B9111B;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">DS</div>
-        <div class="staff-name">Donald Shaw</div>
-        <div class="staff-role">Owner</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/james.webp" type="image/webp">
-          <source srcset="/assets/img/staff/james.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/james.jpg" alt="James" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-james').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-james" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">J</div>
-        <div class="staff-name">James</div>
-        <div class="staff-role">Service Manager</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/trevor.webp" type="image/webp">
-          <source srcset="/assets/img/staff/trevor.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/trevor.jpg" alt="Trevor" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-trevor').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-trevor" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">T</div>
-        <div class="staff-name">Trevor</div>
-        <div class="staff-role">Parts Manager</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/kiersten_confiant.webp" type="image/webp">
-          <source srcset="/assets/img/staff/kiersten_confiant.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/kiersten_confiant.jpg" alt="Kiersten Confiant" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-kiersten_confiant').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-kiersten_confiant" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">KC</div>
-        <div class="staff-name">Kiersten Confiant</div>
-        <div class="staff-role">Accounting</div>
-      </div>
+          <picture>
+            <source srcset="/assets/img/staff/james.webp" type="image/webp">
+            <source srcset="/assets/img/staff/james.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/james.jpg" alt="James S." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#B9111B;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">JS</div>
+          <div class="staff-name">James S.</div>
+          <div class="staff-role">Service Manager</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/trevor.webp" type="image/webp">
+            <source srcset="/assets/img/staff/trevor.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/trevor.jpg" alt="Trevor M." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">TM</div>
+          <div class="staff-name">Trevor M.</div>
+          <div class="staff-role">Parts Manager</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/kiersten_confiant.webp" type="image/webp">
+            <source srcset="/assets/img/staff/kiersten_confiant.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/kiersten_confiant.jpg" alt="Kiersten C." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">KC</div>
+          <div class="staff-name">Kiersten C.</div>
+          <div class="staff-role">Accounting</div>
+        </div>
       </div>
     </div>
 
-    <!-- Shop & Field -->
     <div>
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
         <div style="height:3px;width:32px;background:#1D4E8F;border-radius:2px"></div>
@@ -244,85 +242,85 @@
       </div>
       <div class="staff-grid">
         <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/james_mckinnon.webp" type="image/webp">
-          <source srcset="/assets/img/staff/james_mckinnon.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/james_mckinnon.jpg" alt="James McKinnon" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-james_mckinnon').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-james_mckinnon" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">JM</div>
-        <div class="staff-name">James McKinnon</div>
-        <div class="staff-role">Shop Foreman</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/rick_chaisson.webp" type="image/webp">
-          <source srcset="/assets/img/staff/rick_chaisson.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/rick_chaisson.jpg" alt="Rick Chaisson" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-rick_chaisson').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-rick_chaisson" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">RC</div>
-        <div class="staff-name">Rick Chaisson</div>
-        <div class="staff-role">Master Fabricator</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/brandon_shaw.webp" type="image/webp">
-          <source srcset="/assets/img/staff/brandon_shaw.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/brandon_shaw.jpg" alt="Brandon Shaw" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-brandon_shaw').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-brandon_shaw" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">BS</div>
-        <div class="staff-name">Brandon Shaw</div>
-        <div class="staff-role">Licensed Technician</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/dave_mckay.webp" type="image/webp">
-          <source srcset="/assets/img/staff/dave_mckay.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/dave_mckay.jpg" alt="Dave McKay" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-dave_mckay').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-dave_mckay" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">DM</div>
-        <div class="staff-name">Dave McKay</div>
-        <div class="staff-role">Licensed Technician</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/corbin_mccarthy.webp" type="image/webp">
-          <source srcset="/assets/img/staff/corbin_mccarthy.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/corbin_mccarthy.jpg" alt="Corbin McCarthy" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-corbin_mccarthy').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-corbin_mccarthy" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">CM</div>
-        <div class="staff-name">Corbin McCarthy</div>
-        <div class="staff-role">Licensed Technician</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/sam_tynski.webp" type="image/webp">
-          <source srcset="/assets/img/staff/sam_tynski.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/sam_tynski.jpg" alt="Sam Tynski" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-sam_tynski').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-sam_tynski" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">ST</div>
-        <div class="staff-name">Sam Tynski</div>
-        <div class="staff-role">Licensed Technician</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/joe_coady.webp" type="image/webp">
-          <source srcset="/assets/img/staff/joe_coady.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/joe_coady.jpg" alt="Joe Coady" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-joe_coady').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-joe_coady" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">JC</div>
-        <div class="staff-name">Joe Coady</div>
-        <div class="staff-role">Licensed Technician</div>
-      </div>
-      <div class="staff-card">
-        <picture>
-          <source srcset="/assets/img/staff/garry_king.webp" type="image/webp">
-          <source srcset="/assets/img/staff/garry_king.jpg" type="image/jpeg">
-          <img src="/assets/img/staff/garry_king.jpg" alt="Garry King" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-garry_king').style.display='flex'" loading="lazy">
-        </picture>
-        <div id="init-garry_king" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">GK</div>
-        <div class="staff-name">Garry King</div>
-        <div class="staff-role">Tow Operator</div>
-      </div>
+          <picture>
+            <source srcset="/assets/img/staff/james_mckinnon.webp" type="image/webp">
+            <source srcset="/assets/img/staff/james_mckinnon.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/james_mckinnon.jpg" alt="James Mc." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">JM</div>
+          <div class="staff-name">James Mc.</div>
+          <div class="staff-role">Shop Foreman</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/rick_chaisson.webp" type="image/webp">
+            <source srcset="/assets/img/staff/rick_chaisson.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/rick_chaisson.jpg" alt="Rick C." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">RC</div>
+          <div class="staff-name">Rick C.</div>
+          <div class="staff-role">Master Fabricator</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/brandon_shaw.webp" type="image/webp">
+            <source srcset="/assets/img/staff/brandon_shaw.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/brandon_shaw.jpg" alt="Brandon S." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">BS</div>
+          <div class="staff-name">Brandon S.</div>
+          <div class="staff-role">Licensed Technician</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/dave_mckay.webp" type="image/webp">
+            <source srcset="/assets/img/staff/dave_mckay.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/dave_mckay.jpg" alt="Dave Mc." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">DM</div>
+          <div class="staff-name">Dave Mc.</div>
+          <div class="staff-role">Licensed Technician</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/corbin_mccarthy.webp" type="image/webp">
+            <source srcset="/assets/img/staff/corbin_mccarthy.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/corbin_mccarthy.jpg" alt="Corbin Mc." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">CM</div>
+          <div class="staff-name">Corbin Mc.</div>
+          <div class="staff-role">Licensed Technician</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/sam_tynski.webp" type="image/webp">
+            <source srcset="/assets/img/staff/sam_tynski.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/sam_tynski.jpg" alt="Sam T." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">ST</div>
+          <div class="staff-name">Sam T.</div>
+          <div class="staff-role">Licensed Technician</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/joe_coady.webp" type="image/webp">
+            <source srcset="/assets/img/staff/joe_coady.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/joe_coady.jpg" alt="Joe C." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">JC</div>
+          <div class="staff-name">Joe C.</div>
+          <div class="staff-role">Licensed Technician</div>
+        </div>
+        <div class="staff-card">
+          <picture>
+            <source srcset="/assets/img/staff/garry_king.webp" type="image/webp">
+            <source srcset="/assets/img/staff/garry_king.jpg" type="image/jpeg">
+            <img src="/assets/img/staff/garry_king.jpg" alt="Garry K." style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
+          </picture>
+          <div style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.5rem;margin:0 auto 14px;display:none">GK</div>
+          <div class="staff-name">Garry K.</div>
+          <div class="staff-role">Tow Operator</div>
+        </div>
       </div>
     </div>
   </div>

@@ -49,18 +49,19 @@
 
 <!-- Header -->
 <header class="site-header">
-  <div class="container header-inner">
+  <div class="header-inner">
     <a class="brand" href="/index.html">
-      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
-      <div>
+      <picture class="logo-picture">
+        <source srcset="/assets/img/logo.webp" type="image/webp">
+        <source srcset="/assets/img/logo.png" type="image/png">
+        <img class="logo" alt="Atlantic Truck &amp; Equipment Repair" src="/assets/img/logo.png">
+      </picture>
+      <div class="brand-text">
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
-      <span></span><span></span><span></span>
-    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
         <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
@@ -77,14 +78,16 @@
         <li><a href="/gallery.html">Gallery</a></li>
         <li><a href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
-        <li><a class="active" href="/requests.html">Book Service</a></li>
+        <li><a href="/requests.html" class="active">Book Service</a></li>
         <li><a href="/about.html">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('navList').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
-    <!-- Smart CTA (site.js flips this by time-of-day) -->
     <div class="header-cta">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call service line">Call 902-539-4574</a>
     </div>
   </div>
 </header>
@@ -107,134 +110,115 @@
       <button data-tab="service" class="request-tab">Service Request</button>
       <button data-tab="parts" class="request-tab">Parts Request</button>
     </div>
+
     <div style="max-width:800px">
+
       <!-- SERVICE REQUEST -->
       <div id="service">
         <div class="card">
-          <div class="form-section"><h2>Service Request</h2>
-          <p>Tell us what you need. We’ll confirm availability and get you booked.</p>
-          <form name="service-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
-            <!-- FormSubmit config -->
-            <!-- honeypot + timestamp -->
-            <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
-            <div class="grid-2">
-              <label>Name*<input required name="name" autocomplete="name"></label>
-              <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\\-\\s]{7,}" title="Use digits, spaces, () or -"></label>
-            </div>
-            <label>Email*<input required type="email" name="email" autocomplete="email"></label>
-
-            <div class="grid-3">
-              <label>Unit #<input name="unit_number" autocomplete="off" placeholder="e.g. Truck 21"></label>
-              <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Freightliner Cascadia 2019"></label>
-              <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional — speeds up booking)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)" placeholder="Leave blank if unavailable"></label>
-            </div>
-
-            <div class="grid-3">
-              <label>Preferred Date*<input required type="date" name="preferred_date"></label>
-              <label>Time Window
-                <select name="time_window">
-                  <option value="">No preference</option>
-                  <option>Morning (8–12)</option>
-                  <option>Afternoon (12–4:30)</option>
-                </select>
-              </label>
-              <label>Service Type
-                <select name="service_type">
-                  <option>Diagnostics/Repair</option>
-                  <option>Inspection (MVI/B-620)</option>
-                  <option>Welding/Fabrication</option>
-                  <option>Towing/Recovery</option>
-                  <option>Other</option>
-                </select>
-              </label>
-            </div>
-
-            <fieldset class="card" style="margin-top:10px">
-              <legend><strong>Where?</strong></legend>
-              <div class="row wrap" style="gap:14px">
-                <label><input type="radio" name="where" value="Shop" checked> At our shop</label>
-                <label><input type="radio" name="where" value="On-site"> On-site / roadside</label>
+          <div class="form-section">
+            <h2>Service Request</h2>
+            <p style="margin-bottom:1.25rem">Tell us what you need. We'll confirm availability and get you booked.</p>
+            <form name="service-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
+              <p style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
+              <div class="grid-2">
+                <label>Name*<input required name="name" autocomplete="name"></label>
+                <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\-\s]{7,}" title="Use digits, spaces, () or -"></label>
               </div>
-              <div id="onSiteFields" style="display:none; margin-top:10px">
-                <div class="grid-2">
-                  <label>Street/Location<input name="onsite_address" autocomplete="street-address" placeholder="Highway & km marker, or address"></label>
-                  <label>City / Town<input name="onsite_city" autocomplete="address-level2"></label>
-                </div>
-                <div class="grid-2">
-                  <label>Province<input name="onsite_province" value="NS" autocomplete="address-level1"></label>
-                  <label>Postal Code<input name="onsite_postal" autocomplete="postal-code"></label>
-                </div>
+              <label>Email*<input required type="email" name="email" autocomplete="email"></label>
+              <div class="grid-3">
+                <label>Unit #<input name="unit_number" autocomplete="off" placeholder="e.g. Truck 21"></label>
+                <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Freightliner Cascadia 2019"></label>
+                <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" placeholder="Leave blank if unavailable"></label>
               </div>
-            </fieldset>
-
-            <label>Service Required*<textarea required name="service_required" rows="6" placeholder="Describe the issue or service needed"></textarea></label>
-
-            <!-- Attach photos (sent as email attachments) -->
-            <div class="grid-2">
-              <label>Photo (optional)
-                <input type="file" name="attachment" accept="image/*" capture="environment">
-              </label>
-              <label>Additional Photo (optional)
-                <input type="file" name="attachment2" accept="image/*" capture="environment">
-              </label>
-            </div>
-            <p class="small muted">Images are attached to the email. Max combined upload ~5&nbsp;MB per form.</p>
-
-            <label>PO # / Reference<input name="po" placeholder="If you need it on the invoice"></label>
-
-            <label class="small"><input type="checkbox" id="rememberSrv"> Remember my details on this device</label>
-            <button class="btn" type="submit">Send Service Request</button>
-            <p class="small muted">* Submissions handled securely by Netlify</p>
-          </form>
+              <div class="grid-3">
+                <label>Preferred Date*<input required type="date" name="preferred_date"></label>
+                <label>Time Window
+                  <select name="time_window">
+                    <option value="">No preference</option>
+                    <option>Morning (8–12)</option>
+                    <option>Afternoon (12–4:30)</option>
+                  </select>
+                </label>
+                <label>Service Type
+                  <select name="service_type">
+                    <option>Diagnostics/Repair</option>
+                    <option>Inspection (MVI/B-620)</option>
+                    <option>Welding/Fabrication</option>
+                    <option>Towing/Recovery</option>
+                    <option>Other</option>
+                  </select>
+                </label>
+              </div>
+              <fieldset>
+                <legend><strong>Where?</strong></legend>
+                <div class="row wrap" style="gap:14px">
+                  <label><input type="radio" name="where" value="Shop" checked> At our shop</label>
+                  <label><input type="radio" name="where" value="On-site"> On-site / roadside</label>
+                </div>
+                <div id="onSiteFields" style="display:none;margin-top:10px">
+                  <div class="grid-2">
+                    <label>Street/Location<input name="onsite_address" placeholder="Highway &amp; km marker, or address"></label>
+                    <label>City / Town<input name="onsite_city"></label>
+                  </div>
+                  <div class="grid-2">
+                    <label>Province<input name="onsite_province" value="NS"></label>
+                    <label>Postal Code<input name="onsite_postal"></label>
+                  </div>
+                </div>
+              </fieldset>
+              <label>Service Required*<textarea required name="service_required" rows="5" placeholder="Describe the issue or service needed"></textarea></label>
+              <div class="grid-2">
+                <label>Photo (optional)<input type="file" name="attachment" accept="image/*" capture="environment"></label>
+                <label>Additional Photo (optional)<input type="file" name="attachment2" accept="image/*" capture="environment"></label>
+              </div>
+              <p class="small muted">Max combined upload ~5 MB.</p>
+              <label>PO # / Reference<input name="po" placeholder="If you need it on the invoice"></label>
+              <label class="small"><input type="checkbox" id="rememberSrv"> Remember my details on this device</label>
+              <button class="btn" type="submit">Send Service Request</button>
+              <p class="small muted" style="margin-top:6px">* Submissions handled securely by Netlify</p>
+            </form>
+          </div>
         </div>
       </div>
 
       <!-- PARTS REQUEST -->
       <div id="parts">
         <div class="card">
-          <div class="form-section"><h2>Parts Request</h2>
-          <p style="margin-bottom:1.25rem">Genuine Freightliner® &amp; Western Star® OEM parts, sourced through our factory authorization. Share your VIN for an exact match.</p>
-          <form name="parts-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
-            <!-- FormSubmit config -->
-            <!-- honeypot + timestamp -->
-            <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
-            <div class="grid-2">
-              <label>Name*<input required name="name" autocomplete="name"></label>
-              <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\\-\\s]{7,}" title="Use digits, spaces, () or -"></label>
-            </div>
-            <label>Email*<input required type="email" name="email" autocomplete="email"></label>
-
-            <div class="grid-3">
-              <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Western Star 4900 2018"></label>
-              <label>Unit #<input name="unit_number" autocomplete="off"></label>
-              <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional — speeds up booking)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)" placeholder="Leave blank if unavailable"></label>
-            </div>
-
-            <div class="grid-2">
-              <label>Part Number (if known)<input name="part_number" placeholder="e.g. A03-12345-000"></label>
-              <label>Part Type / Description*<input required name="part_type" placeholder="e.g. brake drum, air dryer"></label>
-            </div>
-
-            <label>Quantity<input name="qty" type="number" min="1" step="1" placeholder="1"></label>
-            <label>Notes<textarea name="notes" rows="4" placeholder="Symptoms, old part #, etc."></textarea></label>
-
-            <!-- Attach photos (sent as email attachments) -->
-            <div class="grid-2">
-              <label>Part Photo (optional)
-                <input type="file" name="attachment" accept="image/*" capture="environment">
-              </label>
-              <label>Additional Photo (optional)
-                <input type="file" name="attachment2" accept="image/*" capture="environment">
-              </label>
-            </div>
-            <p class="small muted">Images are attached to the email. Max combined upload ~5&nbsp;MB per form.</p>
-
-            <label class="small"><input type="checkbox" id="rememberPrt"> Remember my details on this device</label>
-            <button class="btn" type="submit">Send Parts Request</button>
-            <p class="small muted">* Submissions handled securely by Netlify</p>
-          </form>
+          <div class="form-section">
+            <h2>Parts Request</h2>
+            <p style="margin-bottom:1.25rem">Genuine Freightliner® &amp; Western Star® OEM parts, sourced through our factory authorization. Share your VIN for an exact match.</p>
+            <form name="parts-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
+              <p style="display:none"><label>Don't fill this out: <input name="bot-field"></label></p>
+              <div class="grid-2">
+                <label>Name*<input required name="name" autocomplete="name"></label>
+                <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\-\s]{7,}" title="Use digits, spaces, () or -"></label>
+              </div>
+              <label>Email*<input required type="email" name="email" autocomplete="email"></label>
+              <div class="grid-3">
+                <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Western Star 4900 2018"></label>
+                <label>Unit #<input name="unit_number" autocomplete="off"></label>
+                <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" placeholder="Leave blank if unavailable"></label>
+              </div>
+              <div class="grid-2">
+                <label>Part Number (if known)<input name="part_number" placeholder="e.g. A03-12345-000"></label>
+                <label>Part Type / Description*<input required name="part_type" placeholder="e.g. brake drum, air dryer"></label>
+              </div>
+              <label>Quantity<input name="qty" type="number" min="1" step="1" placeholder="1"></label>
+              <label>Notes<textarea name="notes" rows="4" placeholder="Symptoms, old part #, etc."></textarea></label>
+              <div class="grid-2">
+                <label>Part Photo (optional)<input type="file" name="attachment" accept="image/*" capture="environment"></label>
+                <label>Additional Photo (optional)<input type="file" name="attachment2" accept="image/*" capture="environment"></label>
+              </div>
+              <p class="small muted">Max combined upload ~5 MB.</p>
+              <label class="small"><input type="checkbox" id="rememberPrt"> Remember my details on this device</label>
+              <button class="btn" type="submit">Send Parts Request</button>
+              <p class="small muted" style="margin-top:6px">* Submissions handled securely by Netlify</p>
+            </form>
+          </div>
         </div>
       </div>
+
     </div>
 
     <p class="small muted" style="margin-top:14px">We reply to all requests within 1 business day (Mon–Fri 8:00–4:30). For emergencies call 902-539-4574.</p>

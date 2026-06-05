@@ -51,18 +51,19 @@
 
 <!-- Header -->
 <header class="site-header">
-  <div class="container header-inner">
+  <div class="header-inner">
     <a class="brand" href="/index.html">
-      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
-      <div>
+      <picture class="logo-picture">
+        <source srcset="/assets/img/logo.webp" type="image/webp">
+        <source srcset="/assets/img/logo.png" type="image/png">
+        <img class="logo" alt="Atlantic Truck &amp; Equipment Repair" src="/assets/img/logo.png">
+      </picture>
+      <div class="brand-text">
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
-      <span></span><span></span><span></span>
-    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
         <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
@@ -81,12 +82,14 @@
         <li><a href="/service-area.html">Service Area</a></li>
         <li><a href="/requests.html">Book Service</a></li>
         <li><a href="/about.html">About</a></li>
-        <li><a class="active" href="/contact.html">Contact</a></li>
+        <li><a href="/contact.html" class="active">Contact</a></li>
       </ul>
+      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('navList').classList.toggle('open')">
+        <span></span><span></span><span></span>
+      </button>
     </nav>
-    <!-- Smart CTA (updated by site.js based on time-of-day) -->
     <div class="header-cta">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
+      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call service line">Call 902-539-4574</a>
     </div>
   </div>
 </header>

@@ -347,9 +347,11 @@ function initStatCounters(){
       obs.unobserve(e.target);
       const el=e.target;
       const raw=el.textContent.trim();
-      const suffix=raw.replace(/[\d.]/g,'');  // '+', 'hr', '/7' etc.
-      const num=parseFloat(raw);
-      if(isNaN(num)||num>100) return; // skip "24/7" and large numbers
+      // Skip values with slashes (24/7), already-animated tallies, or non-numeric
+      if(/\//.test(raw)||el.id==='unitsTally') return;
+      const suffix=raw.replace(/[\d.,]/g,'');
+      const num=parseFloat(raw.replace(/,/g,''));
+      if(isNaN(num)||num>200) return;
       let start=0;
       const dur=1200;
       const step=ts=>{
