@@ -33,14 +33,22 @@ function normalizePosts(json){
 }
 function extractImg(p){
   try{
+    // Try direct fields first
+    if(p.full_picture) return p.full_picture;
+    if(p.picture) return p.picture;
     const a=p.attachments&&p.attachments.data&&p.attachments.data[0];
     if(!a) return '';
     if(a.media&&a.media.image&&a.media.image.src) return a.media.image.src;
+    if(a.media&&a.media.source) return a.media.source;
+    if(a.image&&a.image.src) return a.image.src;
     if(a.subattachments&&Array.isArray(a.subattachments.data)){
       const s=a.subattachments.data.find(s=>s.media&&s.media.image&&s.media.image.src);
       if(s) return s.media.image.src;
+      const s2=a.subattachments.data.find(s=>s.media&&s.media.source);
+      if(s2) return s2.media.source;
     }
-    return a.target&&a.target.url||a.url||'';
+    if(a.target&&a.target.url&&a.target.url.match(/\.(jpg|jpeg|png|webp)/i)) return a.target.url;
+    return '';
   }catch(_){ return ''; }
 }
 function esc(s){ return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
@@ -155,7 +163,13 @@ async function renderHomepageSidebar(){
     try{ json=await api('/.netlify/functions/fb-posts?limit=3'); posts=normalizePosts(json); }catch(_){}
   }
   wrap.innerHTML='';
-  if(!posts.length){ wrap.innerHTML='<small class="muted">No recent updates.</small>'; return; }
+  if(!posts.length){
+    wrap.innerHTML='<div style="text-align:center;padding:16px 8px">'
+      +'<svg width="32" height="32" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>'
+      +'<div style="font-size:.8rem;color:var(--muted);line-height:1.5">Facebook not connected.<br><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" style="color:var(--brand)">Visit our Facebook page →</a></div>'
+      +'</div>';
+    return;
+  }
   posts.forEach(p=>{
     const a=document.createElement('a');
     a.className='tile'; a.href=p.link||'#'; a.target='_blank'; a.rel='noopener';
@@ -393,6 +407,23 @@ function initRequestTabs(){
 /* ── Print stylesheet logic ─────────────────────────────────────── */
 // Handled in CSS @media print block
 
+
+/* ── FB connection diagnostic (runs once, logs to console only) ──── */
+async function checkFBConnection(){
+  try{
+    const r=await fetch('/.netlify/functions/get-facebook-posts?debug=1&limit=1',{cache:'no-store'});
+    const j=await r.json();
+    if(j.error){
+      console.warn('Facebook not connected:',j.error);
+      if(j.hint) console.info('Hint:',j.hint);
+    } else if(j.items&&j.items.length){
+      console.info('Facebook connected ✓',j.items.length,'post(s) loaded');
+    }
+  }catch(e){
+    console.warn('FB diagnostic failed:',e);
+  }
+}
+
 /* ── Boot ───────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
   updateSmartCta();
@@ -407,6 +438,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initRequestTabs();
   initUnitsTally();
   animateUnitsTally();
+  checkFBConnection();
 });
 
 /* ── Units Serviced auto-tally ──────────────────────────────────────

@@ -1,11 +1,20 @@
 // netlify/functions/get-facebook-photos.js
 // Node 18+ (CommonJS). Dedupes images by ID or canonicalized URL.
 
-const API = 'https://graph.facebook.com/v19.0/';
+const API = 'https://graph.facebook.com/v20.0/';
 
 exports.handler = async function (event) {
-  const pageId = process.env.FB_PAGE_ID;
-  const token = process.env.FB_ACCESS_TOKEN;
+  const pageId =
+    process.env.FB_PAGE_ID ||
+    process.env.FB_PAGEID ||
+    process.env.FACEBOOK_PAGE_ID ||
+    '';
+  const token =
+    process.env.FB_PAGE_ACCESS_TOKEN ||
+    process.env.FB_ACCESS_TOKEN ||
+    process.env.FB_PAGE_TOKEN ||
+    process.env.FACEBOOK_PAGE_TOKEN ||
+    '';
   const limit = Math.max(1, Math.min(50, parseInt(event.queryStringParameters?.limit || '30')));
 
   if (!pageId || !token) {

@@ -42,7 +42,7 @@
       <a class="link-invert" href="tel:9025394574">Service: 902-539-4574</a>
       <span class="sm-hide">|</span>
       <a class="link-invert" href="tel:9025394139">Parts: 902-539-4139</a>
-      <a class="btn-light sm-hide" href="/requests.html#service">Need help now</a>
+      <a class="btn-light sm-hide" href="/requests.html#service">Get Help Now</a>
     </div>
   </div>
 </div>
@@ -85,9 +85,6 @@
         <span></span><span></span><span></span>
       </button>
     </nav>
-    <div class="header-cta">
-      <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call service line">Call 902-539-4574</a>
-    </div>
   </div>
 </header>
 
@@ -98,6 +95,33 @@
     <h1 style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.0;color:#fff;margin:0 0 .4em;text-shadow:0 2px 10px rgba(0,0,0,.4)">Industry <span>News</span></h1>
     <p style="color:rgba(255,255,255,.8);font-size:1.05rem;max-width:520px;margin:0">Fresh updates from the road — curated for our fleet customers.</p>
     
+  </div>
+</div>
+
+<!-- 511 NS Road Conditions Banner -->
+<div style="background:var(--ink);padding:14px 0;border-bottom:3px solid var(--brand)">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px">
+    <div style="display:flex;align-items:center;gap:14px">
+      <div style="width:42px;height:42px;border-radius:50%;background:var(--brand);display:flex;align-items:center;justify-content:center;flex-shrink:0">
+        <svg width="20" height="20" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><path d="M9 20l-5.447-2.724A1 1 0 0 1 3 16.382V5.618a1 1 0 0 1 1.447-.894L9 7m0 13V7m0 0l6-3m0 16V7m6 13l-6-3m0 0l-6-3"/></svg>
+      </div>
+      <div>
+        <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1.05rem;color:#fff;line-height:1.2">Nova Scotia 511 — Live Road Conditions</div>
+        <div style="font-size:.78rem;color:rgba(255,255,255,.65);margin-top:1px">Real-time closures, incidents &amp; conditions across NS</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <a href="https://511.novascotia.ca/" target="_blank" rel="noopener"
+         style="display:inline-flex;align-items:center;gap:7px;background:var(--brand);color:#fff;border-radius:999px;padding:8px 18px;font-weight:700;font-size:.8375rem;text-decoration:none;white-space:nowrap">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        Open Live Map
+      </a>
+      <a href="/traffic.html"
+         style="display:inline-flex;align-items:center;gap:7px;background:rgba(255,255,255,.12);color:#fff;border-radius:999px;padding:8px 18px;font-weight:700;font-size:.8375rem;text-decoration:none;white-space:nowrap;border:1px solid rgba(255,255,255,.25)">
+        <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2"/></svg>
+        NS Advisories
+      </a>
+    </div>
   </div>
 </div>
 
@@ -338,33 +362,30 @@ const FEEDS = [
   function renderCard(a){
     const card = document.createElement('article');
     card.className = 'news-card';
-    card.dataset.link  = a.link;
+    card.dataset.link = a.link;
 
-    // avoid reusing the same image URL — use source-keyed fallbacks
-    let imgSrc = a.image || '';
-    let needsHydration = false;
+    // Use the article's own image — NEVER substitute our trucks
+    // Only show greyed placeholder if truly no image available
+    let imgSrc = (a.image||'').trim();
+    let isPlaceholder = false;
     const canonImg = imgSrc ? imgSrc.split('?')[0].toLowerCase() : '';
+
     if (!imgSrc || usedImages.has(canonImg)) {
-      // Pick a fallback based on source category so cards look varied
-      const src = (a.source || '').toLowerCase();
-      if (src.includes('truck') || src.includes('freight') || src.includes('logistics') || src.includes('loadstar')) {
-        imgSrc = '/assets/img/hero-rotator.jpg';
-      } else if (src.includes('nova') || src.includes('cbc') || src.includes('global')) {
-        imgSrc = '/assets/img/fleet-wide.jpg';
-      } else if (src.includes('new brunswick') || src.includes('vocm')) {
-        imgSrc = '/assets/img/hero-wrecker.jpg';
-      } else {
-        imgSrc = '/assets/img/always-on-call.jpg';
-      }
-      needsHydration = !a.image; // only hydrate if truly missing
+      // Greyed-out version of our fleet photo — CSS filter handles the grey
+      imgSrc = '/assets/img/fleet-wide.jpg';
+      isPlaceholder = true;
     } else {
       usedImages.add(canonImg);
     }
 
+    const needsHydration = isPlaceholder && !a.image;
+
     const dateText = a.date.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
     card.innerHTML = `
       <a href="${a.link}" target="_blank" rel="noopener" aria-label="${escapeHTML(a.title)}">
-        <img class="news-thumb" src="${imgSrc}" alt="" loading="lazy" ${needsHydration ? 'data-missing="1"' : ''}>
+        <img class="news-thumb" src="${imgSrc}" alt="" loading="lazy"
+          ${needsHydration ? 'data-missing="1"' : ''}
+          ${isPlaceholder ? 'style="filter:grayscale(100%) opacity(0.35);"' : ''}>
       </a>
       <div class="news-body">
         <div class="news-meta">
@@ -378,12 +399,9 @@ const FEEDS = [
     `;
     const img = card.querySelector('img');
     img.onerror = () => {
-      const src = (a.source || '').toLowerCase();
-      if (src.includes('truck') || src.includes('freight') || src.includes('logistics')) {
-        img.src = '/assets/img/hero-rotator.jpg';
-      } else {
-        img.src = '/assets/img/fleet-wide.jpg';
-      }
+      // Article image failed — show greyed placeholder
+      img.src = '/assets/img/fleet-wide.jpg';
+      img.style.filter = 'grayscale(100%) opacity(0.35)';
       img.onerror = null;
     };
     return card;
