@@ -168,7 +168,7 @@ async function renderHomepageSidebar(){
   // Fallback: try rss2json with public FB RSS feed
   if(!posts.length){
     try{
-      const FB_PAGE='61579126693357';
+      const FB_PAGE='766439739884645';
       const feedUrl=`https://www.facebook.com/feeds/page.php?id=${FB_PAGE}&format=rss20`;
       const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=3`);
       if(r.ok){
@@ -189,7 +189,7 @@ async function renderHomepageSidebar(){
   if(!posts.length){
     wrap.innerHTML='<div style="text-align:center;padding:16px 8px">'
       +'<svg width="32" height="32" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>'
-      +'<div style="font-size:.8rem;color:var(--muted);line-height:1.5">Connect Facebook in Netlify settings<br>to show live posts here.<br><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" style="color:var(--brand)">Visit our page →</a></div>'
+      +'<div style="font-size:.8rem;color:var(--muted);line-height:1.5">Connect Facebook in Netlify settings<br>to show live posts here.<br><a href="https://www.facebook.com/profile.php?id=766439739884645" target="_blank" rel="noopener" style="color:var(--brand)">Visit our page →</a></div>'
       +'</div>';
     return;
   }
@@ -233,7 +233,7 @@ async function renderGallery(){
       <svg width="40" height="40" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
       <p style="color:var(--muted);margin:0 0 12px;font-size:.9rem">Facebook photos will appear here once connected.</p>
       <p style="color:var(--muted);font-size:.8rem;margin:0 0 14px">To connect: Netlify → Site configuration → Environment variables<br>Add <code>FB_PAGE_ID</code> and <code>FB_PAGE_ACCESS_TOKEN</code></p>
-      <a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" class="btn-light" style="font-size:.875rem">View our Facebook page →</a>
+      <a href="https://www.facebook.com/profile.php?id=766439739884645" target="_blank" rel="noopener" class="btn-light" style="font-size:.875rem">View our Facebook page →</a>
     </div>`;
     return;
   }

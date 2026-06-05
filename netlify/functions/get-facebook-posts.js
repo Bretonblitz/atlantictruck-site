@@ -2,7 +2,7 @@
 // Fetch recent Facebook Page posts with debug + env alias support.
 //
 // Env (set in Netlify → Site settings → Build & deploy → Environment):
-//   FB_PAGE_ID = <your page id, e.g. 61579126693357>
+//   FB_PAGE_ID = <your page id, e.g. 766439739884645>
 //   FB_PAGE_ACCESS_TOKEN = <your Page Access Token>
 // Optional:
 //   FB_GRAPH_VERSION = v20.0
@@ -41,10 +41,10 @@ export default async (req) => {
       '';
 
     const PAGE_TOKEN =
-      process.env.FB_PAGE_ACCESS_TOKEN ||
-      process.env.FB_ACCESS_TOKEN ||      // alias
-      process.env.FB_PAGE_TOKEN ||        // alias
-      process.env.FACEBOOK_PAGE_TOKEN ||  // alias
+      process.env.FB_ACCESS_TOKEN ||           // primary (set in Netlify)
+      process.env.FB_PAGE_ACCESS_TOKEN ||      // alias
+      process.env.FB_PAGE_TOKEN ||             // alias
+      process.env.FACEBOOK_PAGE_TOKEN ||       // alias
       '';
 
     const GRAPH_VER = process.env.FB_GRAPH_VERSION || 'v20.0';
