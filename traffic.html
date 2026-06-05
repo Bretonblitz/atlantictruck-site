@@ -12,8 +12,8 @@
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1117">
 <meta name="theme-color" content="#B9111B">
-  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link rel="apple-touch-icon" href="/assets/img/logo.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Atlantic Truck">
@@ -47,9 +47,9 @@
 </div>
 
 <header class="site-header">
-  <div class="container row spread center">
-    <a class="brand row center" href="/index.html">
-      <img class="logo" alt="Atlantic Truck & Equipment Repair logo" src="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <div class="container header-inner">
+    <a class="brand" href="/index.html">
+      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
       <div>
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
@@ -80,7 +80,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <div class="header-cta sm-hide">
+    <div class="header-cta">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
   </div>
@@ -96,13 +96,68 @@
   </div>
 </div>
 
-<section class="section">
+<section class="section compact">
   <div class="container">
-    <p class="muted">Road closures, lane reductions, and detours from official Nova Scotia traffic sources.</p>
-    <p><a href="/news.html">← Back to News</a></p>
 
-    <div id="grid" class="news-grid" aria-live="polite"></div>
-    <div id="status" class="muted" style="margin-top:12px"></div>
+    <!-- 511 NS Embed -->
+    <div class="kicker" style="margin-bottom:.75rem">Live road conditions</div>
+    <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:800;margin:0 0 .75rem">Nova Scotia 511 — Live Traffic Map</h2>
+    <p class="muted" style="margin-bottom:1.25rem">Real-time road conditions, closures, and incidents across Nova Scotia. Data from <a href="https://511.novascotia.ca/" target="_blank" rel="noopener">511.novascotia.ca</a>.</p>
+
+    <div style="position:relative;background:var(--light);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:2rem">
+      <!-- 511 NS iframe embed -->
+      <iframe
+        id="ns511frame"
+        src="https://511.novascotia.ca/"
+        width="100%"
+        height="600"
+        frameborder="0"
+        loading="lazy"
+        title="Nova Scotia 511 live traffic map"
+        allow="geolocation"
+        style="display:block;border:none;width:100%;min-height:500px"
+        onload="document.getElementById('ns511loading').style.display='none'"
+      ></iframe>
+      <!-- Loading state -->
+      <div id="ns511loading" style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:var(--light);gap:12px;pointer-events:none">
+        <div style="width:40px;height:40px;border:3px solid var(--border);border-top-color:var(--brand);border-radius:50%;animation:spin .8s linear infinite"></div>
+        <p class="muted" style="margin:0;font-size:.875rem">Loading 511 traffic map…</p>
+      </div>
+      <!-- Fallback if iframe blocked -->
+      <div id="ns511fallback" style="display:none;padding:2rem;text-align:center">
+        <p style="margin-bottom:1rem;color:var(--muted)">The 511 map couldn't load in this window. Open it directly:</p>
+        <a class="btn" href="https://511.novascotia.ca/" target="_blank" rel="noopener">Open 511 Nova Scotia →</a>
+      </div>
+    </div>
+
+    <script>
+    // If iframe fails to load after 8s, show fallback link
+    setTimeout(function(){
+      const frame = document.getElementById('ns511frame');
+      const loading = document.getElementById('ns511loading');
+      const fallback = document.getElementById('ns511fallback');
+      if(loading && loading.style.display !== 'none'){
+        if(loading) loading.style.display='none';
+        if(fallback) fallback.style.display='block';
+        if(frame) frame.style.display='none';
+      }
+    }, 8000);
+    </script>
+
+    <style>
+    @keyframes spin { to { transform:rotate(360deg); } }
+    </style>
+
+    <!-- Advisory feed below map -->
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border)">
+      <h2 style="font-family:'Barlow Condensed',sans-serif;font-size:1.3rem;font-weight:800;margin:0 0 1rem">Traffic Advisories Feed</h2>
+      <div id="grid" class="news-grid" aria-live="polite"></div>
+      <div id="status" class="muted" style="margin-top:12px"></div>
+    </div>
+
+    <div style="margin-top:1.5rem">
+      <a href="/news.html">← Back to News</a>
+    </div>
   </div>
 </section>
 
@@ -159,66 +214,7 @@
 </div>
 
 
-<script>
-(function(){
-  const grid = document.getElementById('grid');
-  const status = document.getElementById('status');
-  const PLACEHOLDER =
-    'https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png';
-  const usedImages = new Set();
 
-  status.textContent = 'Loading advisories…';
-  window.addEventListener('DOMContentLoaded', init);
-
-  async function init(){
-    try {
-      const r = await fetch('/.netlify/functions/traffic', { cache: 'no-store' });
-      if (!r.ok) throw new Error('traffic function not available');
-      const data = await r.json();
-      if (!data || !Array.isArray(data.items) || !data.items.length) throw new Error('no items');
-      render(data.items);
-      status.textContent = '';
-    } catch(e){
-      status.textContent = 'Could not load traffic advisories right now.';
-    }
-  }
-
-  function render(items){
-    const frag = document.createDocumentFragment();
-    items.forEach(a => frag.appendChild(card(a)));
-    grid.appendChild(frag);
-  }
-
-  function card(a){
-    const dateText = new Date(a.date || Date.now()).toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
-
-    let imgSrc = a.image || '';
-    if (!imgSrc || usedImages.has(imgSrc)) imgSrc = PLACEHOLDER; else usedImages.add(imgSrc);
-
-    const el = document.createElement('article');
-    el.className = 'news-card';
-    el.innerHTML = `
-      <a href="${a.link}" target="_blank" rel="noopener">
-        <img class="news-thumb" src="${imgSrc}" alt="">
-      </a>
-      <div class="news-body">
-        <div class="news-meta">
-          <span class="chip">Traffic advisory</span>
-          <span>${dateText}</span>
-        </div>
-        <h3 class="news-title"><a href="${a.link}" target="_blank" rel="noopener">${escapeHTML(a.title || 'Advisory')}</a></h3>
-        ${a.summary ? `<p class="muted">${escapeHTML(a.summary)}</p>` : ''}
-        <div class="news-actions"><a class="link" href="${a.link}" target="_blank" rel="noopener">Open →</a></div>
-      </div>
-    `;
-    const img = el.querySelector('img');
-    img.onerror = () => { img.src = PLACEHOLDER; img.onerror = null; };
-    return el;
-  }
-
-  function escapeHTML(s){ return (s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
-})();
-</script>
 <script src="/assets/js/site.js?v=20260604" defer></script>
 </body>
 </html>

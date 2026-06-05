@@ -19,8 +19,8 @@
 <meta name="apple-mobile-web-app-title" content="Atlantic Truck">
 <link rel="manifest" href="/manifest.json">
 <link rel="canonical" href="https://www.atlantictruck.ca/">
-<link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-<link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+<link rel="icon" type="image/png" href="/assets/img/logo.png">
+<link rel="apple-touch-icon" href="/assets/img/logo.png">
 <!-- ═══ Google Analytics 4 ════════════════════════════════════════
      TO ACTIVATE: Replace G-XXXXXXXXXX with your real GA4 Measurement ID
      Get it at: analytics.google.com → Admin → Data Streams → Web stream
@@ -91,9 +91,9 @@
 
 <!-- Header -->
 <header class="site-header">
-  <div class="container row spread center">
-    <a class="brand row center" href="/index.html" style="gap:14px">
-      <img class="logo" alt="Atlantic Truck & Equipment Repair logo" src="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <div class="container header-inner">
+    <a class="brand" href="/index.html">
+      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
       <div>
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
@@ -124,7 +124,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <div class="header-cta sm-hide"><a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 902-539-4574</a></div>
+    <div class="header-cta"><a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 902-539-4574</a></div>
   </div>
 </header>
 
@@ -165,6 +165,10 @@
       <span class="stat-label">Certified Mechanics</span>
     </div>
     <div class="stat-item">
+      <span class="stat-num" id="unitsTally">5,291</span>
+      <span class="stat-label">Units Serviced</span>
+    </div>
+    <div class="stat-item">
       <span class="stat-num">24/7</span>
       <span class="stat-label">Emergency Response</span>
     </div>
@@ -173,6 +177,7 @@
       <span class="stat-label">Heavy Recovery Units</span>
     </div>
   </div>
+</div>
 </div>
 
 <!-- OEM trust strip — right after stat bar -->

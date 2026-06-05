@@ -13,8 +13,8 @@
   <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
 <meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1117">
 <meta name="theme-color" content="#B9111B">
-  <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <link rel="icon" type="image/png" href="/assets/img/logo.png">
+  <link rel="apple-touch-icon" href="/assets/img/logo.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Atlantic Truck">
@@ -48,9 +48,9 @@
 </div>
 
 <header class="site-header">
-  <div class="container row spread center">
-    <a class="brand row center" href="/index.html">
-      <img class="logo" alt="Atlantic Truck & Equipment Repair logo" src="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
+  <div class="container header-inner">
+    <a class="brand" href="/index.html">
+      <picture class="logo-picture"><source srcset="/assets/img/logo.webp" type="image/webp"><source srcset="/assets/img/logo.png" type="image/png"><img class="logo" alt="Atlantic Truck &amp; Equipment Repair logo" src="/assets/img/logo.png"></picture>
       <div>
         <div class="brand-title">Atlantic Truck &amp; Equipment Repair</div>
         <div class="brand-tag">Largest heavy equipment tow trucks east of Halifax</div>
@@ -81,7 +81,7 @@
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
-    <div class="header-cta sm-hide">
+    <div class="header-cta">
       <a id="smartCta" class="btn" href="tel:9025394574" aria-label="Call 24/7 Dispatch">Call 24/7 Dispatch</a>
     </div>
   </div>
@@ -101,7 +101,7 @@
   <div class="container">
     <p class="muted news-intro">Fresh trucking headlines and Atlantic Canada updates. We pull from trusted industry and local sources.</p>
     <div class="page-note">
-      <a href="/traffic.html">Looking for road closures &amp; traffic advisories? See the Traffic page →</a>
+      <a href="/traffic.html">Live NS road conditions &amp; 511 traffic map → See Traffic &amp; Road Closures</a>
     </div>
 
     <div id="newsGrid" class="news-grid" aria-live="polite"></div>
@@ -167,8 +167,7 @@
   const statusEl    = document.getElementById('newsStatus');
   const loadMoreBtn = document.getElementById('loadMoreBtn');
 
-  const PLACEHOLDER =
-    'https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png';
+  const PLACEHOLDER = '/assets/img/hero-rotator.jpg';
 
 // news.html — replace the FEEDS array in the <script> with this
 const FEEDS = [
@@ -337,14 +336,25 @@ const FEEDS = [
     card.className = 'news-card';
     card.dataset.link  = a.link;
 
-    // avoid reusing the same image URL if we can
+    // avoid reusing the same image URL — use source-keyed fallbacks
     let imgSrc = a.image || '';
     let needsHydration = false;
-    if (!imgSrc || usedImages.has(imgSrc)) {
-      imgSrc = PLACEHOLDER;
-      needsHydration = true;
+    const canonImg = imgSrc ? imgSrc.split('?')[0].toLowerCase() : '';
+    if (!imgSrc || usedImages.has(canonImg)) {
+      // Pick a fallback based on source category so cards look varied
+      const src = (a.source || '').toLowerCase();
+      if (src.includes('truck') || src.includes('freight') || src.includes('logistics') || src.includes('loadstar')) {
+        imgSrc = '/assets/img/hero-rotator.jpg';
+      } else if (src.includes('nova') || src.includes('cbc') || src.includes('global')) {
+        imgSrc = '/assets/img/fleet-wide.jpg';
+      } else if (src.includes('new brunswick') || src.includes('vocm')) {
+        imgSrc = '/assets/img/hero-wrecker.jpg';
+      } else {
+        imgSrc = '/assets/img/always-on-call.jpg';
+      }
+      needsHydration = !a.image; // only hydrate if truly missing
     } else {
-      usedImages.add(imgSrc);
+      usedImages.add(canonImg);
     }
 
     const dateText = a.date.toLocaleDateString(undefined, { year:'numeric', month:'short', day:'numeric' });
@@ -363,7 +373,15 @@ const FEEDS = [
       </div>
     `;
     const img = card.querySelector('img');
-    img.onerror = () => { img.src = PLACEHOLDER; img.onerror = null; };
+    img.onerror = () => {
+      const src = (a.source || '').toLowerCase();
+      if (src.includes('truck') || src.includes('freight') || src.includes('logistics')) {
+        img.src = '/assets/img/hero-rotator.jpg';
+      } else {
+        img.src = '/assets/img/fleet-wide.jpg';
+      }
+      img.onerror = null;
+    };
     return card;
   }
 
@@ -390,11 +408,12 @@ const FEEDS = [
       if (!res.ok) return;
       const data = await res.json();
       const newImg = (data && data.image) ? data.image : '';
-      if (newImg && !usedImages.has(newImg)) {
+      const canonNew = newImg ? newImg.split('?')[0].toLowerCase() : '';
+      if (newImg && canonNew && !usedImages.has(canonNew)) {
         const img = card.querySelector('img');
         img.src = newImg;
         img.removeAttribute('data-missing');
-        usedImages.add(newImg);
+        usedImages.add(canonNew);
       }
     } catch(e){ /* ignore */ }
   }

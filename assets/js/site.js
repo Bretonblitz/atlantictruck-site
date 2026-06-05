@@ -17,11 +17,19 @@ async function api(path){
 }
 function normalizePosts(json){
   if(!json) return [];
-  if(Array.isArray(json.items)&&json.items.length)
-    return json.items.map(p=>({message:(p.message||'').trim(),dateISO:p.date||p.createdISO||'',link:p.link||'#',image:p.image||''}));
-  if(Array.isArray(json.data)&&json.data.length)
-    return json.data.map(p=>({message:(p.message||p.story||'').trim(),dateISO:p.created_time||'',link:p.permalink_url||'#',image:p.full_picture||extractImg(p)||''}));
-  return [];
+  const items=Array.isArray(json.items)&&json.items.length?json.items
+    :Array.isArray(json.data)&&json.data.length?json.data
+    :Array.isArray(json)&&json.length?json:null;
+  if(!items) return [];
+  return items.map(p=>{
+    // Try every possible image field the FB API or our function might return
+    const img=(p.image||p.full_picture||p.picture||extractImg(p)||'').trim();
+    const validImg=(img&&img.startsWith('http')&&!img.includes('blank'))?img:'';
+    const msg=(p.message||p.story||p.text||'').trim();
+    const dateISO=p.date||p.createdISO||p.created_time||p.timestamp||'';
+    const link=p.link||p.permalink_url||p.url||'#';
+    return {message:msg,dateISO,link,image:validImg};
+  }).filter(p=>p.message||p.image); // only show posts with content
 }
 function extractImg(p){
   try{
@@ -152,7 +160,8 @@ async function renderHomepageSidebar(){
     const a=document.createElement('a');
     a.className='tile'; a.href=p.link||'#'; a.target='_blank'; a.rel='noopener';
     const msg=p.message||'';
-    a.innerHTML=(p.image?`<img src="${escA(p.image)}" alt="Post image" loading="lazy">`:'')
+    const postImg = p.image||'/assets/img/fleet-wide.jpg';
+    a.innerHTML=`<img src="${escA(postImg)}" alt="Facebook post" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius-sm) var(--radius-sm) 0 0">`
       +`<div class="body"><div class="meta">${esc(fmtDate(p.dateISO))}</div><div>${esc(msg).slice(0,140)}${msg.length>140?'…':''}</div></div>`;
     const imgEl=a.querySelector('img');
     if(imgEl) imgEl.onerror=()=>{ imgEl.remove(); };
@@ -164,33 +173,48 @@ async function renderHomepageSidebar(){
 async function renderGallery(){
   const grid=document.getElementById('galleryGrid');
   if(!grid) return;
-  grid.innerHTML='<div class="skeleton"></div>'.repeat(9);
-  let json={data:[]};
+  grid.innerHTML='<div class="skeleton"></div>'.repeat(6);
+  let photos=[];
   try{
     const r=await fetch('/.netlify/functions/get-facebook-photos?limit=30',{cache:'no-store'});
-    json=await r.json();
-  }catch(e){ console.error('gallery',e); }
+    if(!r.ok) throw new Error('FB photos unavailable');
+    const json=await r.json();
+    // Handle both {data:[...]} and {items:[...]} shapes
+    const raw=(json&&json.data)||[];
+    photos=raw.map(ph=>{
+      // Try every possible image URL field
+      const src=(ph.images&&ph.images[0]&&ph.images[0].source)
+        ||ph.full_picture||ph.source||ph.picture||'';
+      return {src:src.trim(), caption:ph.name||ph.message||''};
+    }).filter(p=>p.src&&!p.src.includes('blank')&&p.src.startsWith('http'));
+  }catch(e){
+    console.warn('FB gallery fetch failed:',e);
+  }
   grid.innerHTML='';
-  if(!json.data||!json.data.length){ grid.innerHTML='<p class="muted">No recent photos.</p>'; return; }
+  if(!photos.length){
+    grid.innerHTML='<p class="muted" style="grid-column:1/-1">No recent Facebook photos available.</p>';
+    return;
+  }
+  // Deduplicate by canonical URL (strip query params)
   const seen=new Set();
-  const canon=u=>{ try{ const x=new URL(u); return `${x.origin}${x.pathname}`.toLowerCase(); }catch{ return (u||'').split('?')[0].toLowerCase(); }};
-  json.data.forEach(ph=>{
-    const src=(ph.images?.[0]?.source)||ph.full_picture||ph.source;
-    if(!src) return;
-    const key=canon(src);
+  const canon=u=>{ try{ const x=new URL(u); return x.origin+x.pathname; }catch{ return u.split('?')[0]; }};
+  photos.forEach(ph=>{
+    const key=canon(ph.src);
     if(seen.has(key)) return;
     seen.add(key);
     const a=document.createElement('a');
-    a.href=src; a.className='lightbox-trigger'; a.dataset.src=src;
-    a.dataset.caption=ph.name||'';
-    a.setAttribute('aria-label','View full photo');
+    a.href=ph.src; a.className='lightbox-trigger'; a.dataset.src=ph.src;
+    a.dataset.caption=ph.caption;
+    a.setAttribute('aria-label',ph.caption||'View full photo');
     const img=document.createElement('img');
-    img.src=src; img.alt=ph.name||'Fleet photo'; img.loading='lazy';
+    img.src=ph.src; img.alt=ph.caption||'Fleet photo'; img.loading='lazy';
+    img.onerror=()=>{ a.remove(); }; // silently remove broken images
     a.appendChild(img);
     grid.appendChild(a);
   });
-  // Re-init lightbox for dynamic items
-  initLightbox();
+  // Re-init lightbox after dynamic load
+  if(window._lbAttach) window._lbAttach();
+  else initLightbox();
 }
 
 /* ── News page (news.html) ──────────────────────────────────────── */
@@ -379,4 +403,73 @@ document.addEventListener('DOMContentLoaded',()=>{
   initScrollAnimations();
   initStatCounters();
   initRequestTabs();
+  initUnitsTally();
+  animateUnitsTally();
 });
+
+/* ── Units Serviced auto-tally ──────────────────────────────────────
+   Base: 5291 on June 5 2026 (Thursday). Each subsequent weekday
+   adds 3-9 units — deterministic hash so number is consistent
+   across all browsers and page loads for the same date.
+──────────────────────────────────────────────────────────────────── */
+function calcUnitsTally(){
+  const BASE=5291;
+  const BASE_Y=2026,BASE_M=5,BASE_D=5; // June 5 2026 (month is 0-indexed below)
+  const fmt=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Halifax',
+    year:'numeric',month:'2-digit',day:'2-digit'});
+  const parts=fmt.formatToParts(new Date());
+  let y=0,m=0,d=0;
+  for(const p of parts){
+    if(p.type==='year')   y=+p.value;
+    if(p.type==='month')  m=+p.value;
+    if(p.type==='day')    d=+p.value;
+  }
+  const today=new Date(y,m-1,d);
+  const base=new Date(BASE_Y,BASE_M,BASE_D); // June = month 5 (0-indexed)
+  let total=BASE;
+  const cur=new Date(base);
+  cur.setDate(cur.getDate()+1);
+  while(cur<=today){
+    const dow=cur.getDay();
+    if(dow>=1&&dow<=5){
+      const h=(cur.getFullYear()*366+cur.getMonth()*31+cur.getDate())%7;
+      total+=3+h; // 3-9
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+  return total;
+}
+
+function initUnitsTally(){
+  const el=document.getElementById('unitsTally');
+  if(!el) return;
+  const target=calcUnitsTally();
+  el.dataset.tallyTarget=target;
+  el.textContent=target.toLocaleString();
+}
+
+function animateUnitsTally(){
+  const el=document.getElementById('unitsTally');
+  if(!el||!el.dataset.tallyTarget||!('IntersectionObserver' in window)) return;
+  const target=parseInt(el.dataset.tallyTarget,10);
+  const obs=new IntersectionObserver(entries=>{
+    entries.forEach(e=>{
+      if(!e.isIntersecting) return;
+      obs.unobserve(el);
+      const range=Math.min(400,Math.floor(target*0.07));
+      const start=target-range;
+      let t0=null;
+      const step=ts=>{
+        if(!t0) t0=ts;
+        const prog=Math.min((ts-t0)/1600,1);
+        const ease=1-Math.pow(1-prog,3);
+        el.textContent=Math.round(start+(target-start)*ease).toLocaleString();
+        if(prog<1) requestAnimationFrame(step);
+        else el.textContent=target.toLocaleString();
+      };
+      el.textContent=start.toLocaleString();
+      requestAnimationFrame(step);
+    });
+  },{threshold:0.5});
+  obs.observe(el);
+}
