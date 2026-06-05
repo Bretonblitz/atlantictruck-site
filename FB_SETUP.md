@@ -23,7 +23,7 @@ To enable this, you need to set two environment variables in Netlify.
 
 | Key | Value |
 |-----|-------|
-| `FB_PAGE_ID` | `61579126693357` |
+| `FB_PAGE_ID` | `766439739884645` |
 | `FB_PAGE_ACCESS_TOKEN` | your token from Step 1 |
 
 4. Click Save
@@ -43,4 +43,19 @@ Facebook Page Access tokens expire after 60 days.
 When the gallery goes blank again, repeat Step 1 and update the token in Netlify.
 
 ## Your Page ID
-`61579126693357`
+`766439739884645`
+
+
+## Current Status (June 2026)
+- Netlify env vars set: FB_ACCESS_TOKEN ✓, FB_PAGE_ID ✓
+- Page ID: 766439739884645
+- App ID: 4157420974579069
+- App Mode: Development → needs to be set to LIVE
+
+## Important: App Mode
+Your Facebook App is in **Development mode**. This means only people
+who are admins/testers of the app can see the API results.
+To make it work publicly on the website, you need to switch it to **Live mode**:
+1. Facebook Developers → your app → App Mode toggle (top of page)
+2. Switch from Development to Live
+3. You may need to submit for App Review first for public Pages access
