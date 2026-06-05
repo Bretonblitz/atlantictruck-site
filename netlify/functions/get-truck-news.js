@@ -63,7 +63,7 @@ function scoreItem(t, sum){
   return s;
 }
 
-export async function handler(event){
+export default async function handler(event){
   try{
     const qs = event.queryStringParameters || {};
     const limit = Math.min(10, Math.max(1, parseInt(qs.limit || '10', 10)));

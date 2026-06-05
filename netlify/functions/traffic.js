@@ -1,7 +1,7 @@
 // netlify/functions/traffic.js
 // Traffic advisories only (Nova Scotia Government).
 
-exports.handler = async function (event) {
+export default async function handler(event) {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',

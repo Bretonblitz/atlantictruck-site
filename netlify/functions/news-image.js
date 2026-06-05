@@ -1,7 +1,7 @@
 // netlify/functions/news-image.js
 // Scrapes an article's og:image/twitter:image/etc. Supports ?debug=1.
 
-exports.handler = async function (event) {
+export default async function handler(event) {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',

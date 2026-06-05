@@ -3,7 +3,7 @@
 
 const API = 'https://graph.facebook.com/v20.0/';
 
-exports.handler = async function (event) {
+export default async function handler(event) {
   const pageId =
     process.env.FB_PAGE_ID ||
     process.env.FB_PAGEID ||

@@ -157,16 +157,39 @@ async function renderHomepageSidebar(){
   const wrap=document.getElementById('fbSidebar');
   if(!wrap) return;
   wrap.innerHTML='<div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>';
-  let json=await api('/.netlify/functions/get-facebook-posts?limit=3');
-  let posts=normalizePosts(json);
+
+  // Try Netlify function first
+  let posts=[];
+  try{
+    const json=await api('/.netlify/functions/get-facebook-posts?limit=3');
+    posts=normalizePosts(json);
+  }catch(_){}
+
+  // Fallback: try rss2json with public FB RSS feed
   if(!posts.length){
-    try{ json=await api('/.netlify/functions/fb-posts?limit=3'); posts=normalizePosts(json); }catch(_){}
+    try{
+      const FB_PAGE='61579126693357';
+      const feedUrl=`https://www.facebook.com/feeds/page.php?id=${FB_PAGE}&format=rss20`;
+      const r=await fetch(`https://api.rss2json.com/v1/api.json?rss_url=${encodeURIComponent(feedUrl)}&count=3`);
+      if(r.ok){
+        const d=await r.json();
+        if(d.status==='ok'&&Array.isArray(d.items)&&d.items.length){
+          posts=d.items.map(p=>({
+            message:(p.title||p.description||'').replace(/<[^>]+>/g,'').trim().slice(0,200),
+            dateISO:p.pubDate||'',
+            link:p.link||'#',
+            image:p.enclosure?.link||p.thumbnail||''
+          })).filter(p=>p.message);
+        }
+      }
+    }catch(_){}
   }
+
   wrap.innerHTML='';
   if(!posts.length){
     wrap.innerHTML='<div style="text-align:center;padding:16px 8px">'
       +'<svg width="32" height="32" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:8px;display:block;margin-left:auto;margin-right:auto"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>'
-      +'<div style="font-size:.8rem;color:var(--muted);line-height:1.5">Facebook not connected.<br><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" style="color:var(--brand)">Visit our Facebook page →</a></div>'
+      +'<div style="font-size:.8rem;color:var(--muted);line-height:1.5">Connect Facebook in Netlify settings<br>to show live posts here.<br><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" style="color:var(--brand)">Visit our page →</a></div>'
       +'</div>';
     return;
   }
@@ -206,7 +229,12 @@ async function renderGallery(){
   }
   grid.innerHTML='';
   if(!photos.length){
-    grid.innerHTML='<p class="muted" style="grid-column:1/-1">No recent Facebook photos available.</p>';
+    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem;background:var(--light);border-radius:var(--radius-lg)">
+      <svg width="40" height="40" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
+      <p style="color:var(--muted);margin:0 0 12px;font-size:.9rem">Facebook photos will appear here once connected.</p>
+      <p style="color:var(--muted);font-size:.8rem;margin:0 0 14px">To connect: Netlify → Site configuration → Environment variables<br>Add <code>FB_PAGE_ID</code> and <code>FB_PAGE_ACCESS_TOKEN</code></p>
+      <a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener" class="btn-light" style="font-size:.875rem">View our Facebook page →</a>
+    </div>`;
     return;
   }
   // Deduplicate by canonical URL (strip query params)

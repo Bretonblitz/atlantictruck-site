@@ -2,7 +2,7 @@
 // Atlantic/Nova Scotia news (NO traffic unless Cape Breton), no sexual content,
 // max 4 items per site, fast RSS parse + debug.
 
-exports.handler = async function (event) {
+export default async function handler(event) {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
