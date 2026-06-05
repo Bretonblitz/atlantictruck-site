@@ -7,23 +7,42 @@
   <meta name="description" content="Request service or parts from Atlantic Truck & Equipment Repair. Fast, detailed forms to reduce downtime.">
   <meta property="og:title" content="Requests | Atlantic Truck & Equipment Repair">
   <meta property="og:description" content="Request service or parts from Atlantic Truck & Equipment Repair. Fast, detailed forms to reduce downtime.">
-  <meta property="og:image" content="https://static.wixstatic.com/media/ba2cd3_78abbb4da5a24f3abdc4657a9187a048~mv2.jpg/v1/fill/w_980,h_426,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ba2cd3_78abbb4da5a24f3abdc4657a9187a048~mv2.jpg">
+  <meta property="og:image" content="https://www.atlantictruck.ca/assets/img/hero-rotator.jpg">
   <meta property="og:type" content="website"><meta property="og:locale" content="en_CA">
-  <meta name="theme-color" content="#B9111B">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1117">
+<meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Atlantic Truck">
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="https://www.atlantictruck.ca/requests.html">
+<!-- ═══ Google Analytics 4 ════════════════════════════════════════
+     TO ACTIVATE: Replace G-XXXXXXXXXX with your real GA4 Measurement ID
+     Get it at: analytics.google.com → Admin → Data Streams → Web stream
+     Then delete the two comment lines around the scripts below
+  -->
+  <!-- UNCOMMENT BELOW AFTER ADDING YOUR GA4 ID:
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+  END UNCOMMENT -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css">
 </head>
 <body>
 <!-- Emergency bar -->
 <div class="emergency-bar">
   <div class="container row spread center">
     <strong>24/7 Emergency Recovery &amp; Towing</strong>
-    <div class="row wrap">
-      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
+    <div class="row wrap" style="gap:10px">
+      <a class="link-invert" href="tel:9025394574">Service: 902-539-4574</a>
       <span class="sm-hide">|</span>
-      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
-      <a class="btn-light sm-hide" href="#service">Requests</a>
+      <a class="link-invert" href="tel:9025394139">Parts: 902-539-4139</a>
+      <a class="btn-light sm-hide" href="/requests.html#service">Need help now</a>
     </div>
   </div>
 </div>
@@ -39,10 +58,12 @@
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">☰</button>
+      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
-        <li class="has-sub"><a href="/services/index.html">Services</a>
+        <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
           <ul class="sub">
             <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
             <li><a href="/services/towing.html">Towing</a></li>
@@ -52,10 +73,12 @@
             <li><a href="/services/welding.html">Welding</a></li>
           </ul>
         </li>
+        <li><a href="/fleet-accounts.html">Fleet Accounts</a></li>
         <li><a href="/gallery.html">Gallery</a></li>
         <li><a href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
-        <li><a class="active" href="/requests.html">Requests</a></li>
+        <li><a class="active" href="/requests.html">Book Service</a></li>
+        <li><a href="/about.html">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
     </nav>
@@ -66,26 +89,34 @@
   </div>
 </header>
 
+<div class="page-hero-banner" style="position:relative;background:#0B0F1A url('/assets/img/wrecker-blue.jpg') center/cover no-repeat;padding:56px 0 48px;overflow:hidden">
+  <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(11,15,26,.92) 50%,rgba(11,15,26,.55) 100%)"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <div class="kicker" style="color:#ef8080;margin-bottom:.5rem">Fast, detailed forms — reduce your downtime</div>
+    <h1 style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.0;color:#fff;margin:0 0 .4em;text-shadow:0 2px 10px rgba(0,0,0,.4)">Request Service<br><span>or Parts</span></h1>
+    <p style="color:rgba(255,255,255,.8);font-size:1.05rem;max-width:520px;margin:0">Fill out the form and we'll get back to you fast. For emergencies, call directly.</p>
+    
+  </div>
+</div>
+
 <section class="section">
   <div class="container">
-    <h1>Request Service or Parts</h1>
-    <p class="muted">For urgent roadside help, call after-hours above. For shop work and parts, use the forms below.</p>
+    <p class="muted">For urgent roadside emergencies, call us directly. For scheduled work and parts orders, use the forms below.</p>
 
-    <div class="grid-2" style="margin-top:18px">
+    <div id="requestTabBar" class="request-tab-bar">
+      <button data-tab="service" class="request-tab">Service Request</button>
+      <button data-tab="parts" class="request-tab">Parts Request</button>
+    </div>
+    <div style="max-width:800px">
       <!-- SERVICE REQUEST -->
       <div id="service">
         <div class="card">
-          <h2>Service Request</h2>
+          <div class="form-section"><h2>Service Request</h2>
           <p>Tell us what you need. We’ll confirm availability and get you booked.</p>
-          <form action="https://formsubmit.co/service@atlantictruck.ca" method="POST" enctype="multipart/form-data" novalidate>
+          <form name="service-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
             <!-- FormSubmit config -->
-            <input type="hidden" name="_subject" value="Website Service Request">
-            <input type="hidden" name="_captcha" value="true">
-            <input type="hidden" name="_template" value="table">
             <!-- honeypot + timestamp -->
             <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
-            <input type="hidden" name="_timestamp" id="srv_ts">
-
             <div class="grid-2">
               <label>Name*<input required name="name" autocomplete="name"></label>
               <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\\-\\s]{7,}" title="Use digits, spaces, () or -"></label>
@@ -95,7 +126,7 @@
             <div class="grid-3">
               <label>Unit #<input name="unit_number" autocomplete="off" placeholder="e.g. Truck 21"></label>
               <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Freightliner Cascadia 2019"></label>
-              <label>Full VIN*<input required name="vin" minlength="17" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)"></label>
+              <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional — speeds up booking)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)" placeholder="Leave blank if unavailable"></label>
             </div>
 
             <div class="grid-3">
@@ -153,7 +184,7 @@
 
             <label class="small"><input type="checkbox" id="rememberSrv"> Remember my details on this device</label>
             <button class="btn" type="submit">Send Service Request</button>
-            <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
+            <p class="small muted">* Submissions handled securely by Netlify</p>
           </form>
         </div>
       </div>
@@ -161,17 +192,12 @@
       <!-- PARTS REQUEST -->
       <div id="parts">
         <div class="card">
-          <h2>Parts Request</h2>
-          <p>Authorized Freightliner® &amp; Western Star® parts. Share your full VIN for exact match.</p>
-          <form action="https://formsubmit.co/parts@atlantictruck.ca" method="POST" enctype="multipart/form-data" novalidate>
+          <div class="form-section"><h2>Parts Request</h2>
+          <p style="margin-bottom:1.25rem">Genuine Freightliner® &amp; Western Star® OEM parts, sourced through our factory authorization. Share your VIN for an exact match.</p>
+          <form name="parts-request" data-netlify="true" action="/success.html" netlify-honeypot="bot-field" method="POST" enctype="multipart/form-data" novalidate>
             <!-- FormSubmit config -->
-            <input type="hidden" name="_subject" value="Website Parts Request">
-            <input type="hidden" name="_captcha" value="true">
-            <input type="hidden" name="_template" value="table">
             <!-- honeypot + timestamp -->
             <input type="text" name="_honey" tabindex="-1" autocomplete="off" style="display:none">
-            <input type="hidden" name="_timestamp" id="prt_ts">
-
             <div class="grid-2">
               <label>Name*<input required name="name" autocomplete="name"></label>
               <label>Phone*<input required name="phone" inputmode="tel" autocomplete="tel" pattern="[0-9()+\\-\\s]{7,}" title="Use digits, spaces, () or -"></label>
@@ -181,7 +207,7 @@
             <div class="grid-3">
               <label>Make/Model/Year<input name="make_model_year" placeholder="e.g. Western Star 4900 2018"></label>
               <label>Unit #<input name="unit_number" autocomplete="off"></label>
-              <label>Full VIN*<input required name="vin" minlength="17" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)"></label>
+              <label>Full VIN <span style="color:var(--muted);font-weight:400;font-size:.8rem">(optional — speeds up booking)</span><input name="vin" maxlength="17" pattern="[A-HJ-NPR-Za-hj-npr-z0-9]{17}" title="17 characters (no I, O, or Q)" placeholder="Leave blank if unavailable"></label>
             </div>
 
             <div class="grid-2">
@@ -205,27 +231,36 @@
 
             <label class="small"><input type="checkbox" id="rememberPrt"> Remember my details on this device</label>
             <button class="btn" type="submit">Send Parts Request</button>
-            <p class="small muted">* Protected by CAPTCHA via formsubmit.co</p>
+            <p class="small muted">* Submissions handled securely by Netlify</p>
           </form>
         </div>
       </div>
     </div>
 
-    <p class="small muted" style="margin-top:14px">We reply during business hours (Mon–Fri 8:00–4:30). For emergencies, please call.</p>
+    <p class="small muted" style="margin-top:14px">We reply to all requests within 1 business day (Mon–Fri 8:00–4:30). For emergencies call 902-539-4574.</p>
   </div>
 </section>
 
 <!-- Footer -->
+<section class="section-cta">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;color:#fff;line-height:1.1">Ready to get back on the road?</div>
+      <div style="color:rgba(255,255,255,.8);font-size:.9rem;margin-top:4px">Call us any time — 24/7 emergency response available.</div>
+    </div>
+    <div class="row wrap" style="gap:12px">
+      <a class="cta-strip" href="tel:9025394574" style="background:var(--lighter);color:#B9111B;border-radius:28px;padding:13px 24px;font-weight:700;font-size:1rem;text-decoration:none">Call 902-539-4574</a>
+      <a class="cta-strip" href="tel:9025394139" style="background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7);border-radius:28px;padding:12px 24px;font-weight:700;font-size:1rem;text-decoration:none">Parts: 902-539-4139</a>
+    </div>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div class="container grid-4">
     <div>
       <div class="footer-title">Atlantic Truck &amp; Equipment Repair Ltd.</div>
       <p class="muted">Trusted for towing, repairs, inspections &amp; welding across Cape Breton and most of Nova Scotia.</p>
-      <div class="row wrap" style="gap:12px;margin-top:10px">
-        <img src="/assets/img/freightliner.png" alt="Freightliner logo" style="height:26px">
-        <img src="/assets/img/western-star.png" alt="Western Star logo" style="height:26px">
-      </div>
-      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">📘 Follow us on Facebook</a></div>
+      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">Follow us on Facebook</a></div>
     </div>
     <div>
       <div class="footer-title">Services</div>
@@ -241,11 +276,10 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
-        <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
-        <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
-        <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
+        <li>Service: <a href="tel:9025394574">902-539-4574</a></li>
+        <li>Parts: <a href="tel:9025394139">902-539-4139</a></li>
+        <li><a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
+        <li><a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -259,7 +293,7 @@
   </div>
   <div class="footer-bottom">
     <div class="container row spread small">
-      <span>© 2025 Atlantic Truck &amp; Equipment Repair Ltd.</span>
+      <span>© 2026 Atlantic Truck &amp; Equipment Repair Ltd.</span>
       <span>Edwardsville, Nova Scotia</span>
     </div>
   </div>
@@ -272,7 +306,7 @@
 </div>
 
 <!-- Page JS: smart CTA + on-site toggle + VIN/remember helpers + spam timestamp + file size guard -->
-<script src="/assets/js/site.js?v=20250815" defer></script>
+<script src="/assets/js/site.js?v=20260604" defer></script>
 <script>
 document.addEventListener('DOMContentLoaded', () => {
   // timestamps (basic spam signal)

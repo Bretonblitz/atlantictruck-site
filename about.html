@@ -10,20 +10,40 @@
   <meta property="og:image" content="https://static.wixstatic.com/media/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg/v1/fill/w_980,h_426,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg">
   <meta property="og:type" content="website">
   <meta property="og:locale" content="en_CA">
-  <meta name="theme-color" content="#B9111B">
+  <meta name="theme-color" media="(prefers-color-scheme: light)" content="#ffffff">
+<meta name="theme-color" media="(prefers-color-scheme: dark)" content="#0F1117">
+<meta name="theme-color" content="#B9111B">
   <link rel="icon" type="image/png" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
   <link rel="apple-touch-icon" href="https://static.wixstatic.com/media/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png/v1/fill/w_522,h_210,al_c,lg_1,q_85,enc_avif,quality_auto/ba2cd3_4e99b20ca6934c6d9fbfdec7aafd3952~mv2.png">
-  <link rel="stylesheet" href="/assets/css/style.css">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Atlantic Truck">
+<link rel="manifest" href="/manifest.json">
+<link rel="canonical" href="https://www.atlantictruck.ca/about.html">
+<!-- ═══ Google Analytics 4 ════════════════════════════════════════
+     TO ACTIVATE: Replace G-XXXXXXXXXX with your real GA4 Measurement ID
+     Get it at: analytics.google.com → Admin → Data Streams → Web stream
+     Then delete the two comment lines around the scripts below
+  -->
+  <!-- UNCOMMENT BELOW AFTER ADDING YOUR GA4 ID:
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+  <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments)}gtag('js',new Date());gtag('config','G-XXXXXXXXXX');</script>
+  END UNCOMMENT -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;800;900&family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/assets/css/style.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"AutoRepair","name":"Atlantic Truck & Equipment Repair Ltd.","url":"https://www.atlantictruck.ca/","telephone":"+19025394574","address":{"@type":"PostalAddress","streetAddress":"417 Gulf Crescent","addressLocality":"Edwardsville","addressRegion":"NS","postalCode":"B2A 4T9","addressCountry":"CA"}}</script>
   <!-- Script loaded at end for reliability -->
 </head>
 <body>
 <div class="emergency-bar">
   <div class="container row spread center">
     <strong>24/7 Emergency Recovery &amp; Towing</strong>
-    <div class="row wrap">
-      <a class="link-invert" href="tel:9025651730">After Hours: 902-565-1730</a>
+    <div class="row wrap" style="gap:10px">
+      <a class="link-invert" href="tel:9025394574">Service: 902-539-4574</a>
       <span class="sm-hide">|</span>
-      <a class="link-invert" href="tel:9025657211">902-565-7211</a>
+      <a class="link-invert" href="tel:9025394139">Parts: 902-539-4139</a>
       <a class="btn-light sm-hide" href="/requests.html#service">Need help now</a>
     </div>
   </div>
@@ -39,10 +59,12 @@
       </div>
     </a>
     <nav class="main-nav">
-      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">☰</button>
+      <button class="nav-toggle" aria-label="Toggle menu" onclick="document.getElementById('navList').classList.toggle('open')">
+      <span></span><span></span><span></span>
+    </button>
       <ul class="nav-list" id="navList">
         <li><a href="/index.html">Home</a></li>
-        <li class="has-sub"><a href="/services/index.html">Services</a>
+        <li class="has-sub"><a href="/services/index.html">Services <span class="nav-chevron">▾</span></a>
           <ul class="sub">
             <li><a href="/services/emergency-towing.html">Emergency Towing</a></li>
             <li><a href="/services/towing.html">Towing</a></li>
@@ -52,10 +74,11 @@
             <li><a href="/services/welding.html">Welding</a></li>
           </ul>
         </li>
+        <li><a href="/fleet-accounts.html">Fleet Accounts</a></li>
         <li><a href="/gallery.html">Gallery</a></li>
         <li><a href="/news.html">News</a></li>
         <li><a href="/service-area.html">Service Area</a></li>
-        <li><a href="/requests.html">Requests</a></li>
+        <li><a href="/requests.html">Book Service</a></li>
         <li><a class="active" href="/about.html">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
       </ul>
@@ -67,38 +90,245 @@
   </div>
 </header>
 
+<div class="page-hero-banner" style="position:relative;background:#0B0F1A url('/assets/img/wrecker-blue.jpg') center/cover no-repeat;padding:56px 0 48px;overflow:hidden">
+  <div style="position:absolute;inset:0;background:linear-gradient(100deg,rgba(11,15,26,.92) 50%,rgba(11,15,26,.55) 100%)"></div>
+  <div class="container" style="position:relative;z-index:1">
+    <div class="kicker" style="color:#ef8080;margin-bottom:.5rem">Locally owned since 1999</div>
+    <h1 style="font-family:'Barlow Condensed',sans-serif;font-size:clamp(40px,6vw,72px);font-weight:900;line-height:1.0;color:#fff;margin:0 0 .4em;text-shadow:0 2px 10px rgba(0,0,0,.4)">Locally Owned.<br><span>Built on Service.</span></h1>
+    <p style="color:rgba(255,255,255,.8);font-size:1.05rem;max-width:520px;margin:0">25+ years serving Cape Breton fleets and owner-operators with honest work and fair pricing.</p>
+    <div class="row wrap" style="gap:12px;margin-top:1.5rem"><a class="btn" href="/contact.html">Contact Us</a>
+<a class="btn-outline-white" href="/requests.html#service">Book Service</a>
+</div>
+  </div>
+</div>
+
 <section class="section">
   <div class="container">
-    <div class="grid-2">
-      <div>
-        <h1>Locally Owned. Built on Service.</h1>
-        <p>We’ve served Cape Breton and most of Nova Scotia since 1999. With fair pricing, friendly staff, and strong word-of-mouth, we’ve grown into a trusted partner for fleets and owner-operators.</p>
-        <p>Our team includes nine certified mechanics and an on-staff certified welder. Whether it’s a highway recovery at night or a scheduled repair in the shop, we focus on safety, clear communication, and fast turnaround.</p>
-
-        <div class="tiles" style="margin-top:18px">
-          <div class="tile small">
-            <div class="body"><strong>Since 1999</strong><div>Local, independent, reliable.</div></div>
-          </div>
-          <div class="tile small">
-            <div class="body"><strong>9 Certified Mechanics</strong><div>Plus an on-staff certified welder.</div></div>
-          </div>
-          <div class="tile small">
-            <div class="body"><strong>24/7 Recovery</strong><div>On-call nights, weekends & holidays.</div></div>
-          </div>
-          <div class="tile small">
-            <div class="body"><strong>Mon–Fri 8:00–4:30</strong><div>Shop hours for scheduled work.</div></div>
-          </div>
+    <div class="grid-2" style="gap:56px;align-items:center">
+      <div class="team-photo">
+        <picture><source srcset="/assets/img/team.webp" type="image/webp"><source srcset="/assets/img/team.jpg" type="image/jpeg"><img src="/assets/img/team.jpg" alt="The Atlantic Truck & Equipment Repair team — 9 certified mechanics and technicians in front of the fleet" loading="lazy"></picture>
+        <div class="team-caption">
+          <strong>The Atlantic Truck Team</strong>
+          <span>9 certified mechanics & technicians — Edwardsville, Cape Breton</span>
         </div>
       </div>
-
-      <div class="kv">
-        <img src="https://static.wixstatic.com/media/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg/v1/fill/w_980,h_426,al_c,q_85,usm_0.66_1.00_0.01,enc_avif,quality_auto/ba2cd3_8b454330997746ebac0479f13d3211ad~mv2.jpg" alt="Shop and heavy tow fleet">
+      <div>
+        <div class="kicker">Locally owned since 1999</div>
+        <h2 class="section-title">People You Can <span>Count On</span></h2>
+        <p style="font-size:1.05rem;line-height:1.8;margin-bottom:1.25rem">We've served Cape Breton and most of Nova Scotia for over 25 years. With fair pricing, straight talk, and strong word-of-mouth, we've grown into a trusted partner for fleets and owner-operators across the region.</p>
+        <p style="line-height:1.8;margin-bottom:1.5rem">Our team of 9 certified mechanics brings expertise across every system on a modern commercial truck — from J1939 diagnostics to B-620 tank certification. When you call Atlantic Truck, you're talking to real people who know their trade.</p>
+        <div class="cert-strip" style="flex-wrap:wrap;gap:10px;margin-bottom:1.5rem">
+          <div class="cert-badge"><span class="icon">🏆</span>25+ Years</div>
+          <div class="cert-badge"><span class="icon">🔧</span>9 Certified Mechanics</div>
+          <div class="cert-badge"><span class="icon">🔬</span>B-620 Certified</div>
+          <div class="cert-badge"><span class="icon">⚙️</span>Authorized Service &amp; Parts</div>
+        </div>
+        <a class="btn" href="/contact.html">Get in Touch</a>
+        <a class="btn-light" href="https://www.google.com/maps/place/Atlantic+Truck+%26+Equipment+Repair+Ltd/@46.1517485,-60.2245496,15z" target="_blank" rel="noopener" style="margin-top:8px">Leave a Google Review ★</a>
+        <a class="btn-light" style="margin-top:8px;display:none" href="https://www.google.com/maps/place/Atlantic+Truck+%26+Equipment+Repair+Ltd/@46.1517485,-60.2245496,15z" target="_blank" rel="noopener">Leave us a Google Review ★</a>
       </div>
     </div>
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+
+<section class="section alt">
+  <div class="container">
+    <div class="grid-2" style="gap:56px;align-items:start">
+      <div>
+        <div class="kicker">Our story</div>
+        <h2 class="section-title">Cape Breton Built. <span>Cape Breton Proud.</span></h2>
+        <p style="font-size:1.05rem;line-height:1.8;margin-bottom:1.25rem">Atlantic Truck &amp; Equipment Repair has been part of Cape Breton's working backbone since 1999. What started as a commitment to keep local fleets moving has grown into the most capable heavy recovery operation east of Halifax. <em style="color:var(--muted);font-size:.875rem">[Add your founding story here — who started the company, how it grew, what makes it yours]</em></p>
+        <p style="line-height:1.8;margin-bottom:1.25rem">For over 25 years we've been the call that fleet managers make when no one else can handle the job — jackknifed rigs on the Canso Causeway, overturned tankers on logging roads, breakdowns in every corner of the province at every hour of the night. We know these roads. We know these rigs. We show up.</p>
+        <p style="line-height:1.8;margin-bottom:1.5rem">We're proud to be a locally owned, Cape Breton operation. Our team lives here, drives here, and has a stake in keeping Nova Scotia's commercial transportation moving safely.</p>
+        <div class="cert-strip" style="flex-wrap:wrap;gap:10px">
+          <div class="cert-badge"><span class="icon">📍</span>Edwardsville, Cape Breton</div>
+          <div class="cert-badge"><span class="icon">🏔️</span>Nova Scotia Strong</div>
+          <div class="cert-badge"><span class="icon">🤝</span>NSSAR Partner</div>
+        </div>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:16px">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:12px">Community involvement</div>
+          <div style="display:grid;grid-template-columns:80px 1fr;gap:14px;align-items:center">
+            <img src="/assets/img/nssar-logo.png" alt="Nova Scotia Ground Search and Rescue" style="width:80px;height:80px;object-fit:contain;border-radius:8px" onerror="this.style.display='none'">
+            <div>
+              <div style="font-weight:600;margin-bottom:4px">Nova Scotia Ground Search &amp; Rescue</div>
+              <div style="font-size:.875rem;color:var(--muted)">Atlantic Truck is proud to support NSSAR — providing heavy equipment assistance when it matters most to Nova Scotians.</div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:800;margin-bottom:14px">Key contacts</div>
+          <ul style="list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px">
+            <li style="display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--brand);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">D</div>
+              <div><div style="font-weight:600">Donnie</div><div style="font-size:.8rem;color:var(--muted)">Owner / Operations</div></div>
+            </li>
+            <li style="display:flex;align-items:center;gap:12px">
+              <div style="width:40px;height:40px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:1rem;flex-shrink:0">J</div>
+              <div><div style="font-weight:600">James</div><div style="font-size:.8rem;color:var(--muted)">Service — shop inquiries &amp; bookings</div></div>
+            </li>
+          </ul>
+          <div style="margin-top:14px;padding-top:12px;border-top:1px solid var(--border)">
+            <a class="btn" href="/contact.html" style="font-size:.875rem;padding:10px 18px">Contact the Team</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<section class="section">
+  <div class="container">
+    <div class="kicker">The people</div>
+    <h2 class="section-title" style="margin-bottom:.5rem">Meet the <span>Team</span></h2>
+    <p style="color:var(--muted);margin-bottom:2.5rem;max-width:600px">12 professionals committed to keeping Atlantic Canada's commercial fleets on the road. Photos coming soon — names and faces you'll recognise.</p>
+
+    <!-- Office & Management -->
+    <div style="margin-bottom:2.5rem">
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
+        <div style="height:3px;width:32px;background:var(--brand);border-radius:2px"></div>
+        <h3 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Office &amp; Management</h3>
+      </div>
+      <div class="staff-grid">
+        <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/donald_shaw.webp" type="image/webp">
+          <source srcset="/assets/img/staff/donald_shaw.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/donald_shaw.jpg" alt="Donald Shaw" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-donald_shaw').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-donald_shaw" style="width:88px;height:88px;border-radius:50%;background:#B9111B;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">DS</div>
+        <div class="staff-name">Donald Shaw</div>
+        <div class="staff-role">Owner</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/james.webp" type="image/webp">
+          <source srcset="/assets/img/staff/james.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/james.jpg" alt="James" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-james').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-james" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">J</div>
+        <div class="staff-name">James</div>
+        <div class="staff-role">Service Manager</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/trevor.webp" type="image/webp">
+          <source srcset="/assets/img/staff/trevor.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/trevor.jpg" alt="Trevor" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-trevor').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-trevor" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">T</div>
+        <div class="staff-name">Trevor</div>
+        <div class="staff-role">Parts Manager</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/kiersten_confiant.webp" type="image/webp">
+          <source srcset="/assets/img/staff/kiersten_confiant.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/kiersten_confiant.jpg" alt="Kiersten Confiant" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-kiersten_confiant').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-kiersten_confiant" style="width:88px;height:88px;border-radius:50%;background:#0F1117;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">KC</div>
+        <div class="staff-name">Kiersten Confiant</div>
+        <div class="staff-role">Accounting</div>
+      </div>
+      </div>
+    </div>
+
+    <!-- Shop & Field -->
+    <div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:1.25rem">
+        <div style="height:3px;width:32px;background:#1D4E8F;border-radius:2px"></div>
+        <h3 style="margin:0;font-family:'Barlow Condensed',sans-serif;font-size:1.1rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)">Shop &amp; Field</h3>
+      </div>
+      <div class="staff-grid">
+        <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/james_mckinnon.webp" type="image/webp">
+          <source srcset="/assets/img/staff/james_mckinnon.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/james_mckinnon.jpg" alt="James McKinnon" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-james_mckinnon').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-james_mckinnon" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">JM</div>
+        <div class="staff-name">James McKinnon</div>
+        <div class="staff-role">Shop Foreman</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/rick_chaisson.webp" type="image/webp">
+          <source srcset="/assets/img/staff/rick_chaisson.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/rick_chaisson.jpg" alt="Rick Chaisson" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-rick_chaisson').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-rick_chaisson" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">RC</div>
+        <div class="staff-name">Rick Chaisson</div>
+        <div class="staff-role">Master Fabricator</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/brandon_shaw.webp" type="image/webp">
+          <source srcset="/assets/img/staff/brandon_shaw.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/brandon_shaw.jpg" alt="Brandon Shaw" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-brandon_shaw').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-brandon_shaw" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">BS</div>
+        <div class="staff-name">Brandon Shaw</div>
+        <div class="staff-role">Licensed Technician</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/dave_mckay.webp" type="image/webp">
+          <source srcset="/assets/img/staff/dave_mckay.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/dave_mckay.jpg" alt="Dave McKay" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-dave_mckay').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-dave_mckay" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">DM</div>
+        <div class="staff-name">Dave McKay</div>
+        <div class="staff-role">Licensed Technician</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/corbin_mccarthy.webp" type="image/webp">
+          <source srcset="/assets/img/staff/corbin_mccarthy.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/corbin_mccarthy.jpg" alt="Corbin McCarthy" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-corbin_mccarthy').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-corbin_mccarthy" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">CM</div>
+        <div class="staff-name">Corbin McCarthy</div>
+        <div class="staff-role">Licensed Technician</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/sam_tynski.webp" type="image/webp">
+          <source srcset="/assets/img/staff/sam_tynski.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/sam_tynski.jpg" alt="Sam Tynski" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-sam_tynski').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-sam_tynski" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">ST</div>
+        <div class="staff-name">Sam Tynski</div>
+        <div class="staff-role">Licensed Technician</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/joe_coady.webp" type="image/webp">
+          <source srcset="/assets/img/staff/joe_coady.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/joe_coady.jpg" alt="Joe Coady" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-joe_coady').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-joe_coady" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">JC</div>
+        <div class="staff-name">Joe Coady</div>
+        <div class="staff-role">Licensed Technician</div>
+      </div>
+      <div class="staff-card">
+        <picture>
+          <source srcset="/assets/img/staff/garry_king.webp" type="image/webp">
+          <source srcset="/assets/img/staff/garry_king.jpg" type="image/jpeg">
+          <img src="/assets/img/staff/garry_king.jpg" alt="Garry King" style="width:88px;height:88px;border-radius:50%;object-fit:cover;object-position:top;margin:0 auto 14px;display:block" onerror="this.parentElement.style.display='none';document.getElementById('init-garry_king').style.display='flex'" loading="lazy">
+        </picture>
+        <div id="init-garry_king" style="width:88px;height:88px;border-radius:50%;background:#1D4E8F;color:#fff;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:1.6rem;margin:0 auto 14px;display:none">GK</div>
+        <div class="staff-name">Garry King</div>
+        <div class="staff-role">Tow Operator</div>
+      </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section flush" style="padding-top:0">
   <div class="container">
     <h2 class="underline">Fleet snapshot</h2>
     <div class="grid-2">
@@ -116,7 +346,7 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<section class="section flush" style="padding-top:0">
   <div class="container">
     <h2 class="underline">Certifications & inspections</h2>
     <div class="grid-2">
@@ -135,7 +365,7 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<section class="section flush" style="padding-top:0">
   <div class="container">
     <h2 class="underline">How we work</h2>
     <div class="tiles">
@@ -155,7 +385,7 @@
   </div>
 </section>
 
-<section class="section" style="padding-top:0">
+<section class="section flush" style="padding-top:0">
   <div class="container">
     <div class="card">
       <div class="row wrap center" style="gap:12px">
@@ -167,16 +397,25 @@
   </div>
 </section>
 
+<section class="section-cta">
+  <div class="container" style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px">
+    <div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-size:1.6rem;font-weight:900;color:#fff;line-height:1.1">Ready to get back on the road?</div>
+      <div style="color:rgba(255,255,255,.8);font-size:.9rem;margin-top:4px">Call us any time — 24/7 emergency response available.</div>
+    </div>
+    <div class="row wrap" style="gap:12px">
+      <a class="cta-strip" href="tel:9025394574" style="background:var(--lighter);color:#B9111B;border-radius:28px;padding:13px 24px;font-weight:700;font-size:1rem;text-decoration:none">Call 902-539-4574</a>
+      <a class="cta-strip" href="/requests.html#service" style="background:transparent;color:#fff;border:2px solid rgba(255,255,255,.7);border-radius:28px;padding:12px 24px;font-weight:700;font-size:1rem;text-decoration:none">Book Online</a>
+    </div>
+  </div>
+</section>
+
 <footer class="site-footer">
   <div class="container grid-4">
     <div>
       <div class="footer-title">Atlantic Truck &amp; Equipment Repair Ltd.</div>
       <p class="muted">Trusted for towing, repairs, inspections &amp; welding across Cape Breton and most of Nova Scotia.</p>
-      <div class="row wrap" style="gap:12px;margin-top:10px">
-        <img src="/assets/img/freightliner.png" alt="Freightliner logo" style="height:26px">
-        <img src="/assets/img/western-star.png" alt="Western Star logo" style="height:26px">
-      </div>
-      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">📘 Follow us on Facebook</a></div>
+      <div style="margin-top:10px"><a href="https://www.facebook.com/profile.php?id=61579126693357" target="_blank" rel="noopener">Follow us on Facebook</a></div>
     </div>
     <div>
       <div class="footer-title">Services</div>
@@ -192,11 +431,10 @@
     <div>
       <div class="footer-title">Contact</div>
       <ul class="plain">
-        <li>Main: <a href="tel:9025394574">902-539-4574</a></li>
-        <li>Service: <a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
-        <li>Parts: <a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
-        <li>Office: <a href="mailto:office@atlantictruck.ca">office@atlantictruck.ca</a></li>
-        <li>After Hours: <a href="tel:9025651730">902-565-1730</a> / <a href="tel:9025657211">902-565-7211</a></li>
+        <li>Service: <a href="tel:9025394574">902-539-4574</a></li>
+        <li>Parts: <a href="tel:9025394139">902-539-4139</a></li>
+        <li><a href="mailto:service@atlantictruck.ca">service@atlantictruck.ca</a></li>
+        <li><a href="mailto:parts@atlantictruck.ca">parts@atlantictruck.ca</a></li>
         <li>Hours: Mon–Fri 8:00 AM – 4:30 PM</li>
       </ul>
     </div>
@@ -210,19 +448,19 @@
   </div>
   <div class="footer-bottom">
     <div class="container row spread small">
-      <span>© 2025 Atlantic Truck &amp; Equipment Repair Ltd.</span>
+      <span>© 2026 Atlantic Truck &amp; Equipment Repair Ltd.</span>
       <span>Edwardsville, Nova Scotia</span>
     </div>
   </div>
 </footer>
 
 <div class="action-bar md-hide">
-  <a href="tel:9025394574">Call</a>
-  <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9">Directions</a>
-  <a href="/requests.html#service">Book Service</a>
+  <a href="tel:9025394574"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>Call Now</a>
+  <a target="_blank" href="https://maps.google.com/?q=417%20Gulf%20Crescent,%20Edwardsville,%20NS%20B2A%204T9"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>Directions</a>
+  <a href="/requests.html#service"><svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>Book Service</a>
 </div>
 
 <!-- Load JS at end + cache-bust so updates take effect -->
-<script src="/assets/js/site.js?v=20250815" defer></script>
+<script src="/assets/js/site.js?v=20260604" defer></script>
 </body>
 </html>

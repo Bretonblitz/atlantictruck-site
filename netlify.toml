@@ -1,4 +1,3 @@
-
 [build]
   publish = "."
   functions = "netlify/functions"
@@ -13,3 +12,10 @@
     X-Content-Type-Options = "nosniff"
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "no-referrer-when-downgrade"
+    Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://static.wixstatic.com https://images.weserv.nl data: blob:; frame-src https://www.google.com; connect-src 'self' https://api.rss2json.com https://graph.facebook.com; font-src 'self'"
+
+[[redirects]]
+  from = "/*"
+  to = "/404.html"
+  status = 404

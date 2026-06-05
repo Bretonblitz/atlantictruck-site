@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://www.atlantictruck.ca/</loc><priority>1.0</priority><changefreq>weekly</changefreq></url>
+  <url><loc>https://www.atlantictruck.ca/services/</loc><priority>0.9</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/emergency-towing.html</loc><priority>0.9</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/towing.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/repair.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/inspection.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/welding.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.atlantictruck.ca/services/authorized-parts.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.atlantictruck.ca/about.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.atlantictruck.ca/contact.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.atlantictruck.ca/gallery.html</loc><priority>0.6</priority></url>
+  <url><loc>https://www.atlantictruck.ca/news.html</loc><priority>0.6</priority></url>
+  <url><loc>https://www.atlantictruck.ca/service-area.html</loc><priority>0.7</priority></url>
+  <url><loc>https://www.atlantictruck.ca/requests.html</loc><priority>0.8</priority></url>
+  <url><loc>https://www.atlantictruck.ca/traffic.html</loc><priority>0.5</priority></url>
+  <url><loc>https://www.atlantictruck.ca/fleet-accounts.html</loc><priority>0.9</priority></url>
+</urlset>
