@@ -13,7 +13,7 @@
     X-Frame-Options = "SAMEORIGIN"
     Referrer-Policy = "no-referrer-when-downgrade"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
-    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' https://static.wixstatic.com https://images.weserv.nl data: blob:; frame-src https://www.google.com; connect-src 'self' https://api.rss2json.com https://graph.facebook.com; font-src 'self'"
+    Content-Security-Policy = "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' https://static.wixstatic.com https://images.weserv.nl https://www.google-analytics.com https://graph.facebook.com https://scontent.cdninstagram.com data: blob:; frame-src https://www.google.com; connect-src 'self' https://api.rss2json.com https://graph.facebook.com https://www.google-analytics.com https://formsubmit.co; font-src 'self' https://fonts.gstatic.com https://fonts.googleapis.com"
 
 [[redirects]]
   from = "/*"

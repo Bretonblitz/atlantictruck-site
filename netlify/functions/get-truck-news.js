@@ -2,12 +2,12 @@
 // Node 18+ (fetch built-in)
 
 const FEEDS = [
-  { name: 'TruckNews', url: 'https://www.trucknews.com/feed/' },
-  { name: 'Global Halifax', url: 'https://globalnews.ca/halifax/feed/' },
-  { name: 'CTV Atlantic', url: 'https://atlantic.ctvnews.ca/rss/ctv-news-atlantic-top-stories-1.1073369?ot=sdk.AjaxTarget&o=5' },
-  { name: 'CBC Nova Scotia', url: 'https://www.cbc.ca/webfeed/rss/rss-ns' },
-  { name: 'NS Gov – All News', url: 'https://news-feeds.novascotia.ca/en' },
-  { name: 'NS Gov – Traffic Advisories', url: 'https://novascotia.ca/news/rss/' },
+  { name: 'TruckNews',           url: 'https://www.trucknews.com/feed/' },
+  { name: 'Today's Trucking',   url: 'https://www.todaystrucking.com/feed/' },
+  { name: 'CBC Nova Scotia',     url: 'https://www.cbc.ca/webfeed/rss/rss-ns' },
+  { name: 'CTV Atlantic',        url: 'https://atlantic.ctvnews.ca/rss/ctv-news-atlantic-top-stories-1.1073369?ot=sdk.AjaxTarget&o=5' },
+  { name: 'Global Halifax',      url: 'https://globalnews.ca/halifax/feed/' },
+  { name: 'NS Road Advisories',  url: 'https://novascotia.ca/tran/roads/news.asp?rss=true' },
 ];
 
 const UA = 'Mozilla/5.0 (compatible; AtlanticTruckNewsBot/1.0; +https://www.atlantictruck.ca/)';
