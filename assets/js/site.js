@@ -104,7 +104,9 @@ function initETA(){
     const biz=inBizHours();
     indicator.classList.toggle('on',biz);
     indicator.classList.toggle('off',!biz);
-    if(indicatorText) indicatorText.textContent=biz?'Quoting Business Hours response times':'Quoting After Hours response times';
+    if(indicatorText) indicatorText.textContent=biz
+      ?'Shop open — Mon–Fri 8:00 AM–4:30 PM (showing business hour ETAs)'
+      :'After hours — 24/7 emergency dispatch available (showing after-hour ETAs)';
     if(clock) clock.textContent=`Time now in Cape Breton, Nova Scotia: ${hal.label}`;
     tbody.innerHTML='';
     Object.entries(BASE).forEach(([place,base])=>{
@@ -237,6 +239,10 @@ async function renderGallery(){
     </div>`;
     return;
   }
+  // Show the FB section header only when we have photos
+  const fbSection=document.getElementById('fbGallerySection');
+  if(fbSection) fbSection.style.display='';
+
   // Deduplicate by canonical URL (strip query params)
   const seen=new Set();
   const canon=u=>{ try{ const x=new URL(u); return x.origin+x.pathname; }catch{ return u.split('?')[0]; }};
@@ -269,7 +275,7 @@ async function renderGallery(){
     if(!grid) return;
     if(status) status.textContent='Loading…';
     const json=await api('/.netlify/functions/get-truck-news?limit=30');
-    all=(json&&Array.isArray(json.items))?json.items:[];
+    all=(json&&(Array.isArray(json.items)?json.items:(Array.isArray(json.data)?json.data:[])));
     if(!all.length){ if(status) status.textContent='No articles found.'; return; }
     if(status) status.textContent='';
     shown=0; showMore(grid,btn);
@@ -452,6 +458,64 @@ async function checkFBConnection(){
   }
 }
 
+
+/* ── Remember my details — localStorage form persistence ────────── */
+function initRememberDetails(){
+  const configs=[
+    {
+      checkId:'rememberSrv',
+      fields:['name','phone','email','unit_number','make_model_year'],
+      storageKey:'at-svc-details'
+    },
+    {
+      checkId:'rememberPrt',
+      fields:['name','phone','email','make_model_year'],
+      storageKey:'at-parts-details'
+    }
+  ];
+  configs.forEach(({checkId,fields,storageKey})=>{
+    const cb=document.getElementById(checkId);
+    if(!cb) return;
+    // Restore saved values if checkbox was checked
+    try{
+      const saved=JSON.parse(localStorage.getItem(storageKey)||'null');
+      if(saved){
+        cb.checked=true;
+        fields.forEach(f=>{
+          const el=cb.closest('form').querySelector(`[name="${f}"]`);
+          if(el&&saved[f]) el.value=saved[f];
+        });
+      }
+    }catch(_){}
+    // Save on checkbox change
+    cb.addEventListener('change',()=>{
+      if(!cb.checked){ localStorage.removeItem(storageKey); return; }
+      const data={};
+      fields.forEach(f=>{
+        const el=cb.closest('form').querySelector(`[name="${f}"]`);
+        if(el) data[f]=el.value;
+      });
+      try{ localStorage.setItem(storageKey,JSON.stringify(data)); }catch(_){}
+    });
+    // Update storage when form fields change (if checkbox is on)
+    const form=cb.closest('form');
+    if(form){
+      fields.forEach(f=>{
+        const el=form.querySelector(`[name="${f}"]`);
+        if(!el) return;
+        el.addEventListener('change',()=>{
+          if(!cb.checked) return;
+          try{
+            const saved=JSON.parse(localStorage.getItem(storageKey)||'{}');
+            saved[f]=el.value;
+            localStorage.setItem(storageKey,JSON.stringify(saved));
+          }catch(_){}
+        });
+      });
+    }
+  });
+}
+
 /* ── Boot ───────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
   updateSmartCta();
@@ -467,6 +531,7 @@ document.addEventListener('DOMContentLoaded',()=>{
   initUnitsTally();
   animateUnitsTally();
   checkFBConnection();
+  initRememberDetails();
 });
 
 /* ── Units Serviced auto-tally ──────────────────────────────────────

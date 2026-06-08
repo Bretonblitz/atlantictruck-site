@@ -131,7 +131,7 @@ export default async function handler(event){
     return {
       statusCode: 200,
       headers: { 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=600' },
-      body: JSON.stringify({ data: uniq.slice(0, limit) })
+      body: JSON.stringify({ items: uniq.slice(0, limit) })
     };
   }catch(e){
     return { statusCode: 500, headers:{'Content-Type':'application/json'}, body: JSON.stringify({ error:String(e) }) };
