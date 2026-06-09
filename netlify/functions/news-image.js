@@ -1,7 +1,7 @@
 // netlify/functions/news-image.js
 // Scrapes an article's og:image/twitter:image/etc. Supports ?debug=1.
 
-export default async function handler(event) {
+export default async (req, context) => {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -9,15 +9,15 @@ export default async function handler(event) {
     'Cache-Control': 'public, max-age=86400, s-maxage=86400',
     'Content-Type': 'application/json'
   };
-  if (event && event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers: headers, body: '' };
+  if (event && req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers: headers });
   }
 
-  var qs = (event && event.queryStringParameters) || {};
+  var qs = Object.fromEntries(new URL(req.url).searchParams);
   var DEBUG = String(qs.debug || '').toLowerCase() === '1';
   var u = qs.u;
 
-  if (!u) return { statusCode: 400, headers: headers, body: JSON.stringify({ error: 'Missing u' }) };
+  if (!u) return new Response(JSON.stringify({ error: 'Missing u' }), { status: 400, headers });
 
   try {
     var timeout = Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 2500);
@@ -26,7 +26,7 @@ export default async function handler(event) {
     var dbg = { url: u, ok: fx.ok, status: fx.status, durationMs: fx.durationMs, error: fx.error || '' };
     if (!fx.ok) {
       var bodyBad = DEBUG ? { image: '', debug: dbg } : { image: '' };
-      return { statusCode: 200, headers: headers, body: JSON.stringify(bodyBad) };
+      return new Response(JSON.stringify(bodyBad), { status: 200, headers: headers });
     }
 
     var html = fx.text;
@@ -43,10 +43,10 @@ export default async function handler(event) {
     img = absolutize(img, u, u);
 
     var bodyOK = DEBUG ? { image: img || '', debug: dbg } : { image: img || '' };
-    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyOK) };
+    return new Response(JSON.stringify(bodyOK), { status: 200, headers: headers });
   } catch (e) {
     var bodyErr = DEBUG ? { image: '', debug: { url: u, error: String(e) } } : { image: '' };
-    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyErr) };
+    return new Response(JSON.stringify(bodyErr), { status: 200, headers: headers });
   }
 };
 

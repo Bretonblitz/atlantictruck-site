@@ -3,7 +3,7 @@
 
 const API = 'https://graph.facebook.com/v20.0/';
 
-export default async function handler(event) {
+export default async (req, context) => {
   const pageId =
     process.env.FB_PAGE_ID ||
     process.env.FB_PAGEID ||
@@ -15,7 +15,7 @@ export default async function handler(event) {
     process.env.FB_PAGE_TOKEN ||             // alias
     process.env.FACEBOOK_PAGE_TOKEN ||       // alias
     '';
-  const limit = Math.max(1, Math.min(50, parseInt(event.queryStringParameters?.limit || '30')));
+  const limit = Math.max(1, Math.min(50, parseInt(Object.fromEntries(new URL(req.url).searchParams)?.limit || '30')));
 
   if (!pageId || !token) {
     return resp(500, { error: 'Missing FB_PAGE_ID or FB_ACCESS_TOKEN' });
@@ -122,9 +122,8 @@ export default async function handler(event) {
 };
 
 function resp(statusCode, body, extraHeaders = {}) {
-  return {
-    statusCode,
-    headers: { 'Content-Type': 'application/json', ...extraHeaders },
-    body: JSON.stringify(body)
-  };
+  return new Response(JSON.stringify(body), {
+    status: statusCode,
+    headers: { 'Content-Type': 'application/json', ...extraHeaders }
+  });
 }

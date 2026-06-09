@@ -1,7 +1,7 @@
 // netlify/functions/traffic.js
 // Traffic advisories only (Nova Scotia Government).
 
-export default async function handler(event) {
+export default async (req, context) => {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -9,11 +9,11 @@ export default async function handler(event) {
     'Cache-Control': 'public, max-age=180, s-maxage=900',
     'Content-Type': 'application/json'
   };
-  if (event && event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers: headers, body: '' };
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers: headers });
   }
 
-  var qs = (event && event.queryStringParameters) || {};
+  var qs = new URL(req.url).searchParams;
   var DEBUG = String(qs.debug || '').toLowerCase() === '1';
 
   try {
@@ -77,9 +77,7 @@ var feeds = [
   }
 };
 
-function respond(headers, code, obj) {
-  return { statusCode: code, headers: headers, body: JSON.stringify(obj) };
-}
+function respond(headers, code, obj) { return new Response(JSON.stringify(obj), { status: code, headers }); }
 
 // --- Shared helpers (same as news.js but minimal) ---
 async function fetchFeedFast(feedUrl, perFeed, timeoutMs, DEBUG, debugFeeds) {
