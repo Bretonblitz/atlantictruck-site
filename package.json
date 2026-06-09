@@ -1,0 +1,14 @@
+{
+  "name": "atlantictruck-site",
+  "private": true,
+  "scripts": {
+    "build": "echo 'static site'",
+    "dev": "netlify dev"
+  },
+  "dependencies": {
+    "fast-xml-parser": "^4.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
