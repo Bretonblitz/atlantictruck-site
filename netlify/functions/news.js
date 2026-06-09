@@ -2,7 +2,7 @@
 // Atlantic/Nova Scotia news (NO traffic unless Cape Breton), no sexual content,
 // max 4 items per site, fast RSS parse + debug.
 
-export default async function handler(event) {
+export default async (req, context) => {
   var headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -10,12 +10,12 @@ export default async function handler(event) {
     'Cache-Control': 'public, max-age=180, s-maxage=900',
     'Content-Type': 'application/json'
   };
-  if (event && event.httpMethod === 'OPTIONS') {
-    return { statusCode: 204, headers: headers, body: '' };
+  if (req.method === 'OPTIONS') {
+    return new Response('',{status:204,headers});
   }
 
-  var qs = (event && event.queryStringParameters) || {};
-  var DEBUG = String(qs.debug || '').toLowerCase() === '1';
+  var qs = new URL(req.url).searchParams;
+  var DEBUG = String(qs.get('debug') || '').toLowerCase() === '1';
 
   try {
     var limit        = Number(process.env.NEWS_LIMIT || 30);
@@ -118,8 +118,7 @@ var feeds = [
   }
 };
 
-function respond(headers, code, obj) {
-  return { statusCode: code, headers: headers, body: JSON.stringify(obj) };
+function respond(h,c,o){return new Response(JSON.stringify(o),{status:c,headers:h});};
 }
 
 // ---- fetch a single RSS feed quickly, record debug info ----
