@@ -179,7 +179,7 @@
     <div>
       <div class="footer-title">Find Us</div>
       <address class="muted small">417 Gulf Crescent, Edwardsville, NS B2A 4T9</address>
-      <a class="btn-light" target="_blank" href="https://www.google.com/maps/place/417+Gulf+Crescent,+Edwardsville,+NS+B2A+4T9/@46.139715,-60.2621357,9339m/data=!3m1!1e3!4m6!3m5!1s0x4b67facb8ef152a3:0x696f8a0bdb36d767!8m2!3d46.1517485!4d-60.2245496!16s%2Fg%2F11snpzymmc?entry=ttu&g_ep=EgoyMDI1MDgxMy4wIKXMDSoASAFQAw%3D%3D">Directions</a>
+      <a class="btn-light" target="_blank" href="https://www.google.com/maps/place/Atlantic+Truck+%26+Equipment+Repair+Ltd/@46.151969,-60.2301137,15.38z/data=!4m6!3m5!1s0x4b67fb01bb72039d:0x7fb8cb6a0474876f!8m2!3d46.151406!4d-60.22404!16s%2Fg%2F11spr9nlcj">Directions</a>
     </div>
   </div>
   <div class="footer-bottom">
@@ -430,22 +430,39 @@ const FEEDS = [
     runQueue(jobs, 2);
   }
 
-  async function hydrateCardImage(card){
+    async function hydrateCardImage(card){
     const url = card.dataset.link;
     if (!url) return;
     try {
       const res = await fetch('/.netlify/functions/news-image?u=' + encodeURIComponent(url), { cache: 'no-store' });
       if (!res.ok) return;
       const data = await res.json();
-      const newImg = (data && data.image) ? data.image : '';
-      const canonNew = newImg ? newImg.split('?')[0].toLowerCase() : '';
-      if (newImg && canonNew && !usedImages.has(canonNew)) {
-        const img = card.querySelector('img');
-        img.src = newImg;
-        img.removeAttribute('data-missing');
-        usedImages.add(canonNew);
+      const articleImg = (data && data.image) || '';
+      const logoImg    = (data && data.logo)  || '';
+      const imgEl = card.querySelector('img');
+      if (!imgEl) return;
+      const canonArticle = articleImg ? articleImg.split('?')[0].toLowerCase() : '';
+      if (articleImg && !usedImages.has(canonArticle)) {
+        imgEl.src = articleImg;
+        imgEl.removeAttribute('data-missing');
+        imgEl.style.filter = '';
+        usedImages.add(canonArticle);
+        imgEl.onerror = () => {
+          if (logoImg) { imgEl.src = logoImg; imgEl.style.filter = ''; }
+          else { imgEl.src = '/assets/img/fleet-wide.jpg'; imgEl.style.filter = 'grayscale(100%) opacity(0.35)'; }
+          imgEl.onerror = null;
+        };
+      } else if (logoImg && imgEl.dataset.missing) {
+        imgEl.src = logoImg;
+        imgEl.removeAttribute('data-missing');
+        imgEl.style.filter = '';
+        imgEl.onerror = () => {
+          imgEl.src = '/assets/img/fleet-wide.jpg';
+          imgEl.style.filter = 'grayscale(100%) opacity(0.35)';
+          imgEl.onerror = null;
+        };
       }
-    } catch(e){ /* ignore */ }
+    } catch(e){}
   }
 
   function runQueue(tasks, concurrency){
