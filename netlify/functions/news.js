@@ -118,8 +118,7 @@ var feeds = [
   }
 };
 
-function respond(h,c,o){return new Response(JSON.stringify(o),{status:c,headers:h});};
-}
+function respond(h,c,o){return new Response(JSON.stringify(o),{status:c,headers:h});}
 
 // ---- fetch a single RSS feed quickly, record debug info ----
 async function fetchFeedFast(feedUrl, perFeed, timeoutMs, DEBUG, debugFeeds) {

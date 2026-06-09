@@ -1,127 +1,61 @@
-// netlify/functions/get-facebook-photos.js
-// Node 18+ (CommonJS). Dedupes images by ID or canonicalized URL.
-
+// netlify/functions/get-facebook-photos.js — Netlify v2
 const API = 'https://graph.facebook.com/v20.0/';
 
 export default async (req, context) => {
-  const pageId =
-    process.env.FB_PAGE_ID ||
-    process.env.FB_PAGEID ||
-    process.env.FACEBOOK_PAGE_ID ||
-    '';
-  const token =
-    process.env.FB_ACCESS_TOKEN ||           // primary (set in Netlify)
-    process.env.FB_PAGE_ACCESS_TOKEN ||      // alias
-    process.env.FB_PAGE_TOKEN ||             // alias
-    process.env.FACEBOOK_PAGE_TOKEN ||       // alias
-    '';
-  const limit = Math.max(1, Math.min(50, parseInt(Object.fromEntries(new URL(req.url).searchParams)?.limit || '30')));
+  const headers = {
+    'Access-Control-Allow-Origin': '*',
+    'Content-Type': 'application/json',
+    'Cache-Control': 'public, max-age=600'
+  };
+
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers });
+  }
+
+  const qs = new URL(req.url).searchParams;
+  const limitParam = parseInt(qs.get('limit') || '12', 10);
+  const limit = isNaN(limitParam) ? 12 : Math.min(limitParam, 50);
+
+  const pageId = process.env.FB_PAGE_ID || process.env.FB_PAGEID || process.env.FACEBOOK_PAGE_ID || '';
+  const token  = process.env.FB_ACCESS_TOKEN || process.env.FB_PAGE_ACCESS_TOKEN || process.env.FB_PAGE_TOKEN || '';
 
   if (!pageId || !token) {
-    return resp(500, { error: 'Missing FB_PAGE_ID or FB_ACCESS_TOKEN' });
+    return new Response(
+      JSON.stringify({ error: 'Missing FB_PAGE_ID or FB_ACCESS_TOKEN in environment.' }),
+      { status: 500, headers }
+    );
   }
-
-  const fetchJson = async (url) => {
-    const r = await fetch(url);
-    const j = await r.json();
-    if (!r.ok) throw new Error(j?.error?.message || `HTTP ${r.status}`);
-    return j;
-  };
-
-  const canon = (u) => {
-    try {
-      const x = new URL(u);
-      // drop querystring to normalize fbcdn variants
-      return `${x.origin}${x.pathname}`.toLowerCase();
-    } catch {
-      return (u || '').split('?')[0].toLowerCase();
-    }
-  };
-
-  const pushUnique = (arr, seen, item) => {
-    const src = item.full_picture || item.source || item.images?.[0]?.source;
-    if (!src) return;
-    const key = item.id ? `id:${item.id}` : `url:${canon(src)}`;
-    if (seen.has(key)) return;
-    seen.add(key);
-    arr.push({
-      id: item.id || key,
-      permalink_url: item.permalink_url || item.link || '',
-      created_time: item.created_time || '',
-      full_picture: src
-    });
-  };
 
   try {
-    const out = [];
+    const fields = 'id,full_picture,picture,source,permalink_url,created_time';
+    const url = `${API}${pageId}/photos?type=uploaded&fields=${fields}&limit=${limit}&access_token=${token}`;
+    const res = await fetch(url);
+    const json = await res.json();
+
+    if (!res.ok || json.error) {
+      return new Response(
+        JSON.stringify({ error: json.error?.message || `FB API error ${res.status}` }),
+        { status: 502, headers }
+      );
+    }
+
+    // Deduplicate by ID
     const seen = new Set();
+    const data = (json.data || []).filter(p => {
+      if (seen.has(p.id)) return false;
+      seen.add(p.id);
+      return true;
+    });
 
-    // 1) Try "uploaded" photos
-    const photoFields = 'id,permalink_url,created_time,name,images,full_picture,link';
-    const photosURL = `${API}${pageId}/photos?type=uploaded&fields=${photoFields}&limit=${limit}&access_token=${encodeURIComponent(token)}`;
+    return new Response(
+      JSON.stringify({ data }),
+      { status: 200, headers }
+    );
 
-    try {
-      const p = await fetchJson(photosURL);
-      (p.data || []).forEach(ph => pushUnique(out, seen, ph));
-    } catch (e) {
-      // swallow and continue to posts fallback
-      console.warn('Uploaded photos fetch failed:', e.message);
-    }
-
-    // 2) Fall back to grabbing images from recent posts (attachments / carousels)
-    if (out.length < limit) {
-      const postFields = [
-        'permalink_url',
-        'created_time',
-        'message',
-        'full_picture',
-        'attachments{media_type,media,image,subattachments}'
-      ].join(',');
-      const postsURL = `${API}${pageId}/posts?fields=${postFields}&limit=25&access_token=${encodeURIComponent(token)}`;
-      try {
-        const posts = await fetchJson(postsURL);
-        (posts.data || []).forEach(p => {
-          // hero image on the post
-          if (p.full_picture) pushUnique(out, seen, p);
-          // attachments and carousels
-          (p.attachments?.data || []).forEach(a => {
-            if (a?.media?.image?.src) {
-              pushUnique(out, seen, {
-                id: `${p.id}-a`,
-                permalink_url: p.permalink_url,
-                created_time: p.created_time,
-                full_picture: a.media.image.src
-              });
-            }
-            (a?.subattachments?.data || []).forEach(s => {
-              const src = s?.media?.image?.src;
-              if (src) {
-                pushUnique(out, seen, {
-                  id: `${p.id}-${s.target?.id || Math.random().toString(36).slice(2)}`,
-                  permalink_url: p.permalink_url,
-                  created_time: p.created_time,
-                  full_picture: src
-                });
-              }
-            });
-          });
-        });
-      } catch (e) {
-        console.warn('Posts fallback failed:', e.message);
-      }
-    }
-
-    // Sort newest → oldest and cap to limit
-    out.sort((a, b) => new Date(b.created_time || 0) - new Date(a.created_time || 0));
-    const final = out.slice(0, limit);
-
-    return resp(200, { data: final }, { 'Cache-Control': 'public, max-age=600' });
   } catch (e) {
-    return resp(502, { error: String(e.message || e) });
+    return new Response(
+      JSON.stringify({ error: String(e.message || e) }),
+      { status: 502, headers }
+    );
   }
 };
-
-function resp(s,b,e={}){return new Response(JSON.stringify(b),{status:s,headers:{'Content-Type':'application/json',...e}});},
-    body: JSON.stringify(body)
-  };
-}

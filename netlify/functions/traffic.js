@@ -77,8 +77,7 @@ var feeds = [
   }
 };
 
-function respond(h,c,o){return new Response(JSON.stringify(o),{status:c,headers:h});};
-}
+function respond(h,c,o){return new Response(JSON.stringify(o),{status:c,headers:h});}
 
 // --- Shared helpers (same as news.js but minimal) ---
 async function fetchFeedFast(feedUrl, perFeed, timeoutMs, DEBUG, debugFeeds) {
