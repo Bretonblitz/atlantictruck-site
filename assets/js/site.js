@@ -199,11 +199,15 @@ async function renderHomepageSidebar(){
     const a=document.createElement('a');
     a.className='tile'; a.href=p.link||'#'; a.target='_blank'; a.rel='noopener';
     const msg=p.message||'';
-    const postImg = p.image||'/assets/img/fleet-wide.jpg';
+    // Route FB CDN images through our proxy to avoid CORS / signed-URL expiry issues
+    const rawImg=p.image||'';
+    const postImg=rawImg&&rawImg.startsWith('http')
+      ?`/.netlify/functions/fb-img-proxy?u=${encodeURIComponent(rawImg)}`
+      :'/assets/img/fleet-wide.jpg';
     a.innerHTML=`<img src="${escA(postImg)}" alt="Facebook post" loading="lazy" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius-sm) var(--radius-sm) 0 0">`
       +`<div class="body"><div class="meta">${esc(fmtDate(p.dateISO))}</div><div>${esc(msg).slice(0,140)}${msg.length>140?'…':''}</div></div>`;
     const imgEl=a.querySelector('img');
-    if(imgEl) imgEl.onerror=()=>{ imgEl.remove(); };
+    if(imgEl) imgEl.onerror=()=>{ imgEl.style.display='none'; };
     wrap.appendChild(a);
   });
 }
@@ -285,8 +289,10 @@ async function renderGallery(){
     all.slice(shown,shown+PAGE).forEach(a=>{
       const el=document.createElement('article');
       el.className='news-card';
-      const img=a.image?`<img class="news-thumb" src="${escA(a.image)}" alt="" loading="lazy">`
-        :`<div class="news-thumb" style="background:var(--light);overflow:hidden"><img src="${FALLBACK_IMG}" alt="" style="width:100%;height:100%;object-fit:cover"></div>`;
+      // Always render a placeholder thumb — we'll fill it via scraper if no image in RSS
+      const img=a.image
+        ?`<img class="news-thumb" src="${escA(a.image)}" alt="" loading="lazy">`
+        :`<div class="news-thumb" style="background:var(--light);overflow:hidden"><img src="${FALLBACK_IMG}" alt="" style="width:100%;height:100%;object-fit:cover" data-scrape="${escA(a.link||'')}"></div>`;
       el.innerHTML=`${img}<div class="news-body">
         <div class="news-meta"><span class="chip">${esc(a.source||'News')}</span>${a.date?`<span>${esc(fmtDate(a.date))}</span>`:''}</div>
         <h3 class="news-title"><a href="${escA(a.link||'#')}" target="_blank" rel="noopener">${esc(a.title||'')}</a></h3>
@@ -299,6 +305,45 @@ async function renderGallery(){
     });
     shown+=Math.min(PAGE,all.length-shown);
     if(btn) btn.style.display=shown<all.length?'':'none';
+    // Lazy-scrape images for cards that had none in the RSS feed
+    scrapeNewsImages(grid);
+  }
+
+  // Throttled scraper: for any thumb still showing the fallback with data-scrape,
+  // call news-image.js and swap in the real OG image.
+  function scrapeNewsImages(grid){
+    const pending=[...grid.querySelectorAll('img[data-scrape]')];
+    let i=0;
+    function next(){
+      if(i>=pending.length) return;
+      const imgEl=pending[i++];
+      const articleUrl=imgEl.getAttribute('data-scrape');
+      if(!articleUrl){next();return;}
+      imgEl.removeAttribute('data-scrape'); // prevent double-scrape
+      fetch(`/.netlify/functions/news-image?u=${encodeURIComponent(articleUrl)}`)
+        .then(r=>r.ok?r.json():null)
+        .then(d=>{
+          if(d&&d.image&&d.image.startsWith('http')){
+            imgEl.src=d.image;
+            imgEl.onerror=()=>{ imgEl.src=FALLBACK_IMG; imgEl.onerror=null; };
+            // Expand wrapper from div to a bare img
+            const wrap=imgEl.parentElement;
+            if(wrap&&wrap.tagName==='DIV'&&wrap.classList.contains('news-thumb')){
+              imgEl.className='news-thumb';
+              imgEl.style.cssText='';
+              wrap.replaceWith(imgEl);
+            }
+          } else if(d&&d.logo&&d.logo.startsWith('http')){
+            // Use source logo as fallback image
+            imgEl.src=d.logo;
+            imgEl.onerror=()=>{ imgEl.src=FALLBACK_IMG; imgEl.onerror=null; };
+          }
+          setTimeout(next,120); // throttle: 120ms between scrape calls
+        })
+        .catch(()=>setTimeout(next,120));
+    }
+    // Start with a small delay so page paint isn't blocked
+    setTimeout(next,300);
   }
   document.addEventListener('DOMContentLoaded',()=>{ if(document.getElementById('newsGrid')) init(); });
 })();
