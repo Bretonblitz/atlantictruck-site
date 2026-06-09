@@ -1,154 +1,173 @@
-// netlify/functions/news-image.js
-// Scrapes an article's og:image/twitter:image/etc. Supports ?debug=1.
+// netlify/functions/news-image.js  —  Netlify v2 format
+// Scrapes og:image / twitter:image / JSON-LD / article body from a news URL.
+// Falls back to a source logo when no article image is found.
 
 export default async (req, context) => {
-  var headers = {
+  const headers = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Methods': 'GET, OPTIONS',
     'Access-Control-Allow-Headers': 'Content-Type',
     'Cache-Control': 'public, max-age=86400, s-maxage=86400',
     'Content-Type': 'application/json'
   };
-  if (event && req.method === 'OPTIONS') {
-    return new Response('', { status: 204, headers: headers });
+
+  if (req.method === 'OPTIONS') {
+    return new Response('', { status: 204, headers });
   }
 
-  var qs = Object.fromEntries(new URL(req.url).searchParams);
-  var DEBUG = String(qs.debug || '').toLowerCase() === '1';
-  var u = qs.u;
+  const qs     = new URL(req.url).searchParams;
+  const u      = (qs.get('u') || '').trim();
+  const DEBUG  = qs.get('debug') === '1';
 
-  if (!u) return new Response(JSON.stringify({ error: 'Missing u' }), { status: 400, headers });
+  if (!u) {
+    return new Response(JSON.stringify({ image: '', logo: '' }), { status: 400, headers });
+  }
+
+  // Source logo fallbacks — never expire, no hotlink issues
+  const LOGOS = {
+    'trucknews.com':       'https://www.trucknews.com/wp-content/uploads/2020/01/trucknews-logo.png',
+    'theloadstar.com':     'https://theloadstar.com/wp-content/themes/loadstar/img/loadstar-logo.svg',
+    'freightwaves.com':    'https://www.freightwaves.com/wp-content/uploads/2019/09/FreightWaves-Logo-e1569001898901.png',
+    'globalnews.ca':       'https://globalnews.ca/wp-content/themes/globalnews-2018/assets/images/global-news-logo.svg',
+    'cbc.ca':              'https://www.cbc.ca/a/images/cbc-news-logo-en.svg',
+    'vocm.com':            'https://vocm.com/wp-content/uploads/2016/09/vocm-logo.png',
+    'insidelogistics.ca':  'https://www.insidelogistics.ca/wp-content/uploads/2023/03/inside-logistics-logo.png',
+    'todaystrucking.com':  'https://www.todaystrucking.com/wp-content/themes/todaystrucking/images/todays-trucking-logo.png',
+  };
+
+  let logo = '';
+  try {
+    const host = new URL(u).hostname.replace(/^www\./, '');
+    logo = LOGOS[host] || '';
+  } catch (_) {}
+
+  const timeout = Math.min(Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 4500), 7000);
 
   try {
-    var timeout = Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 2500);
-    var fx = await fetchTextWithTimeout(u, timeout);
+    const ctrl  = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeout);
+    let html = '';
 
-    var dbg = { url: u, ok: fx.ok, status: fx.status, durationMs: fx.durationMs, error: fx.error || '' };
-    if (!fx.ok) {
-      var bodyBad = DEBUG ? { image: '', debug: dbg } : { image: '' };
-      return new Response(JSON.stringify(bodyBad), { status: 200, headers: headers });
+    try {
+      const res = await fetch(u, {
+        signal: ctrl.signal,
+        headers: {
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
+          'Accept': 'text/html,application/xhtml+xml,*/*;q=0.8'
+        }
+      });
+      if (res.ok) {
+        // Read only first 100 KB — enough for <head> meta tags
+        const reader = res.body.getReader();
+        const chunks = [];
+        let total = 0;
+        while (total < 102400) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          chunks.push(value);
+          total += value.length;
+        }
+        reader.cancel();
+        const all = chunks.reduce((a, b) => {
+          const c = new Uint8Array(a.length + b.length);
+          c.set(a); c.set(b, a.length);
+          return c;
+        }, new Uint8Array(0));
+        html = new TextDecoder().decode(all);
+      }
+    } finally {
+      clearTimeout(timer);
     }
 
-    var html = fx.text;
-    var img =
-      metaContent(html, 'property', 'og:image') ||
-      metaContent(html, 'property', 'og:image:secure_url') ||
-      metaContent(html, 'name', 'twitter:image') ||
-      metaContent(html, 'name', 'parsely-image') ||
-      linkHref(html, 'link', 'image_src') ||
-      jsonLdImage(html) ||
-      firstSrcsetBest(html) ||
-      firstImgSrc(html) ||
-      '';
-    img = absolutize(img, u, u);
+    if (!html) {
+      return new Response(JSON.stringify({ image: logo, logo }), { status: 200, headers });
+    }
 
-    var bodyOK = DEBUG ? { image: img || '', debug: dbg } : { image: img || '' };
-    return new Response(JSON.stringify(bodyOK), { status: 200, headers: headers });
+    // ── Image extraction waterfall ──────────────────────────────
+    let img =
+      metaContent(html, 'property', 'og:image:secure_url') ||
+      metaContent(html, 'property', 'og:image')            ||
+      metaContent(html, 'name', 'twitter:image:src')        ||
+      metaContent(html, 'name', 'twitter:image')            ||
+      metaContent(html, 'name', 'parsely-image')            ||
+      linkHref(html, 'image_src')                           ||
+      jsonLdImage(html)                                     ||
+      articleBodyImage(html)                                ||
+      '';
+
+    // Make absolute
+    if (img && img.startsWith('//')) img = 'https:' + img;
+    if (img) {
+      try { img = new URL(img, u).href; } catch (_) {}
+    }
+
+    // Reject obvious junk
+    if (img && /1x1|pixel|spacer|blank|favicon|icon-\d|tracking|beacon/i.test(img)) img = '';
+
+    const body = DEBUG
+      ? { image: img || logo, logo, debug: { url: u, found: !!img } }
+      : { image: img || logo, logo };
+
+    return new Response(JSON.stringify(body), { status: 200, headers });
+
   } catch (e) {
-    var bodyErr = DEBUG ? { image: '', debug: { url: u, error: String(e) } } : { image: '' };
-    return new Response(JSON.stringify(bodyErr), { status: 200, headers: headers });
+    return new Response(JSON.stringify({ image: logo, logo }), { status: 200, headers });
   }
 };
 
-async function fetchTextWithTimeout(url, ms) {
-  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-  var timer = null;
-  if (controller) timer = setTimeout(function(){ controller.abort(); }, ms);
-  var out = { ok: false, text: '', status: 0, durationMs: 0, error: '' };
-  var t0 = Date.now();
-  try {
-    var res = await fetch(url, {
-      signal: controller ? controller.signal : undefined,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (compatible; AtlanticTruckBot/1.0; +https://www.atlantictruck.ca/)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
-      }
-    });
-    out.status = res.status;
-    if (!res.ok) { out.error = 'HTTP ' + res.status; return out; }
-    out.text = await res.text();
-    out.ok = true;
-    return out;
-  } catch (e) {
-    out.error = String(e && e.name === 'AbortError' ? 'Timeout' : e);
-    return out;
-  } finally {
-    out.durationMs = Date.now() - t0;
-    if (timer) clearTimeout(timer);
-  }
-}
+// ── Helpers ───────────────────────────────────────────────────────
 
 function metaContent(html, attr, val) {
-  var re = new RegExp('<meta[^>]+' + attr + '=["\']' + val + '["\'][^>]*content=["\']([^"\']+)["\'][^>]*>', 'i');
-  var m = html.match(re);
+  const esc = val.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const re  = new RegExp(
+    '<meta[^>]+(?:' + attr + '=["\']' + esc + '["\'][^>]+content=["\']([^"\']+)["\']' +
+    '|content=["\']([^"\']+)["\'][^>]+' + attr + '=["\']' + esc + '["\'])', 'i'
+  );
+  const m = html.match(re);
+  return m ? (m[1] || m[2] || '') : '';
+}
+
+function linkHref(html, rel) {
+  const re = new RegExp('<link[^>]+rel=["\']' + rel + '["\'][^>]+href=["\']([^"\']+)["\']', 'i');
+  const m  = html.match(re);
   return m ? m[1] : '';
 }
-function linkHref(html, tag, relVal) {
-  var re = new RegExp('<' + tag + '[^>]+rel=["\']' + relVal + '["\'][^>]*href=["\']([^"\']+)["\']', 'i');
-  var m = html.match(re);
-  return m ? m[1] : '';
-}
+
 function jsonLdImage(html) {
-  var scripts = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/ig) || [];
-  for (var i = 0; i < scripts.length; i++) {
-    var raw = scripts[i].replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '');
+  const blocks = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/gi) || [];
+  for (const b of blocks) {
+    const raw = b.replace(/<script[^>]*>/i, '').replace(/<\/script>/i, '').trim();
     try {
-      var obj = JSON.parse(raw);
-      var url = extractJsonLdImage(obj);
-      if (url) return url;
-    } catch (e) {}
+      const obj = JSON.parse(raw);
+      const img = pickJsonLdImg(obj);
+      if (img) return img;
+    } catch (_) {}
   }
   return '';
 }
-function extractJsonLdImage(obj) {
-  if (!obj) return '';
-  if (typeof obj === 'string') return obj;
-  if (Array.isArray(obj)) {
-    for (var i = 0; i < obj.length; i++) {
-      var v = extractJsonLdImage(obj[i]); if (v) return v;
-    }
-    return '';
+function pickJsonLdImg(o) {
+  if (!o || typeof o !== 'object') return '';
+  if (typeof o.image === 'string')  return o.image;
+  if (o.image?.url)                 return o.image.url;
+  if (Array.isArray(o.image) && o.image.length) {
+    const f = o.image[0];
+    return (typeof f === 'string') ? f : (f?.url || '');
   }
-  if (typeof obj === 'object') {
-    if (obj.image) {
-      if (typeof obj.image === 'string') return obj.image;
-      if (Array.isArray(obj.image) && obj.image.length) {
-        var first = obj.image[0];
-        if (typeof first === 'string') return first;
-        if (first && typeof first === 'object' && first.url) return first.url;
-      }
-      if (obj.image.url) return obj.image.url;
-    }
-    if (obj.thumbnailUrl) return obj.thumbnailUrl;
-    var keys = Object.keys(obj);
-    for (var k = 0; k < keys.length; k++) {
-      var v2 = extractJsonLdImage(obj[keys[k]]); if (v2) return v2;
-    }
+  if (Array.isArray(o['@graph'])) {
+    for (const n of o['@graph']) { const i = pickJsonLdImg(n); if (i) return i; }
   }
   return '';
 }
-function firstImgSrc(html) {
-  var m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
-  return m ? m[1] : '';
-}
-function firstSrcsetBest(html) {
-  var mm = html && html.match(/<img[^>]+srcset=["']([^"']+)["']/i);
-  if (!mm || !mm[1]) return '';
-  var srcset = mm[1].split(',').map(function(s){ return s.trim(); });
-  var bestUrl = ''; var bestWidth = 0;
-  for (var i = 0; i < srcset.length; i++) {
-    var part = srcset[i];
-    var m = part.match(/(\S+)\s+(\d+)w/);
-    var url = ''; var w = 0;
-    if (m) { url = m[1]; w = parseInt(m[2], 10) || 0; }
-    else { url = part.split(' ')[0]; w = 0; }
-    if (w >= bestWidth) { bestWidth = w; bestUrl = url; }
+
+function articleBodyImage(html) {
+  const imgs = html.match(/<img[^>]+src=["']([^"']+)["'][^>]*>/gi) || [];
+  for (const tag of imgs) {
+    const src = (tag.match(/src=["']([^"']+)["']/i) || [])[1] || '';
+    if (!src || src.startsWith('data:')) continue;
+    if (/favicon|icon|logo|pixel|spacer|avatar|gravatar/i.test(src)) continue;
+    const w = parseInt((tag.match(/width=["']?(\d+)/i) || [])[1] || '0');
+    if (w > 0 && w < 150) continue;
+    return src;
   }
-  return bestUrl;
-}
-function absolutize(u, baseLink, feedUrl) {
-  if (!u) return '';
-  if (u.indexOf('data:') === 0) return '';
-  try { if (u.indexOf('//') === 0) return 'https:' + u; return new URL(u, baseLink || feedUrl).href; }
-  catch (e) { return u; }
+  return '';
 }
