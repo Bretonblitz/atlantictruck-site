@@ -1,0 +1,559 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Atlantic Truck — Site Diagnostic</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --brand:#B9111B;--ink:#0F1117;--bg:#0a0d14;--card:#12161f;--border:#1e2330;
+    --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--muted:#6b7280;
+    --ff:'Inter',system-ui,sans-serif;
+  }
+  body{background:var(--bg);color:#e5e7eb;font-family:var(--ff);font-size:14px;min-height:100vh;padding:0 0 60px}
+  header{background:var(--ink);border-bottom:3px solid var(--brand);padding:20px 24px;display:flex;align-items:center;gap:16px}
+  header h1{font-size:1.25rem;font-weight:700;color:#fff}
+  header p{font-size:.8rem;color:var(--muted);margin-top:3px}
+  .badge{background:var(--brand);color:#fff;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
+  main{max-width:1100px;margin:0 auto;padding:24px}
+
+  /* Score strip */
+  .score-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
+  .score-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
+  .score-card .num{font-size:2rem;font-weight:700;line-height:1;margin-bottom:4px}
+  .score-card .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+
+  /* Controls */
+  .controls{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
+  button{padding:9px 18px;border-radius:8px;border:none;font-size:.8125rem;font-weight:600;cursor:pointer;transition:all .15s}
+  .btn-run{background:var(--brand);color:#fff}
+  .btn-run:hover{opacity:.85}
+  .btn-run:disabled{opacity:.4;cursor:not-allowed}
+  .btn-secondary{background:var(--card);color:#e5e7eb;border:1px solid var(--border)}
+  .btn-secondary:hover{border-color:#4b5563}
+
+  /* Section */
+  .section{margin-bottom:20px}
+  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer}
+  .section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+  .section-status{margin-left:auto;font-size:.72rem;font-weight:600}
+
+  /* Test rows */
+  .tests{display:flex;flex-direction:column;gap:6px}
+  .test{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:start;transition:border-color .2s}
+  .test.pass{border-left:3px solid var(--green)}
+  .test.fail{border-left:3px solid var(--red)}
+  .test.warn{border-left:3px solid var(--amber)}
+  .test.running{border-left:3px solid var(--blue);animation:pulse 1.2s ease-in-out infinite}
+  .test.pending{border-left:3px solid var(--border)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
+
+  .test-icon{font-size:1rem;line-height:1.5;text-align:center}
+  .test-body{}
+  .test-name{font-weight:600;color:#e5e7eb;margin-bottom:2px}
+  .test-detail{font-size:.78rem;color:var(--muted);line-height:1.6;word-break:break-word}
+  .test-detail pre{background:#0a0d14;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.72rem;overflow-x:auto;margin-top:6px;white-space:pre-wrap;max-height:120px}
+  .test-time{font-size:.7rem;color:var(--muted);white-space:nowrap;padding-top:2px}
+
+  /* Log */
+  .log-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:monospace;font-size:.72rem;max-height:200px;overflow-y:auto;color:#9ca3af}
+  .log-line{padding:1px 0}
+  .log-line.ok{color:var(--green)}
+  .log-line.err{color:var(--red)}
+  .log-line.warn{color:var(--amber)}
+  .log-line.info{color:var(--blue)}
+
+  .timestamp{color:#4b5563;margin-right:8px}
+  .copy-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;font-size:.7rem;border-radius:6px}
+  .copy-btn:hover{border-color:#4b5563;color:#e5e7eb}
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>🔧 Atlantic Truck — Site Diagnostic</h1>
+    <p>atlantictruck.ca · Internal tool · Not indexed · Last run: <span id="lastRun">never</span></p>
+  </div>
+  <span class="badge">Internal</span>
+</header>
+
+<main>
+  <div class="score-strip">
+    <div class="score-card"><div class="num" id="scoreTotal" style="color:var(--muted)">—</div><div class="lbl">Overall</div></div>
+    <div class="score-card"><div class="num" id="scorePassed" style="color:var(--green)">—</div><div class="lbl">Passed</div></div>
+    <div class="score-card"><div class="num" id="scoreFailed" style="color:var(--red)">—</div><div class="lbl">Failed</div></div>
+    <div class="score-card"><div class="num" id="scoreWarned" style="color:var(--amber)">—</div><div class="lbl">Warnings</div></div>
+  </div>
+
+  <div class="controls">
+    <button class="btn-run" id="btnRun" onclick="runAll()">▶ Run Full Diagnostic</button>
+    <button class="btn-secondary" onclick="runCategory('functions')">Functions only</button>
+    <button class="btn-secondary" onclick="runCategory('config')">Config only</button>
+    <button class="btn-secondary" onclick="runCategory('content')">Content only</button>
+    <button class="btn-secondary copy-btn" onclick="copyReport()">Copy report</button>
+  </div>
+
+  <div id="sections"></div>
+
+  <div class="section" style="margin-top:20px">
+    <div class="section-header">
+      <span class="section-title">Diagnostic Log</span>
+      <button class="copy-btn" style="margin-left:auto" onclick="copyLog()">Copy log</button>
+    </div>
+    <div class="log-wrap" id="logWrap"></div>
+  </div>
+</main>
+
+<script>
+// ── Test definitions ──────────────────────────────────────────────
+const TESTS = [
+
+  // ── NETLIFY FUNCTIONS ─────────────────────────────────────────
+  {
+    id:'fn-health', cat:'functions', name:'health.js — Netlify alive',
+    run: async () => {
+      const r = await timed(() => fetch('/.netlify/functions/health'));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!j.ok) throw new Error('ok!=true');
+      return `✓ Functions reachable · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'fn-news', cat:'functions', name:'news.js — RSS feed aggregation',
+    run: async () => {
+      const r = await timed(() => fetch('/.netlify/functions/news?limit=3&debug=1'));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      if (!j.items || !j.items.length) throw new Error(j.error || 'no items returned');
+      const sources = [...new Set(j.items.map(i=>i.source||'?'))].join(', ');
+      return `✓ ${j.items.length} articles · sources: ${sources} · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'fn-news-image', cat:'functions', name:'news-image.js — Article image scraper',
+    run: async () => {
+      const testUrl = 'https://www.trucknews.com/transportation/ontario-carrier-fined/';
+      const r = await timed(() => fetch(`/.netlify/functions/news-image?u=${encodeURIComponent(testUrl)}`));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const hasImg = j.image && j.image.startsWith('http');
+      const hasLogo = j.logo && j.logo.startsWith('http');
+      if (!hasImg && !hasLogo) return {level:'warn', msg:`No image or logo returned`};
+      return `✓ image=${hasImg?'found':'fallback'} logo=${hasLogo?'found':'missing'} · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'fn-fb-posts', cat:'functions', name:'get-facebook-posts.js — FB posts API',
+    run: async () => {
+      const r = await timed(() => fetch('/.netlify/functions/get-facebook-posts?limit=3'));
+      if (!r.ok) {
+        const j = await r.json().catch(()=>({}));
+        if (j.error && j.error.includes('Missing')) return {level:'warn', msg:`FB not configured: ${j.hint||j.error}`};
+        throw new Error(`HTTP ${r.status}: ${j.error||''}`);
+      }
+      const j = await r.json();
+      if (!j.items || !j.items.length) return {level:'warn', msg:`FB connected but no posts returned. App may be in Development mode.`};
+      const hasImg = j.items.filter(i=>i.image).length;
+      return `✓ ${j.items.length} posts · ${hasImg} with images · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'fn-fb-photos', cat:'functions', name:'get-facebook-photos.js — FB photos API',
+    run: async () => {
+      const r = await timed(() => fetch('/.netlify/functions/get-facebook-photos?limit=3'));
+      if (!r.ok) {
+        const j = await r.json().catch(()=>({}));
+        if (j.error && j.error.includes('Missing')) return {level:'warn', msg:`FB not configured: ${j.error}`};
+        throw new Error(`HTTP ${r.status}`);
+      }
+      const j = await r.json();
+      if (!j.data || !j.data.length) return {level:'warn', msg:`FB connected but no photos. App may be in Development mode.`};
+      const withSrc = j.data.filter(p=>p.source||p.full_picture).length;
+      return `✓ ${j.data.length} photos · ${withSrc} with source URLs · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'fn-traffic', cat:'functions', name:'traffic.js — NS traffic advisories',
+    run: async () => {
+      const r = await timed(() => fetch('/.netlify/functions/traffic'));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const j = await r.json();
+      const count = (j.items||j.data||[]).length;
+      return `✓ ${count} advisories · ${r.ms}ms`;
+    }
+  },
+
+  // ── ENVIRONMENT / CONFIG ──────────────────────────────────────
+  {
+    id:'cfg-fb-token', cat:'config', name:'Env: FB_ACCESS_TOKEN set',
+    run: async () => {
+      const r = await fetch('/.netlify/functions/get-facebook-posts?limit=1');
+      const j = await r.json().catch(()=>({}));
+      if (j.error && j.error.includes('Missing')) throw new Error('FB_ACCESS_TOKEN not set in Netlify env vars');
+      return '✓ FB_ACCESS_TOKEN is set';
+    }
+  },
+  {
+    id:'cfg-fb-pageid', cat:'config', name:'Env: FB_PAGE_ID set',
+    run: async () => {
+      const r = await fetch('/.netlify/functions/get-facebook-photos?limit=1');
+      const j = await r.json().catch(()=>({}));
+      if (j.error && j.error.includes('Missing')) throw new Error('FB_PAGE_ID not set in Netlify env vars');
+      return '✓ FB_PAGE_ID is set';
+    }
+  },
+  {
+    id:'cfg-sw', cat:'config', name:'Service worker registered',
+    run: async () => {
+      if (!('serviceWorker' in navigator)) return {level:'warn', msg:'Service workers not supported in this browser'};
+      const reg = await navigator.serviceWorker.getRegistration('/');
+      if (!reg) throw new Error('Service worker not registered');
+      return `✓ SW active · scope: ${reg.scope}`;
+    }
+  },
+  {
+    id:'cfg-manifest', cat:'config', name:'PWA manifest reachable',
+    run: async () => {
+      const r = await fetch('/manifest.json');
+      if (!r.ok) throw new Error(`manifest.json returned ${r.status}`);
+      const j = await r.json();
+      if (!j.name) throw new Error('manifest missing name field');
+      return `✓ "${j.name}" · theme: ${j.theme_color} · icons: ${(j.icons||[]).length}`;
+    }
+  },
+  {
+    id:'cfg-sitemap', cat:'config', name:'sitemap.xml reachable',
+    run: async () => {
+      const r = await fetch('/sitemap.xml');
+      if (!r.ok) throw new Error(`sitemap.xml returned ${r.status}`);
+      const text = await r.text();
+      const urls = (text.match(/<loc>/g)||[]).length;
+      if (!urls) throw new Error('sitemap has no <loc> entries');
+      return `✓ ${urls} URLs in sitemap`;
+    }
+  },
+  {
+    id:'cfg-robots', cat:'config', name:'robots.txt reachable',
+    run: async () => {
+      const r = await fetch('/robots.txt');
+      if (!r.ok) throw new Error(`robots.txt returned ${r.status}`);
+      const text = await r.text();
+      return `✓ ${text.trim().split('\n').length} lines`;
+    }
+  },
+
+  // ── CONTENT / PAGES ───────────────────────────────────────────
+  {
+    id:'pg-homepage', cat:'content', name:'Homepage loads with stat bar',
+    run: async () => {
+      const r = await timed(() => fetch('/'));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      if (!text.includes('unitsTally')) throw new Error('unitsTally stat bar missing');
+      if (!text.includes('stat-item')) throw new Error('stat-bar missing');
+      return `✓ Homepage OK · ${r.ms}ms · ${(text.length/1024).toFixed(0)}KB`;
+    }
+  },
+  {
+    id:'pg-news', cat:'content', name:'News page loads',
+    run: async () => {
+      const r = await timed(() => fetch('/news.html'));
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      if (!text.includes('newsGrid')) throw new Error('newsGrid element missing');
+      if (!text.includes('/.netlify/functions/news')) throw new Error('news function not referenced');
+      return `✓ News page OK · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'pg-gallery', cat:'content', name:'Gallery page + 24 images',
+    run: async () => {
+      const r = await fetch('/gallery.html');
+      const text = await r.text();
+      const imgs = (text.match(/lightbox-trigger/g)||[]).length;
+      if (imgs < 20) return {level:'warn', msg:`Only ${imgs} gallery images (expected 24)`};
+      return `✓ ${imgs} gallery images loaded`;
+    }
+  },
+  {
+    id:'pg-requests', cat:'content', name:'Book Service — both forms present',
+    run: async () => {
+      const r = await fetch('/requests.html');
+      const text = await r.text();
+      if (!text.includes('formsubmit.co/service@atlantictruck.ca')) throw new Error('Service form missing');
+      if (!text.includes('formsubmit.co/parts@atlantictruck.ca')) throw new Error('Parts form missing');
+      return `✓ Both forms using FormSubmit.co`;
+    }
+  },
+  {
+    id:'pg-contact', cat:'content', name:'Contact — Google Maps Place ID',
+    run: async () => {
+      const r = await fetch('/contact.html');
+      const text = await r.text();
+      if (!text.includes('0x4b67fb01bb72039d')) throw new Error('Google Business Place ID missing — map will be blank');
+      if (text.includes('maps?q=417')) throw new Error('Generic address embed still present — will show blank map');
+      return `✓ Correct Google Business listing embed`;
+    }
+  },
+  {
+    id:'pg-about', cat:'content', name:'About — staff + no banned names',
+    run: async () => {
+      const r = await fetch('/about.html');
+      const text = await r.text();
+      if (text.includes('Donald Shaw') || text.includes('donald_shaw')) throw new Error('Donald Shaw still present');
+      if (text.includes('[Add your founding story')) throw new Error('Edit marker still visible on page');
+      const cards = (text.match(/staff-card/g)||[]).length;
+      if (cards < 11) throw new Error(`Only ${cards} staff cards (expected 11)`);
+      return `✓ ${cards} staff cards · Donald Shaw removed · no edit markers`;
+    }
+  },
+  {
+    id:'pg-inspection', cat:'content', name:'Inspection — no van/B-620 van claims',
+    run: async () => {
+      const r = await fetch('/services/inspection.html');
+      const text = await r.text();
+      if (/B-620.*van|van.*B-620|inspection van/i.test(text)) throw new Error('B-620 van language still present');
+      return `✓ Inspection page clean`;
+    }
+  },
+  {
+    id:'pg-404', cat:'content', name:'404 page returns 404 status',
+    run: async () => {
+      const r = await fetch('/this-page-does-not-exist-xyzabc');
+      if (r.status !== 404) return {level:'warn', msg:`Got HTTP ${r.status} instead of 404 — check netlify.toml redirect`};
+      return `✓ 404 returns correct status`;
+    }
+  },
+
+  // ── ASSETS ────────────────────────────────────────────────────
+  {
+    id:'ast-logo', cat:'assets', name:'Logo — local file loads',
+    run: async () => {
+      const r = await timed(() => fetch('/assets/img/logo.png'));
+      if (!r.ok) throw new Error(`logo.png returned ${r.status}`);
+      const blob = await r.blob();
+      if (blob.size < 5000) throw new Error(`logo.png too small (${blob.size}b) — may be broken`);
+      return `✓ logo.png · ${(blob.size/1024).toFixed(0)}KB · ${r.ms}ms`;
+    }
+  },
+  {
+    id:'ast-new-imgs', cat:'assets', name:'New images — 13 photos present',
+    run: async () => {
+      const slugs = ['truck-branding','mechanic-engine','mechanic-under','shop-interior',
+                     'fleet-yard','service-trucks','red-kenworth-shop','mechanic-writing',
+                     'mechanic-panel','van-branding','irving-tankers','freightliner-shop','recovery-hooks'];
+      const results = await Promise.all(slugs.map(s =>
+        fetch(`/assets/img/${s}.jpg`, {method:'HEAD'}).then(r=>({s, ok:r.ok})).catch(()=>({s, ok:false}))
+      ));
+      const missing = results.filter(r=>!r.ok).map(r=>r.s);
+      if (missing.length) throw new Error(`Missing: ${missing.join(', ')}`);
+      return `✓ All 13 new images present`;
+    }
+  },
+  {
+    id:'ast-css', cat:'assets', name:'CSS — style.css loads',
+    run: async () => {
+      const r = await fetch('/assets/css/style.css');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      const lines = text.split('\n').length;
+      if (!text.includes('.section{')) throw new Error('Missing .section definition');
+      return `✓ style.css · ${lines} lines · .section ✓`;
+    }
+  },
+  {
+    id:'ast-js', cat:'assets', name:'JS — site.js loads',
+    run: async () => {
+      const r = await fetch('/assets/js/site.js');
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      const text = await r.text();
+      const checks = ['calcUnitsTally','initLightbox','renderHomepageSidebar','initRememberDetails'];
+      const missing = checks.filter(c=>!text.includes(c));
+      if (missing.length) throw new Error(`Missing functions: ${missing.join(', ')}`);
+      return `✓ site.js · ${checks.length}/${checks.length} key functions present`;
+    }
+  },
+];
+
+// ── Engine ─────────────────────────────────────────────────────
+const state = {};  // id → {status, msg, ms}
+let running = false;
+
+async function timed(fn) {
+  const t0 = Date.now();
+  const res = await fn();
+  res.ms = Date.now() - t0;
+  return res;
+}
+
+function log(msg, level='info') {
+  const wrap = document.getElementById('logWrap');
+  const line = document.createElement('div');
+  line.className = `log-line ${level}`;
+  const ts = new Date().toTimeString().slice(0,8);
+  line.innerHTML = `<span class="timestamp">${ts}</span>${escHtml(msg)}`;
+  wrap.appendChild(line);
+  wrap.scrollTop = wrap.scrollHeight;
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function renderAll() {
+  const cats = [...new Set(TESTS.map(t=>t.cat))];
+  const catLabels = {functions:'Netlify Functions', config:'Config & PWA', content:'Pages & Content', assets:'Assets'};
+  const wrap = document.getElementById('sections');
+  wrap.innerHTML = '';
+
+  cats.forEach(cat => {
+    const tests = TESTS.filter(t=>t.cat===cat);
+    const results = tests.map(t=>state[t.id]);
+    const done = results.filter(r=>r && r.status !== 'running' && r.status !== 'pending');
+    const passed = done.filter(r=>r.status==='pass').length;
+    const failed = done.filter(r=>r.status==='fail').length;
+    const warned = done.filter(r=>r.status==='warn').length;
+
+    let sColor = 'var(--muted)';
+    if (done.length === tests.length) {
+      sColor = failed ? 'var(--red)' : warned ? 'var(--amber)' : 'var(--green)';
+    }
+    const sText = done.length ? `${passed}/${tests.length} pass` : '';
+
+    const sec = document.createElement('div');
+    sec.className = 'section';
+    sec.id = `sec-${cat}`;
+
+    const testsHtml = tests.map(t => {
+      const s = state[t.id] || {status:'pending'};
+      const icons = {pending:'○', running:'◌', pass:'✓', fail:'✗', warn:'⚠'};
+      const colors = {pending:'var(--muted)', running:'var(--blue)', pass:'var(--green)', fail:'var(--red)', warn:'var(--amber)'};
+      return `<div class="test ${s.status||'pending'}" id="test-${t.id}">
+        <div class="test-icon" style="color:${colors[s.status||'pending']}">${icons[s.status||'pending']}</div>
+        <div class="test-body">
+          <div class="test-name">${escHtml(t.name)}</div>
+          <div class="test-detail">${s.msg ? escHtml(s.msg) : '<span style="color:var(--border)">not run yet</span>'}</div>
+        </div>
+        <div class="test-time">${s.ms ? s.ms+'ms' : ''}</div>
+      </div>`;
+    }).join('');
+
+    sec.innerHTML = `<div class="section-header"><span class="section-title">${catLabels[cat]||cat}</span><span class="section-status" style="color:${sColor}">${sText}</span></div><div class="tests">${testsHtml}</div>`;
+    wrap.appendChild(sec);
+  });
+
+  updateScores();
+}
+
+function updateScores() {
+  const all = TESTS.map(t=>state[t.id]).filter(Boolean);
+  const passed = all.filter(r=>r.status==='pass').length;
+  const failed = all.filter(r=>r.status==='fail').length;
+  const warned = all.filter(r=>r.status==='warn').length;
+  const total = all.length;
+  const pct = total ? Math.round(passed/TESTS.length*100) : 0;
+  const color = pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
+
+  document.getElementById('scoreTotal').textContent = total ? pct+'%' : '—';
+  document.getElementById('scoreTotal').style.color = total ? color : 'var(--muted)';
+  document.getElementById('scorePassed').textContent = total ? passed : '—';
+  document.getElementById('scoreFailed').textContent = total ? failed : '—';
+  document.getElementById('scoreWarned').textContent = total ? warned : '—';
+}
+
+async function runTest(t) {
+  state[t.id] = {status:'running', msg:'Running…'};
+  renderTestRow(t.id);
+  log(`→ ${t.name}`, 'info');
+  const t0 = Date.now();
+  try {
+    const result = await t.run();
+    const ms = Date.now() - t0;
+    if (result && typeof result === 'object' && result.level) {
+      state[t.id] = {status:result.level, msg:result.msg, ms};
+      log(`  ⚠ ${result.msg}`, 'warn');
+    } else {
+      state[t.id] = {status:'pass', msg:String(result), ms};
+      log(`  ✓ ${result}`, 'ok');
+    }
+  } catch(e) {
+    const ms = Date.now() - t0;
+    state[t.id] = {status:'fail', msg:String(e.message||e), ms};
+    log(`  ✗ ${e.message||e}`, 'err');
+  }
+  renderTestRow(t.id);
+  updateScores();
+}
+
+function renderTestRow(id) {
+  const t = TESTS.find(t=>t.id===id);
+  if (!t) return;
+  const el = document.getElementById(`test-${id}`);
+  if (!el) { renderAll(); return; }
+  const s = state[id] || {status:'pending'};
+  const icons = {pending:'○', running:'◌', pass:'✓', fail:'✗', warn:'⚠'};
+  const colors = {pending:'var(--muted)', running:'var(--blue)', pass:'var(--green)', fail:'var(--red)', warn:'var(--amber)'};
+  el.className = `test ${s.status||'pending'}`;
+  el.children[0].style.color = colors[s.status||'pending'];
+  el.children[0].textContent = icons[s.status||'pending'];
+  el.children[1].children[1].textContent = s.msg || '';
+  el.children[2].textContent = s.ms ? s.ms+'ms' : '';
+}
+
+async function runAll() {
+  if (running) return;
+  running = true;
+  document.getElementById('btnRun').disabled = true;
+  document.getElementById('logWrap').innerHTML = '';
+  log('▶ Full diagnostic started', 'info');
+  TESTS.forEach(t => { state[t.id] = {status:'pending', msg:''}; });
+  renderAll();
+  for (const t of TESTS) {
+    await runTest(t);
+    await new Promise(r=>setTimeout(r,80)); // small gap so UI updates
+  }
+  const passed = Object.values(state).filter(s=>s.status==='pass').length;
+  const total = TESTS.length;
+  log(`\n◼ Diagnostic complete: ${passed}/${total} passed`, passed===total?'ok':passed>total*0.8?'warn':'err');
+  document.getElementById('lastRun').textContent = new Date().toLocaleTimeString();
+  running = false;
+  document.getElementById('btnRun').disabled = false;
+}
+
+async function runCategory(cat) {
+  if (running) return;
+  running = true;
+  const tests = TESTS.filter(t=>t.cat===cat);
+  log(`▶ Running ${cat} tests (${tests.length})`, 'info');
+  for (const t of tests) {
+    await runTest(t);
+    await new Promise(r=>setTimeout(r,80));
+  }
+  running = false;
+}
+
+function copyReport() {
+  const lines = ['Atlantic Truck Diagnostic Report', new Date().toISOString(), ''];
+  TESTS.forEach(t => {
+    const s = state[t.id];
+    const status = s ? s.status.toUpperCase() : 'NOT RUN';
+    lines.push(`[${status.padEnd(7)}] ${t.name}: ${s?s.msg:'-'}`);
+  });
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>log('Report copied to clipboard','ok'));
+}
+
+function copyLog() {
+  const text = [...document.querySelectorAll('.log-line')].map(l=>l.textContent).join('\n');
+  navigator.clipboard.writeText(text).then(()=>log('Log copied','ok'));
+}
+
+// Init
+renderAll();
+log('Diagnostic ready. Click "Run Full Diagnostic" to begin.', 'info');
+</script>
+</body>
+</html>

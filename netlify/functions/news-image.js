@@ -1,101 +1,154 @@
 // netlify/functions/news-image.js
+// Scrapes an article's og:image/twitter:image/etc. Supports ?debug=1.
+
 export default async function handler(event) {
-  const headers = {
+  var headers = {
     'Access-Control-Allow-Origin': '*',
-    'Content-Type': 'application/json',
-    'Cache-Control': 'public, max-age=86400'
+    'Access-Control-Allow-Methods': 'GET, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+    'Cache-Control': 'public, max-age=86400, s-maxage=86400',
+    'Content-Type': 'application/json'
   };
-  if (event.httpMethod === 'OPTIONS') return { statusCode: 204, headers, body: '' };
+  if (event && event.httpMethod === 'OPTIONS') {
+    return { statusCode: 204, headers: headers, body: '' };
+  }
 
-  const u = ((event.queryStringParameters || {}).u || '').trim();
-  if (!u) return { statusCode: 400, headers, body: JSON.stringify({ image: '', logo: '' }) };
+  var qs = (event && event.queryStringParameters) || {};
+  var DEBUG = String(qs.debug || '').toLowerCase() === '1';
+  var u = qs.u;
 
-  let hostname = '';
-  try { hostname = new URL(u).hostname.replace(/^www\./, ''); } catch {}
-
-  const LOGOS = {
-    'trucknews.com':        'https://www.trucknews.com/wp-content/uploads/2020/01/trucknews-logo.png',
-    'theloadstar.com':      'https://theloadstar.com/wp-content/themes/loadstar/img/loadstar-logo.svg',
-    'freightwaves.com':     'https://www.freightwaves.com/wp-content/uploads/2019/09/FreightWaves-Logo-e1569001898901.png',
-    'globalnews.ca':        'https://globalnews.ca/wp-content/themes/globalnews-2018/assets/images/global-news-logo.svg',
-    'cbc.ca':               'https://www.cbc.ca/a/images/cbc-news-logo-en.svg',
-    'vocm.com':             'https://vocm.com/wp-content/uploads/2016/09/vocm-logo.png',
-    'insidelogistics.ca':   'https://www.insidelogistics.ca/wp-content/uploads/2023/03/inside-logistics-logo.png',
-    'todaystrucking.com':   'https://www.todaystrucking.com/wp-content/themes/todaystrucking/images/todays-trucking-logo.png',
-  };
-  const logo = LOGOS[hostname] || '';
-
-  const ms = Math.min(Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 5000), 7000);
+  if (!u) return { statusCode: 400, headers: headers, body: JSON.stringify({ error: 'Missing u' }) };
 
   try {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), ms);
-    let html = '';
-    try {
-      const res = await fetch(u, {
-        signal: ctrl.signal,
-        headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36',
-          'Accept': 'text/html,*/*;q=0.8'
-        }
-      });
-      if (res.ok) {
-        const reader = res.body.getReader();
-        const chunks = []; let total = 0;
-        while (total < 102400) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          chunks.push(value); total += value.length;
-        }
-        reader.cancel();
-        const all = chunks.reduce((a, b) => { const c = new Uint8Array(a.length+b.length); c.set(a); c.set(b,a.length); return c; }, new Uint8Array(0));
-        html = new TextDecoder().decode(all);
-      }
-    } finally { clearTimeout(timer); }
+    var timeout = Number(process.env.IMAGE_FETCH_TIMEOUT_MS || 2500);
+    var fx = await fetchTextWithTimeout(u, timeout);
 
-    if (!html) return { statusCode: 200, headers, body: JSON.stringify({ image: logo, logo }) };
+    var dbg = { url: u, ok: fx.ok, status: fx.status, durationMs: fx.durationMs, error: fx.error || '' };
+    if (!fx.ok) {
+      var bodyBad = DEBUG ? { image: '', debug: dbg } : { image: '' };
+      return { statusCode: 200, headers: headers, body: JSON.stringify(bodyBad) };
+    }
 
-    // Waterfall: og:image → twitter:image → json-ld → article img
-    const meta = (attr, val) => {
-      const re = new RegExp('<meta[^>]+(?:' + attr + '=["\'\']' + val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '["\'\'][^>]+content=["\'\']([^\"\'\']+)["\'\']|content=["\'\']([^\"\'\']+)["\'\'][^>]+' + attr + '=["\'\']' + val.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '["\'\'])','i');
-      const m = html.match(re); return m ? (m[1]||m[2]||'') : '';
-    };
+    var html = fx.text;
+    var img =
+      metaContent(html, 'property', 'og:image') ||
+      metaContent(html, 'property', 'og:image:secure_url') ||
+      metaContent(html, 'name', 'twitter:image') ||
+      metaContent(html, 'name', 'parsely-image') ||
+      linkHref(html, 'link', 'image_src') ||
+      jsonLdImage(html) ||
+      firstSrcsetBest(html) ||
+      firstImgSrc(html) ||
+      '';
+    img = absolutize(img, u, u);
 
-    let img =
-      meta('property','og:image:secure_url') ||
-      meta('property','og:image') ||
-      meta('name','twitter:image:src') ||
-      meta('name','twitter:image') ||
-      meta('name','parsely-image') ||
-      (() => {
-        const blocks = html.match(/<script[^>]+type=["\']application\/ld\+json["\'][^>]*>([\s\S]*?)<\/script>/gi) || [];
-        for (const b of blocks) {
-          try {
-            const j = JSON.parse(b.replace(/<script[^>]*>|<\/script>/gi,''));
-            const pick = o => !o ? '' : typeof o.image==='string' ? o.image : o.image?.url || (Array.isArray(o.image) ? o.image[0]?.url||o.image[0]||'' : '') || (Array.isArray(o['@graph']) ? o['@graph'].reduce((a,n)=>a||pick(n),'') : '');
-            const r = pick(j); if (r) return r;
-          } catch {}
-        }
-        return '';
-      })() ||
-      (() => {
-        const imgs = html.match(/<img[^>]+src=["\']([^\"\'\']+)["\'][^>]*>/gi) || [];
-        for (const tag of imgs) {
-          const s = (tag.match(/src=["\']([^\"\'\']+)["\']/) || [])[1] || '';
-          if (!s || s.startsWith('data:') || /favicon|icon|logo|pixel|spacer|avatar/i.test(s)) continue;
-          const w = parseInt((tag.match(/width=["\']?(\d+)/) || [])[1] || '0');
-          if (w > 0 && w < 150) continue;
-          return s;
-        }
-        return '';
-      })();
-
-    if (img && img.startsWith('//')) img = 'https:' + img;
-    try { if (img) img = new URL(img, u).href; } catch {}
-    if (!img || img.startsWith('data:') || /1x1|pixel|spacer/i.test(img)) img = '';
-
-    return { statusCode: 200, headers, body: JSON.stringify({ image: img || logo, logo }) };
-  } catch {
-    return { statusCode: 200, headers, body: JSON.stringify({ image: logo, logo }) };
+    var bodyOK = DEBUG ? { image: img || '', debug: dbg } : { image: img || '' };
+    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyOK) };
+  } catch (e) {
+    var bodyErr = DEBUG ? { image: '', debug: { url: u, error: String(e) } } : { image: '' };
+    return { statusCode: 200, headers: headers, body: JSON.stringify(bodyErr) };
   }
+};
+
+async function fetchTextWithTimeout(url, ms) {
+  var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+  var timer = null;
+  if (controller) timer = setTimeout(function(){ controller.abort(); }, ms);
+  var out = { ok: false, text: '', status: 0, durationMs: 0, error: '' };
+  var t0 = Date.now();
+  try {
+    var res = await fetch(url, {
+      signal: controller ? controller.signal : undefined,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (compatible; AtlanticTruckBot/1.0; +https://www.atlantictruck.ca/)',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8'
+      }
+    });
+    out.status = res.status;
+    if (!res.ok) { out.error = 'HTTP ' + res.status; return out; }
+    out.text = await res.text();
+    out.ok = true;
+    return out;
+  } catch (e) {
+    out.error = String(e && e.name === 'AbortError' ? 'Timeout' : e);
+    return out;
+  } finally {
+    out.durationMs = Date.now() - t0;
+    if (timer) clearTimeout(timer);
+  }
+}
+
+function metaContent(html, attr, val) {
+  var re = new RegExp('<meta[^>]+' + attr + '=["\']' + val + '["\'][^>]*content=["\']([^"\']+)["\'][^>]*>', 'i');
+  var m = html.match(re);
+  return m ? m[1] : '';
+}
+function linkHref(html, tag, relVal) {
+  var re = new RegExp('<' + tag + '[^>]+rel=["\']' + relVal + '["\'][^>]*href=["\']([^"\']+)["\']', 'i');
+  var m = html.match(re);
+  return m ? m[1] : '';
+}
+function jsonLdImage(html) {
+  var scripts = html.match(/<script[^>]+type=["']application\/ld\+json["'][^>]*>[\s\S]*?<\/script>/ig) || [];
+  for (var i = 0; i < scripts.length; i++) {
+    var raw = scripts[i].replace(/^<script[^>]*>/i, '').replace(/<\/script>$/i, '');
+    try {
+      var obj = JSON.parse(raw);
+      var url = extractJsonLdImage(obj);
+      if (url) return url;
+    } catch (e) {}
+  }
+  return '';
+}
+function extractJsonLdImage(obj) {
+  if (!obj) return '';
+  if (typeof obj === 'string') return obj;
+  if (Array.isArray(obj)) {
+    for (var i = 0; i < obj.length; i++) {
+      var v = extractJsonLdImage(obj[i]); if (v) return v;
+    }
+    return '';
+  }
+  if (typeof obj === 'object') {
+    if (obj.image) {
+      if (typeof obj.image === 'string') return obj.image;
+      if (Array.isArray(obj.image) && obj.image.length) {
+        var first = obj.image[0];
+        if (typeof first === 'string') return first;
+        if (first && typeof first === 'object' && first.url) return first.url;
+      }
+      if (obj.image.url) return obj.image.url;
+    }
+    if (obj.thumbnailUrl) return obj.thumbnailUrl;
+    var keys = Object.keys(obj);
+    for (var k = 0; k < keys.length; k++) {
+      var v2 = extractJsonLdImage(obj[keys[k]]); if (v2) return v2;
+    }
+  }
+  return '';
+}
+function firstImgSrc(html) {
+  var m = html && html.match(/<img[^>]+src=["']([^"']+)["']/i);
+  return m ? m[1] : '';
+}
+function firstSrcsetBest(html) {
+  var mm = html && html.match(/<img[^>]+srcset=["']([^"']+)["']/i);
+  if (!mm || !mm[1]) return '';
+  var srcset = mm[1].split(',').map(function(s){ return s.trim(); });
+  var bestUrl = ''; var bestWidth = 0;
+  for (var i = 0; i < srcset.length; i++) {
+    var part = srcset[i];
+    var m = part.match(/(\S+)\s+(\d+)w/);
+    var url = ''; var w = 0;
+    if (m) { url = m[1]; w = parseInt(m[2], 10) || 0; }
+    else { url = part.split(' ')[0]; w = 0; }
+    if (w >= bestWidth) { bestWidth = w; bestUrl = url; }
+  }
+  return bestUrl;
+}
+function absolutize(u, baseLink, feedUrl) {
+  if (!u) return '';
+  if (u.indexOf('data:') === 0) return '';
+  try { if (u.indexOf('//') === 0) return 'https:' + u; return new URL(u, baseLink || feedUrl).href; }
+  catch (e) { return u; }
 }

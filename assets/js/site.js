@@ -274,7 +274,7 @@ async function renderGallery(){
     const btn=document.getElementById('loadMoreBtn');
     if(!grid) return;
     if(status) status.textContent='Loading…';
-    const json=await api('/.netlify/functions/news?limit=30');
+    const json=await api('/.netlify/functions/get-truck-news?limit=30');
     all=(json&&(Array.isArray(json.items)?json.items:(Array.isArray(json.data)?json.data:[])));
     if(!all.length){ if(status) status.textContent='No articles found.'; return; }
     if(status) status.textContent='';
