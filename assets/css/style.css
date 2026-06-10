@@ -101,7 +101,7 @@ small,.small{font-size:.875rem}
 /* Drawer-only elements — hidden on desktop */
 .nav-drawer-header,.nav-drawer-cta { display: none; }
 
-.main-nav { flex: 1; display: flex; align-items: center; min-width: 0; overflow: visible; }
+.main-nav { flex: 1; display: flex; align-items: center; justify-content: flex-end; min-width: 0; overflow: visible; }
 
 /* Nav list */
 .nav-list {
@@ -248,10 +248,16 @@ small,.small{font-size:.875rem}
     overflow-y: auto;
     gap: 0;
     transform: translateX(100%);
-    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    visibility: hidden;
+    transition: transform .28s cubic-bezier(.4,0,.2,1), visibility 0s linear .28s;
     pointer-events: none;
   }
-  #navList.open { transform: translateX(0); pointer-events: auto; }
+  #navList.open {
+    transform: translateX(0);
+    visibility: visible;
+    transition: transform .28s cubic-bezier(.4,0,.2,1), visibility 0s linear 0s;
+    pointer-events: auto;
+  }
 
   /* Red header strip inside drawer */
   .nav-drawer-header {
