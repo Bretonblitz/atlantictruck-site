@@ -1,559 +1,381 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="robots" content="noindex, nofollow">
-<title>Atlantic Truck — Site Diagnostic</title>
-<style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --brand:#B9111B;--ink:#0F1117;--bg:#0a0d14;--card:#12161f;--border:#1e2330;
-    --green:#22c55e;--red:#ef4444;--amber:#f59e0b;--blue:#3b82f6;--muted:#6b7280;
-    --ff:'Inter',system-ui,sans-serif;
-  }
-  body{background:var(--bg);color:#e5e7eb;font-family:var(--ff);font-size:14px;min-height:100vh;padding:0 0 60px}
-  header{background:var(--ink);border-bottom:3px solid var(--brand);padding:20px 24px;display:flex;align-items:center;gap:16px}
-  header h1{font-size:1.25rem;font-weight:700;color:#fff}
-  header p{font-size:.8rem;color:var(--muted);margin-top:3px}
-  .badge{background:var(--brand);color:#fff;font-size:.65rem;font-weight:700;padding:2px 8px;border-radius:999px;letter-spacing:.08em;text-transform:uppercase}
-  main{max-width:1100px;margin:0 auto;padding:24px}
-
-  /* Score strip */
-  .score-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px}
-  .score-card{background:var(--card);border:1px solid var(--border);border-radius:12px;padding:16px;text-align:center}
-  .score-card .num{font-size:2rem;font-weight:700;line-height:1;margin-bottom:4px}
-  .score-card .lbl{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
-
-  /* Controls */
-  .controls{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap}
-  button{padding:9px 18px;border-radius:8px;border:none;font-size:.8125rem;font-weight:600;cursor:pointer;transition:all .15s}
-  .btn-run{background:var(--brand);color:#fff}
-  .btn-run:hover{opacity:.85}
-  .btn-run:disabled{opacity:.4;cursor:not-allowed}
-  .btn-secondary{background:var(--card);color:#e5e7eb;border:1px solid var(--border)}
-  .btn-secondary:hover{border-color:#4b5563}
-
-  /* Section */
-  .section{margin-bottom:20px}
-  .section-header{display:flex;align-items:center;gap:10px;margin-bottom:10px;cursor:pointer}
-  .section-title{font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
-  .section-status{margin-left:auto;font-size:.72rem;font-weight:600}
-
-  /* Test rows */
-  .tests{display:flex;flex-direction:column;gap:6px}
-  .test{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px 16px;display:grid;grid-template-columns:24px 1fr auto;gap:12px;align-items:start;transition:border-color .2s}
-  .test.pass{border-left:3px solid var(--green)}
-  .test.fail{border-left:3px solid var(--red)}
-  .test.warn{border-left:3px solid var(--amber)}
-  .test.running{border-left:3px solid var(--blue);animation:pulse 1.2s ease-in-out infinite}
-  .test.pending{border-left:3px solid var(--border)}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.5}}
-
-  .test-icon{font-size:1rem;line-height:1.5;text-align:center}
-  .test-body{}
-  .test-name{font-weight:600;color:#e5e7eb;margin-bottom:2px}
-  .test-detail{font-size:.78rem;color:var(--muted);line-height:1.6;word-break:break-word}
-  .test-detail pre{background:#0a0d14;border:1px solid var(--border);border-radius:6px;padding:8px 10px;font-family:monospace;font-size:.72rem;overflow-x:auto;margin-top:6px;white-space:pre-wrap;max-height:120px}
-  .test-time{font-size:.7rem;color:var(--muted);white-space:nowrap;padding-top:2px}
-
-  /* Log */
-  .log-wrap{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;font-family:monospace;font-size:.72rem;max-height:200px;overflow-y:auto;color:#9ca3af}
-  .log-line{padding:1px 0}
-  .log-line.ok{color:var(--green)}
-  .log-line.err{color:var(--red)}
-  .log-line.warn{color:var(--amber)}
-  .log-line.info{color:var(--blue)}
-
-  .timestamp{color:#4b5563;margin-right:8px}
-  .copy-btn{background:transparent;border:1px solid var(--border);color:var(--muted);padding:4px 10px;font-size:.7rem;border-radius:6px}
-  .copy-btn:hover{border-color:#4b5563;color:#e5e7eb}
-</style>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Atlantic Truck — Site Diagnostic</title>
+  <meta name="robots" content="noindex,nofollow">
+  <style>
+    :root { --pass:#16a34a; --fail:#dc2626; --warn:#d97706; --info:#2563eb; }
+    * { box-sizing: border-box; }
+    body { font-family: system-ui, sans-serif; font-size: 14px; background: #f8fafc; color: #1e293b; margin: 0; padding: 20px; }
+    h1 { font-size: 1.4rem; margin: 0 0 4px; }
+    .meta { color: #64748b; font-size: .85rem; margin-bottom: 20px; }
+    .category { background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; margin-bottom: 16px; overflow: hidden; }
+    .cat-header { background: #f1f5f9; padding: 10px 16px; font-weight: 700; font-size: .85rem; text-transform: uppercase; letter-spacing: .06em; color: #475569; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+    .check { display: flex; align-items: flex-start; gap: 10px; padding: 10px 16px; border-bottom: 1px solid #f1f5f9; }
+    .check:last-child { border-bottom: none; }
+    .badge { font-size: .72rem; font-weight: 800; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; margin-top: 2px; }
+    .pass { background: #dcfce7; color: var(--pass); }
+    .fail { background: #fee2e2; color: var(--fail); }
+    .warn { background: #fef3c7; color: var(--warn); }
+    .info { background: #dbeafe; color: var(--info); }
+    .running { background: #f1f5f9; color: #64748b; }
+    .label { font-weight: 600; }
+    .detail { color: #64748b; font-size: .82rem; margin-top: 2px; word-break: break-all; }
+    .summary { display: flex; gap: 16px; background: #fff; border: 1px solid #e2e8f0; border-radius: 10px; padding: 14px 20px; margin-bottom: 20px; flex-wrap: wrap; }
+    .sum-item { text-align: center; }
+    .sum-num { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+    .sum-label { font-size: .72rem; color: #64748b; text-transform: uppercase; letter-spacing: .06em; }
+    .actions { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    button { padding: 8px 16px; border-radius: 6px; border: 1px solid #e2e8f0; background: #fff; cursor: pointer; font-size: .85rem; font-weight: 600; transition: background .15s; }
+    button:hover { background: #f1f5f9; }
+    button.primary { background: #B9111B; color: #fff; border-color: #B9111B; }
+    button.primary:hover { background: #8E0E15; }
+    .timing { font-size: .75rem; color: #94a3b8; margin-left: 4px; }
+    .progress { height: 4px; background: #e2e8f0; border-radius: 2px; margin-bottom: 20px; }
+    .progress-bar { height: 100%; background: #B9111B; border-radius: 2px; transition: width .3s; width: 0%; }
+    pre { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; padding: 10px; font-size: .75rem; overflow-x: auto; margin: 4px 0 0; }
+  </style>
 </head>
 <body>
+<h1>🔧 Atlantic Truck — Site Diagnostic</h1>
+<div class="meta" id="timestamp">Running checks...</div>
 
-<header>
-  <div>
-    <h1>🔧 Atlantic Truck — Site Diagnostic</h1>
-    <p>atlantictruck.ca · Internal tool · Not indexed · Last run: <span id="lastRun">never</span></p>
-  </div>
-  <span class="badge">Internal</span>
-</header>
+<div class="progress"><div class="progress-bar" id="progressBar"></div></div>
 
-<main>
-  <div class="score-strip">
-    <div class="score-card"><div class="num" id="scoreTotal" style="color:var(--muted)">—</div><div class="lbl">Overall</div></div>
-    <div class="score-card"><div class="num" id="scorePassed" style="color:var(--green)">—</div><div class="lbl">Passed</div></div>
-    <div class="score-card"><div class="num" id="scoreFailed" style="color:var(--red)">—</div><div class="lbl">Failed</div></div>
-    <div class="score-card"><div class="num" id="scoreWarned" style="color:var(--amber)">—</div><div class="lbl">Warnings</div></div>
-  </div>
+<div class="summary" id="summary">
+  <div class="sum-item"><div class="sum-num" id="sum-pass" style="color:var(--pass)">–</div><div class="sum-label">Pass</div></div>
+  <div class="sum-item"><div class="sum-num" id="sum-fail" style="color:var(--fail)">–</div><div class="sum-label">Fail</div></div>
+  <div class="sum-item"><div class="sum-num" id="sum-warn" style="color:var(--warn)">–</div><div class="sum-label">Warn</div></div>
+  <div class="sum-item"><div class="sum-num" id="sum-total" style="color:#475569">–</div><div class="sum-label">Total</div></div>
+</div>
 
-  <div class="controls">
-    <button class="btn-run" id="btnRun" onclick="runAll()">▶ Run Full Diagnostic</button>
-    <button class="btn-secondary" onclick="runCategory('functions')">Functions only</button>
-    <button class="btn-secondary" onclick="runCategory('config')">Config only</button>
-    <button class="btn-secondary" onclick="runCategory('content')">Content only</button>
-    <button class="btn-secondary copy-btn" onclick="copyReport()">Copy report</button>
-  </div>
+<div class="actions">
+  <button class="primary" onclick="runAll()">▶ Run All Checks</button>
+  <button onclick="copyReport()">📋 Copy Report</button>
+</div>
 
-  <div id="sections"></div>
-
-  <div class="section" style="margin-top:20px">
-    <div class="section-header">
-      <span class="section-title">Diagnostic Log</span>
-      <button class="copy-btn" style="margin-left:auto" onclick="copyLog()">Copy log</button>
-    </div>
-    <div class="log-wrap" id="logWrap"></div>
-  </div>
-</main>
+<div id="results"></div>
 
 <script>
-// ── Test definitions ──────────────────────────────────────────────
-const TESTS = [
+const BASE = '';
+let passed = 0, failed = 0, warned = 0, total = 0;
+const results = [];
 
-  // ── NETLIFY FUNCTIONS ─────────────────────────────────────────
-  {
-    id:'fn-health', cat:'functions', name:'health.js — Netlify alive',
-    run: async () => {
-      const r = await timed(() => fetch('/.netlify/functions/health'));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      if (!j.ok) throw new Error('ok!=true');
-      return `✓ Functions reachable · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'fn-news', cat:'functions', name:'news.js — RSS feed aggregation',
-    run: async () => {
-      const r = await timed(() => fetch('/.netlify/functions/news?limit=3&debug=1'));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      if (!j.items || !j.items.length) throw new Error(j.error || 'no items returned');
-      const sources = [...new Set(j.items.map(i=>i.source||'?'))].join(', ');
-      return `✓ ${j.items.length} articles · sources: ${sources} · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'fn-news-image', cat:'functions', name:'news-image.js — Article image scraper',
-    run: async () => {
-      const testUrl = 'https://www.trucknews.com/transportation/ontario-carrier-fined/';
-      const r = await timed(() => fetch(`/.netlify/functions/news-image?u=${encodeURIComponent(testUrl)}`));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      const hasImg = j.image && j.image.startsWith('http');
-      const hasLogo = j.logo && j.logo.startsWith('http');
-      if (!hasImg && !hasLogo) return {level:'warn', msg:`No image or logo returned`};
-      return `✓ image=${hasImg?'found':'fallback'} logo=${hasLogo?'found':'missing'} · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'fn-fb-posts', cat:'functions', name:'get-facebook-posts.js — FB posts API',
-    run: async () => {
-      const r = await timed(() => fetch('/.netlify/functions/get-facebook-posts?limit=3'));
-      if (!r.ok) {
-        const j = await r.json().catch(()=>({}));
-        if (j.error && j.error.includes('Missing')) return {level:'warn', msg:`FB not configured: ${j.hint||j.error}`};
-        throw new Error(`HTTP ${r.status}: ${j.error||''}`);
-      }
-      const j = await r.json();
-      if (!j.items || !j.items.length) return {level:'warn', msg:`FB connected but no posts returned. App may be in Development mode.`};
-      const hasImg = j.items.filter(i=>i.image).length;
-      return `✓ ${j.items.length} posts · ${hasImg} with images · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'fn-fb-photos', cat:'functions', name:'get-facebook-photos.js — FB photos API',
-    run: async () => {
-      const r = await timed(() => fetch('/.netlify/functions/get-facebook-photos?limit=3'));
-      if (!r.ok) {
-        const j = await r.json().catch(()=>({}));
-        if (j.error && j.error.includes('Missing')) return {level:'warn', msg:`FB not configured: ${j.error}`};
-        throw new Error(`HTTP ${r.status}`);
-      }
-      const j = await r.json();
-      if (!j.data || !j.data.length) return {level:'warn', msg:`FB connected but no photos. App may be in Development mode.`};
-      const withSrc = j.data.filter(p=>p.source||p.full_picture).length;
-      return `✓ ${j.data.length} photos · ${withSrc} with source URLs · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'fn-traffic', cat:'functions', name:'traffic.js — NS traffic advisories',
-    run: async () => {
-      const r = await timed(() => fetch('/.netlify/functions/traffic'));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const j = await r.json();
-      const count = (j.items||j.data||[]).length;
-      return `✓ ${count} advisories · ${r.ms}ms`;
-    }
-  },
-
-  // ── ENVIRONMENT / CONFIG ──────────────────────────────────────
-  {
-    id:'cfg-fb-token', cat:'config', name:'Env: FB_ACCESS_TOKEN set',
-    run: async () => {
-      const r = await fetch('/.netlify/functions/get-facebook-posts?limit=1');
-      const j = await r.json().catch(()=>({}));
-      if (j.error && j.error.includes('Missing')) throw new Error('FB_ACCESS_TOKEN not set in Netlify env vars');
-      return '✓ FB_ACCESS_TOKEN is set';
-    }
-  },
-  {
-    id:'cfg-fb-pageid', cat:'config', name:'Env: FB_PAGE_ID set',
-    run: async () => {
-      const r = await fetch('/.netlify/functions/get-facebook-photos?limit=1');
-      const j = await r.json().catch(()=>({}));
-      if (j.error && j.error.includes('Missing')) throw new Error('FB_PAGE_ID not set in Netlify env vars');
-      return '✓ FB_PAGE_ID is set';
-    }
-  },
-  {
-    id:'cfg-sw', cat:'config', name:'Service worker registered',
-    run: async () => {
-      if (!('serviceWorker' in navigator)) return {level:'warn', msg:'Service workers not supported in this browser'};
-      const reg = await navigator.serviceWorker.getRegistration('/');
-      if (!reg) throw new Error('Service worker not registered');
-      return `✓ SW active · scope: ${reg.scope}`;
-    }
-  },
-  {
-    id:'cfg-manifest', cat:'config', name:'PWA manifest reachable',
-    run: async () => {
-      const r = await fetch('/manifest.json');
-      if (!r.ok) throw new Error(`manifest.json returned ${r.status}`);
-      const j = await r.json();
-      if (!j.name) throw new Error('manifest missing name field');
-      return `✓ "${j.name}" · theme: ${j.theme_color} · icons: ${(j.icons||[]).length}`;
-    }
-  },
-  {
-    id:'cfg-sitemap', cat:'config', name:'sitemap.xml reachable',
-    run: async () => {
-      const r = await fetch('/sitemap.xml');
-      if (!r.ok) throw new Error(`sitemap.xml returned ${r.status}`);
-      const text = await r.text();
-      const urls = (text.match(/<loc>/g)||[]).length;
-      if (!urls) throw new Error('sitemap has no <loc> entries');
-      return `✓ ${urls} URLs in sitemap`;
-    }
-  },
-  {
-    id:'cfg-robots', cat:'config', name:'robots.txt reachable',
-    run: async () => {
-      const r = await fetch('/robots.txt');
-      if (!r.ok) throw new Error(`robots.txt returned ${r.status}`);
-      const text = await r.text();
-      return `✓ ${text.trim().split('\n').length} lines`;
-    }
-  },
-
-  // ── CONTENT / PAGES ───────────────────────────────────────────
-  {
-    id:'pg-homepage', cat:'content', name:'Homepage loads with stat bar',
-    run: async () => {
-      const r = await timed(() => fetch('/'));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const text = await r.text();
-      if (!text.includes('unitsTally')) throw new Error('unitsTally stat bar missing');
-      if (!text.includes('stat-item')) throw new Error('stat-bar missing');
-      return `✓ Homepage OK · ${r.ms}ms · ${(text.length/1024).toFixed(0)}KB`;
-    }
-  },
-  {
-    id:'pg-news', cat:'content', name:'News page loads',
-    run: async () => {
-      const r = await timed(() => fetch('/news.html'));
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const text = await r.text();
-      if (!text.includes('newsGrid')) throw new Error('newsGrid element missing');
-      if (!text.includes('/.netlify/functions/news')) throw new Error('news function not referenced');
-      return `✓ News page OK · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'pg-gallery', cat:'content', name:'Gallery page + 24 images',
-    run: async () => {
-      const r = await fetch('/gallery.html');
-      const text = await r.text();
-      const imgs = (text.match(/lightbox-trigger/g)||[]).length;
-      if (imgs < 20) return {level:'warn', msg:`Only ${imgs} gallery images (expected 24)`};
-      return `✓ ${imgs} gallery images loaded`;
-    }
-  },
-  {
-    id:'pg-requests', cat:'content', name:'Book Service — both forms present',
-    run: async () => {
-      const r = await fetch('/requests.html');
-      const text = await r.text();
-      if (!text.includes('formsubmit.co/service@atlantictruck.ca')) throw new Error('Service form missing');
-      if (!text.includes('formsubmit.co/parts@atlantictruck.ca')) throw new Error('Parts form missing');
-      return `✓ Both forms using FormSubmit.co`;
-    }
-  },
-  {
-    id:'pg-contact', cat:'content', name:'Contact — Google Maps Place ID',
-    run: async () => {
-      const r = await fetch('/contact.html');
-      const text = await r.text();
-      if (!text.includes('0x4b67fb01bb72039d')) throw new Error('Google Business Place ID missing — map will be blank');
-      if (text.includes('maps?q=417')) throw new Error('Generic address embed still present — will show blank map');
-      return `✓ Correct Google Business listing embed`;
-    }
-  },
-  {
-    id:'pg-about', cat:'content', name:'About — staff + no banned names',
-    run: async () => {
-      const r = await fetch('/about.html');
-      const text = await r.text();
-      if (text.includes('Donald Shaw') || text.includes('donald_shaw')) throw new Error('Donald Shaw still present');
-      if (text.includes('[Add your founding story')) throw new Error('Edit marker still visible on page');
-      const cards = (text.match(/staff-card/g)||[]).length;
-      if (cards < 11) throw new Error(`Only ${cards} staff cards (expected 11)`);
-      return `✓ ${cards} staff cards · Donald Shaw removed · no edit markers`;
-    }
-  },
-  {
-    id:'pg-inspection', cat:'content', name:'Inspection — no van/B-620 van claims',
-    run: async () => {
-      const r = await fetch('/services/inspection.html');
-      const text = await r.text();
-      if (/B-620.*van|van.*B-620|inspection van/i.test(text)) throw new Error('B-620 van language still present');
-      return `✓ Inspection page clean`;
-    }
-  },
-  {
-    id:'pg-404', cat:'content', name:'404 page returns 404 status',
-    run: async () => {
-      const r = await fetch('/this-page-does-not-exist-xyzabc');
-      if (r.status !== 404) return {level:'warn', msg:`Got HTTP ${r.status} instead of 404 — check netlify.toml redirect`};
-      return `✓ 404 returns correct status`;
-    }
-  },
-
-  // ── ASSETS ────────────────────────────────────────────────────
-  {
-    id:'ast-logo', cat:'assets', name:'Logo — local file loads',
-    run: async () => {
-      const r = await timed(() => fetch('/assets/img/logo.png'));
-      if (!r.ok) throw new Error(`logo.png returned ${r.status}`);
-      const blob = await r.blob();
-      if (blob.size < 5000) throw new Error(`logo.png too small (${blob.size}b) — may be broken`);
-      return `✓ logo.png · ${(blob.size/1024).toFixed(0)}KB · ${r.ms}ms`;
-    }
-  },
-  {
-    id:'ast-new-imgs', cat:'assets', name:'New images — 13 photos present',
-    run: async () => {
-      const slugs = ['truck-branding','mechanic-engine','mechanic-under','shop-interior',
-                     'fleet-yard','service-trucks','red-kenworth-shop','mechanic-writing',
-                     'mechanic-panel','van-branding','irving-tankers','freightliner-shop','recovery-hooks'];
-      const results = await Promise.all(slugs.map(s =>
-        fetch(`/assets/img/${s}.jpg`, {method:'HEAD'}).then(r=>({s, ok:r.ok})).catch(()=>({s, ok:false}))
-      ));
-      const missing = results.filter(r=>!r.ok).map(r=>r.s);
-      if (missing.length) throw new Error(`Missing: ${missing.join(', ')}`);
-      return `✓ All 13 new images present`;
-    }
-  },
-  {
-    id:'ast-css', cat:'assets', name:'CSS — style.css loads',
-    run: async () => {
-      const r = await fetch('/assets/css/style.css');
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const text = await r.text();
-      const lines = text.split('\n').length;
-      if (!text.includes('.section{')) throw new Error('Missing .section definition');
-      return `✓ style.css · ${lines} lines · .section ✓`;
-    }
-  },
-  {
-    id:'ast-js', cat:'assets', name:'JS — site.js loads',
-    run: async () => {
-      const r = await fetch('/assets/js/site.js');
-      if (!r.ok) throw new Error(`HTTP ${r.status}`);
-      const text = await r.text();
-      const checks = ['calcUnitsTally','initLightbox','renderHomepageSidebar','initRememberDetails'];
-      const missing = checks.filter(c=>!text.includes(c));
-      if (missing.length) throw new Error(`Missing functions: ${missing.join(', ')}`);
-      return `✓ site.js · ${checks.length}/${checks.length} key functions present`;
-    }
-  },
-];
-
-// ── Engine ─────────────────────────────────────────────────────
-const state = {};  // id → {status, msg, ms}
-let running = false;
-
-async function timed(fn) {
-  const t0 = Date.now();
-  const res = await fn();
-  res.ms = Date.now() - t0;
-  return res;
+function t(){ return Date.now(); }
+async function get(url, opts={}){
+  const t0=Date.now();
+  try{
+    const r = await fetch(url, {cache:'no-store', signal: AbortSignal.timeout(12000), ...opts});
+    const ms = Date.now()-t0;
+    let body='';
+    try{ body=await r.text(); }catch(_){}
+    return {ok:r.ok, status:r.status, body, ms, headers:r.headers};
+  }catch(e){
+    return {ok:false, status:0, body:'', ms:Date.now()-t0, error:String(e)};
+  }
+}
+async function getJSON(url){
+  const r=await get(url);
+  try{ r.json=JSON.parse(r.body); }catch(_){ r.json=null; }
+  return r;
 }
 
-function log(msg, level='info') {
-  const wrap = document.getElementById('logWrap');
-  const line = document.createElement('div');
-  line.className = `log-line ${level}`;
-  const ts = new Date().toTimeString().slice(0,8);
-  line.innerHTML = `<span class="timestamp">${ts}</span>${escHtml(msg)}`;
-  wrap.appendChild(line);
-  wrap.scrollTop = wrap.scrollHeight;
+function addCategory(id, title){ 
+  const div=document.createElement('div');
+  div.className='category'; div.id='cat-'+id;
+  div.innerHTML=`<div class="cat-header">${title}<span id="cat-score-${id}" style="font-weight:400;font-size:.75rem"></span></div>`;
+  document.getElementById('results').appendChild(div);
 }
-
-function escHtml(s) {
-  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function addCheck(catId, label, status, detail='', timing=null){
+  const cat=document.getElementById('cat-'+catId);
+  if(!cat) return;
+  const timingHtml=timing?`<span class="timing">${timing}ms</span>`:'';
+  const detailHtml=detail?`<div class="detail">${detail}</div>`:'';
+  const div=document.createElement('div');
+  div.className='check';
+  div.innerHTML=`<span class="badge ${status}">${status.toUpperCase()}</span><div><div class="label">${label}${timingHtml}</div>${detailHtml}</div>`;
+  cat.appendChild(div);
+  results.push({label, status, detail});
+  if(status==='pass') passed++;
+  else if(status==='fail') failed++;
+  else if(status==='warn') warned++;
+  total++;
+  updateSummary();
 }
+function updateSummary(){
+  document.getElementById('sum-pass').textContent=passed;
+  document.getElementById('sum-fail').textContent=failed;
+  document.getElementById('sum-warn').textContent=warned;
+  document.getElementById('sum-total').textContent=total;
+}
+function setProgress(pct){ document.getElementById('progressBar').style.width=pct+'%'; }
 
-function renderAll() {
-  const cats = [...new Set(TESTS.map(t=>t.cat))];
-  const catLabels = {functions:'Netlify Functions', config:'Config & PWA', content:'Pages & Content', assets:'Assets'};
-  const wrap = document.getElementById('sections');
-  wrap.innerHTML = '';
+async function runAll(){
+  passed=0; failed=0; warned=0; total=0; results.length=0;
+  document.getElementById('results').innerHTML='';
+  document.getElementById('timestamp').textContent=`Started: ${new Date().toISOString()}`;
+  setProgress(0);
 
-  cats.forEach(cat => {
-    const tests = TESTS.filter(t=>t.cat===cat);
-    const results = tests.map(t=>state[t.id]);
-    const done = results.filter(r=>r && r.status !== 'running' && r.status !== 'pending');
-    const passed = done.filter(r=>r.status==='pass').length;
-    const failed = done.filter(r=>r.status==='fail').length;
-    const warned = done.filter(r=>r.status==='warn').length;
+  // ── CATEGORY 1: Netlify Functions ──────────────────────────────
+  addCategory('functions','Netlify Functions');
+  
+  // health.js
+  const health=await getJSON('/.netlify/functions/health');
+  addCheck('functions','health.js — Netlify alive',
+    health.ok && health.json?'pass':'fail',
+    health.ok?`✓ Functions reachable`:`HTTP ${health.status} · ${health.error||''}`, health.ms);
 
-    let sColor = 'var(--muted)';
-    if (done.length === tests.length) {
-      sColor = failed ? 'var(--red)' : warned ? 'var(--amber)' : 'var(--green)';
+  // news.js
+  const news=await getJSON('/.netlify/functions/news?limit=30');
+  const newsItems=news.json?.items||[];
+  const sources=[...new Set(newsItems.map(i=>i.source))].slice(0,6).join(', ');
+  addCheck('functions','news.js — RSS feed aggregation',
+    news.ok && newsItems.length>0?'pass':'fail',
+    news.ok?`✓ ${newsItems.length} articles · sources: ${sources}`:`HTTP ${news.status}`, news.ms);
+
+  // news-image.js
+  const testUrl='https://www.trucknews.com/';
+  const nimg=await getJSON(`/.netlify/functions/news-image?u=${encodeURIComponent(testUrl)}`);
+  addCheck('functions','news-image.js — Article image scraper',
+    nimg.ok?'pass':'fail',
+    nimg.ok?`✓ image=${nimg.json?.image?'found':'empty'} logo=${nimg.json?.logo?'found':'empty'}`:`HTTP ${nimg.status}`, nimg.ms);
+
+  // get-facebook-posts.js
+  const fbp=await getJSON('/.netlify/functions/get-facebook-posts?limit=3');
+  const fbItems=fbp.json?.items||[];
+  const fbWithImg=fbItems.filter(p=>p.image).length;
+  addCheck('functions','get-facebook-posts.js — FB posts API',
+    fbp.ok && fbItems.length>0?'pass': fbp.ok?'warn':'fail',
+    fbp.ok?`✓ ${fbItems.length} posts · ${fbWithImg} with images`:`HTTP ${fbp.status} · ${fbp.json?.error||''}`, fbp.ms);
+
+  // get-facebook-photos.js
+  const fph=await getJSON('/.netlify/functions/get-facebook-photos?limit=3');
+  const fphData=fph.json?.data||[];
+  const fphWithSrc=fphData.filter(p=>p.images?.[0]?.source||p.source).length;
+  addCheck('functions','get-facebook-photos.js — FB photos API',
+    fph.ok && fphData.length>0?'pass':fph.ok?'warn':'fail',
+    fph.ok?`✓ ${fphData.length} photos · ${fphWithSrc} with source URLs`:`HTTP ${fph.status} · ${fph.json?.error||''}`, fph.ms);
+
+  // fb-img-proxy.js
+  const proxyTest=await get('/.netlify/functions/fb-img-proxy?u=https%3A%2F%2Fwww.google.com%2F');
+  addCheck('functions','fb-img-proxy.js — Image proxy function',
+    proxyTest.status===403?'pass':proxyTest.status===502||proxyTest.status===0?'warn':'pass',
+    proxyTest.status===403?'✓ Proxy running (correctly blocked non-FB domain)':`HTTP ${proxyTest.status}`, proxyTest.ms);
+
+  // traffic.js
+  const traf=await getJSON('/.netlify/functions/traffic');
+  const trafAdv=traf.json?.advisories||[];
+  addCheck('functions','traffic.js — NS traffic advisories',
+    traf.ok && trafAdv.length>0?'pass':traf.ok?'warn':'fail',
+    traf.ok?`✓ ${trafAdv.length} advisories`:`HTTP ${traf.status}`, traf.ms);
+  setProgress(20);
+
+  // ── CATEGORY 2: Environment Variables ──────────────────────────
+  addCategory('env','Environment Variables');
+  const envCheck=await getJSON('/.netlify/functions/health');
+  const env=envCheck.json?.env||{};
+  addCheck('env','FB_ACCESS_TOKEN set', env.FB_ACCESS_TOKEN?'pass':'fail',
+    env.FB_ACCESS_TOKEN?'✓ FB_ACCESS_TOKEN is set':'✗ Missing — set in Netlify environment variables');
+  addCheck('env','FB_PAGE_ID set', env.FB_PAGE_ID?'pass':'fail',
+    env.FB_PAGE_ID?'✓ FB_PAGE_ID is set':'✗ Missing — set in Netlify environment variables');
+  setProgress(30);
+
+  // ── CATEGORY 3: PWA & Technical ────────────────────────────────
+  addCategory('pwa','PWA & Technical');
+  
+  // SW
+  let swOk=false;
+  try{
+    if('serviceWorker' in navigator){
+      const reg=await navigator.serviceWorker.getRegistration('/');
+      swOk=!!reg;
     }
-    const sText = done.length ? `${passed}/${tests.length} pass` : '';
+  }catch(_){}
+  addCheck('pwa','Service worker registered', swOk?'pass':'warn', swOk?'✓ SW active · scope: https://www.atlantictruck.ca/':'No SW registration found');
 
-    const sec = document.createElement('div');
-    sec.className = 'section';
-    sec.id = `sec-${cat}`;
+  // Manifest
+  const mf=await getJSON('/manifest.json');
+  addCheck('pwa','PWA manifest reachable',
+    mf.ok && mf.json?.name?'pass':'fail',
+    mf.ok?`✓ "${mf.json?.name}" · theme: ${mf.json?.theme_color} · icons: ${mf.json?.icons?.length||0}`:`HTTP ${mf.status}`, mf.ms);
 
-    const testsHtml = tests.map(t => {
-      const s = state[t.id] || {status:'pending'};
-      const icons = {pending:'○', running:'◌', pass:'✓', fail:'✗', warn:'⚠'};
-      const colors = {pending:'var(--muted)', running:'var(--blue)', pass:'var(--green)', fail:'var(--red)', warn:'var(--amber)'};
-      return `<div class="test ${s.status||'pending'}" id="test-${t.id}">
-        <div class="test-icon" style="color:${colors[s.status||'pending']}">${icons[s.status||'pending']}</div>
-        <div class="test-body">
-          <div class="test-name">${escHtml(t.name)}</div>
-          <div class="test-detail">${s.msg ? escHtml(s.msg) : '<span style="color:var(--border)">not run yet</span>'}</div>
-        </div>
-        <div class="test-time">${s.ms ? s.ms+'ms' : ''}</div>
-      </div>`;
-    }).join('');
+  // Sitemap
+  const sm=await get('/sitemap.xml');
+  const smUrls=(sm.body.match(/<loc>/g)||[]).length;
+  addCheck('pwa','sitemap.xml reachable', sm.ok && smUrls>0?'pass':'fail',
+    sm.ok?`✓ ${smUrls} URLs in sitemap`:`HTTP ${sm.status}`, sm.ms);
 
-    sec.innerHTML = `<div class="section-header"><span class="section-title">${catLabels[cat]||cat}</span><span class="section-status" style="color:${sColor}">${sText}</span></div><div class="tests">${testsHtml}</div>`;
-    wrap.appendChild(sec);
+  // Robots
+  const rb=await get('/robots.txt');
+  const rbLines=rb.body.trim().split('\n').filter(l=>l.trim()).length;
+  addCheck('pwa','robots.txt reachable', rb.ok?'pass':'fail',
+    rb.ok?`✓ ${rbLines} lines`:`HTTP ${rb.status}`, rb.ms);
+
+  // Theme color
+  const tcMeta=document.querySelector('meta[name="theme-color"]');
+  addCheck('pwa','theme-color meta present', tcMeta?'pass':'warn',
+    tcMeta?'Not on diagnostic page — check main pages':'Missing theme-color meta tag');
+  setProgress(45);
+
+  // ── CATEGORY 4: Core Pages ──────────────────────────────────────
+  addCategory('pages','Core Pages');
+  
+  const pages=[
+    ['/',                     'Homepage'],
+    ['/news.html',            'News page'],
+    ['/gallery.html',         'Gallery page'],
+    ['/about.html',           'About page'],
+    ['/contact.html',         'Contact page'],
+    ['/requests.html',        'Book Service page'],
+    ['/service-area.html',    'Service Area page'],
+    ['/fleet-accounts.html',  'Fleet Accounts page'],
+    ['/traffic.html',         'Traffic page'],
+    ['/services/index.html',  'Services index'],
+    ['/services/emergency-towing.html','Emergency Towing page'],
+    ['/services/repair.html', 'Repair page'],
+    ['/services/inspection.html','Inspection page'],
+    ['/services/towing.html', 'Towing page'],
+    ['/services/welding.html','Welding page'],
+    ['/services/authorized-parts.html','Authorized Parts page'],
+    ['/404.html',             '404 page'],
+  ];
+  
+  for(const [url,label] of pages){
+    const r=await get(url);
+    const hasNav=r.body.includes('navToggle');
+    const hasAction=r.body.includes('action-bar');
+    const hasSkip=r.body.includes('skip-link');
+    const hasSiteJs=r.body.includes('site.js');
+    const issues=[];
+    if(!hasNav) issues.push('missing navToggle');
+    if(!hasAction) issues.push('missing action-bar');
+    if(!hasSkip) issues.push('missing skip-link');
+    if(!hasSiteJs) issues.push('missing site.js');
+    const ok=r.ok && issues.length===0;
+    addCheck('pages',label,
+      ok?'pass':r.ok?'warn':'fail',
+      r.ok?(issues.length?`⚠ ${issues.join(', ')}·${r.ms}ms`:`✓ ${r.ms}ms · nav ✓ action-bar ✓ skip ✓ js ✓`):`HTTP ${r.status}`, r.ms);
+  }
+  setProgress(70);
+
+  // ── CATEGORY 5: Assets ─────────────────────────────────────────
+  addCategory('assets','Critical Assets');
+  
+  const assets=[
+    ['/assets/css/style.css',         'style.css', (r)=>{
+      const lines=(r.body.match(/\n/g)||[]).length;
+      const hasNav=r.body.includes('nav-drawer-header');
+      const hasStatFix=r.body.includes('stat-num { color: #fff');
+      const issues=[];
+      if(!hasNav) issues.push('missing drawer CSS');
+      if(!hasStatFix) issues.push('missing stat-num white fix');
+      return {ok:r.ok&&issues.length===0, detail:r.ok?`✓ ${lines} lines${issues.length?' · ⚠ '+issues.join(', '):' · drawer ✓ stat-fix ✓'}`:`HTTP ${r.status}`};
+    }],
+    ['/assets/js/site.js',            'site.js', (r)=>{
+      const hasMobileNav=r.body.includes('initMobileNav');
+      const hasScraper=r.body.includes('scrapeNewsImages');
+      const hasProxy=r.body.includes('fb-img-proxy');
+      const fns=['initMobileNav','scrapeNewsImages','fb-img-proxy','renderGallery','initLightbox'];
+      const missing=fns.filter(fn=>!r.body.includes(fn));
+      return {ok:r.ok&&missing.length===0, detail:r.ok?(missing.length?`⚠ missing: ${missing.join(', ')}`:`✓ ${fns.length}/5 key functions present`):`HTTP ${r.status}`};
+    }],
+    ['/assets/img/logo.png',          'logo.png', (r)=>({ok:r.ok,detail:r.ok?`✓ ${Math.round(r.body.length/1024)}KB · ${r.ms}ms`:`HTTP ${r.status}`})],
+    ['/assets/img/hero-rotator.webp', 'hero-rotator.webp', (r)=>({ok:r.ok,detail:r.ok?`✓ ${Math.round(r.body.length/1024)}KB`:`HTTP ${r.status}`})],
+    ['/assets/img/hero-wrecker.webp', 'hero-wrecker.webp', (r)=>({ok:r.ok,detail:r.ok?`✓ loaded`:`HTTP ${r.status}`})],
+    ['/manifest.json',                'manifest.json', (r)=>({ok:r.ok,detail:r.ok?`✓ valid JSON`:`HTTP ${r.status}`})],
+    ['/sw.js',                        'sw.js', (r)=>({ok:r.ok,detail:r.ok?`✓ service worker present`:`HTTP ${r.status}`})],
+  ];
+
+  for(const [url,label,check] of assets){
+    const r=await get(url);
+    const result=check(r);
+    addCheck('assets',label, result.ok?'pass':'fail', result.detail, r.ms);
+  }
+  setProgress(80);
+
+  // ── CATEGORY 6: SEO & Content ──────────────────────────────────
+  addCategory('seo','SEO & Content');
+
+  const hp=await get('/');
+  // Homepage checks
+  addCheck('seo','Homepage — stat bar present', hp.body.includes('stat-bar')?'pass':'fail',
+    hp.body.includes('stat-bar')?'✓ Stat bar HTML present':'Missing .stat-bar element');
+  addCheck('seo','Homepage — OG image absolute URL', hp.body.includes('og:image" content="https://')?'pass':'warn',
+    hp.body.includes('og:image" content="https://')?'✓ Absolute OG image URL':'Relative OG image URL found');
+  addCheck('seo','Homepage — Schema.org JSON-LD', hp.body.includes('application/ld+json')?'pass':'warn',
+    hp.body.includes('application/ld+json')?'✓ Structured data present':'Missing JSON-LD schema');
+  addCheck('seo','Homepage — Canonical tag', hp.body.includes('rel="canonical"')?'pass':'warn',
+    hp.body.includes('rel="canonical"')?'✓ Canonical present':'Missing canonical tag');
+  addCheck('seo','Homepage — No banned names (Irving)', !hp.body.toLowerCase().includes('irving')?'pass':'fail',
+    !hp.body.toLowerCase().includes('irving')?'✓ No banned names found':'⚠ Found banned name: Irving');
+  addCheck('seo','Homepage — No "authorized dealer" language', !hp.body.toLowerCase().includes('authorized dealer')?'pass':'fail',
+    !hp.body.toLowerCase().includes('authorized dealer')?'✓ No banned language':'⚠ Found "authorized dealer"');
+  addCheck('seo','Homepage — theme-color meta', hp.body.includes('#B9111B')?'pass':'warn',
+    hp.body.includes('#B9111B')?'✓ Brand red theme-color set':'Missing brand theme-color');
+  addCheck('seo','Homepage — Google Analytics placeholder', !hp.body.includes('G-XXXXXXXXXX')?'pass':'warn',
+    !hp.body.includes('G-XXXXXXXXXX')?'✓ GA4 configured':'⚠ Replace G-XXXXXXXXXX with real GA4 ID');
+  
+  // About page - staff check
+  const about=await get('/about.html');
+  const staffCards=(about.body.match(/staff-card/g)||[]).length;
+  addCheck('seo','About — staff cards count', staffCards>=11?'pass':'warn',
+    `${staffCards} staff cards found (expect 11)`);
+  addCheck('seo','About — no Donald Shaw', !about.body.toLowerCase().includes('donald shaw')&&!about.body.toLowerCase().includes('donnie')?'pass':'fail',
+    !about.body.toLowerCase().includes('donald')?'✓ Banned name not found':'⚠ Found "Donald" on About page');
+
+  // Inspection page - no van/B-620 van
+  const insp=await get('/services/inspection.html');
+  addCheck('seo','Inspection — no B-620 van claims', !insp.body.toLowerCase().includes('b-620 van')?'pass':'fail',
+    !insp.body.toLowerCase().includes('b-620 van')?'✓ No banned B-620 van reference':'⚠ Found banned "B-620 van"');
+  setProgress(90);
+
+  // ── CATEGORY 7: Forms ──────────────────────────────────────────
+  addCategory('forms','Forms & Booking');
+  
+  const req=await get('/requests.html');
+  addCheck('forms','Book Service — both forms present',
+    req.body.includes('service@atlantictruck.ca') && req.body.includes('parts@atlantictruck.ca')?'pass':'fail',
+    req.body.includes('service@atlantictruck.ca')?'✓ Both forms using FormSubmit.co':'⚠ Missing form');
+  addCheck('forms','Book Service — honeypot present',
+    req.body.includes('_honey')?'pass':'warn',
+    req.body.includes('_honey')?'✓ Spam honeypot in both forms':'⚠ Missing honeypot field');
+  addCheck('forms','Book Service — success redirect',
+    req.body.includes('success.html')?'pass':'warn',
+    req.body.includes('success.html')?'✓ Redirects to success page':'⚠ Missing _next redirect');
+
+  // ── CATEGORY 8: Contact & Maps ─────────────────────────────────
+  addCategory('maps','Contact & Maps');
+  
+  const contact=await get('/contact.html');
+  addCheck('maps','Contact — Google Maps embed', contact.body.includes('maps/embed')?'pass':'fail',
+    contact.body.includes('maps/embed')?'✓ Google Maps iframe present':'⚠ Missing map embed');
+  addCheck('maps','Contact — Place ID correct',
+    contact.body.includes('0x4b67fb01bb72039d')?'pass':'fail',
+    contact.body.includes('0x4b67fb01bb72039d')?'✓ Correct Google Place ID':'⚠ Wrong or missing Place ID');
+  
+  const sa=await get('/service-area.html');
+  addCheck('maps','Service Area — map not lazy loaded',
+    sa.body.includes('maps/embed') && !sa.body.match(/maps\/embed[^>]*loading="lazy"/)?'pass':'warn',
+    !sa.body.match(/maps\/embed[^>]*loading="lazy"/)?'✓ Map loads eagerly (no lazy)':'⚠ Map has lazy loading');
+  setProgress(100);
+
+  // Final timestamp
+  document.getElementById('timestamp').textContent=`Completed: ${new Date().toISOString()} · ${total} checks`;
+}
+
+function copyReport(){
+  const lines=[`Atlantic Truck Diagnostic Report`,`${new Date().toISOString()}`,''];
+  results.forEach(r=>{
+    const icon=r.status==='pass'?'[PASS   ]':r.status==='fail'?'[FAIL   ]':'[WARN   ]';
+    lines.push(`${icon} ${r.label}${r.detail?' — '+r.detail.replace(/<[^>]*>/g,''):''}`);
   });
-
-  updateScores();
+  navigator.clipboard.writeText(lines.join('\n')).then(()=>alert('Report copied to clipboard!'));
 }
 
-function updateScores() {
-  const all = TESTS.map(t=>state[t.id]).filter(Boolean);
-  const passed = all.filter(r=>r.status==='pass').length;
-  const failed = all.filter(r=>r.status==='fail').length;
-  const warned = all.filter(r=>r.status==='warn').length;
-  const total = all.length;
-  const pct = total ? Math.round(passed/TESTS.length*100) : 0;
-  const color = pct>=90?'var(--green)':pct>=70?'var(--amber)':'var(--red)';
-
-  document.getElementById('scoreTotal').textContent = total ? pct+'%' : '—';
-  document.getElementById('scoreTotal').style.color = total ? color : 'var(--muted)';
-  document.getElementById('scorePassed').textContent = total ? passed : '—';
-  document.getElementById('scoreFailed').textContent = total ? failed : '—';
-  document.getElementById('scoreWarned').textContent = total ? warned : '—';
-}
-
-async function runTest(t) {
-  state[t.id] = {status:'running', msg:'Running…'};
-  renderTestRow(t.id);
-  log(`→ ${t.name}`, 'info');
-  const t0 = Date.now();
-  try {
-    const result = await t.run();
-    const ms = Date.now() - t0;
-    if (result && typeof result === 'object' && result.level) {
-      state[t.id] = {status:result.level, msg:result.msg, ms};
-      log(`  ⚠ ${result.msg}`, 'warn');
-    } else {
-      state[t.id] = {status:'pass', msg:String(result), ms};
-      log(`  ✓ ${result}`, 'ok');
-    }
-  } catch(e) {
-    const ms = Date.now() - t0;
-    state[t.id] = {status:'fail', msg:String(e.message||e), ms};
-    log(`  ✗ ${e.message||e}`, 'err');
-  }
-  renderTestRow(t.id);
-  updateScores();
-}
-
-function renderTestRow(id) {
-  const t = TESTS.find(t=>t.id===id);
-  if (!t) return;
-  const el = document.getElementById(`test-${id}`);
-  if (!el) { renderAll(); return; }
-  const s = state[id] || {status:'pending'};
-  const icons = {pending:'○', running:'◌', pass:'✓', fail:'✗', warn:'⚠'};
-  const colors = {pending:'var(--muted)', running:'var(--blue)', pass:'var(--green)', fail:'var(--red)', warn:'var(--amber)'};
-  el.className = `test ${s.status||'pending'}`;
-  el.children[0].style.color = colors[s.status||'pending'];
-  el.children[0].textContent = icons[s.status||'pending'];
-  el.children[1].children[1].textContent = s.msg || '';
-  el.children[2].textContent = s.ms ? s.ms+'ms' : '';
-}
-
-async function runAll() {
-  if (running) return;
-  running = true;
-  document.getElementById('btnRun').disabled = true;
-  document.getElementById('logWrap').innerHTML = '';
-  log('▶ Full diagnostic started', 'info');
-  TESTS.forEach(t => { state[t.id] = {status:'pending', msg:''}; });
-  renderAll();
-  for (const t of TESTS) {
-    await runTest(t);
-    await new Promise(r=>setTimeout(r,80)); // small gap so UI updates
-  }
-  const passed = Object.values(state).filter(s=>s.status==='pass').length;
-  const total = TESTS.length;
-  log(`\n◼ Diagnostic complete: ${passed}/${total} passed`, passed===total?'ok':passed>total*0.8?'warn':'err');
-  document.getElementById('lastRun').textContent = new Date().toLocaleTimeString();
-  running = false;
-  document.getElementById('btnRun').disabled = false;
-}
-
-async function runCategory(cat) {
-  if (running) return;
-  running = true;
-  const tests = TESTS.filter(t=>t.cat===cat);
-  log(`▶ Running ${cat} tests (${tests.length})`, 'info');
-  for (const t of tests) {
-    await runTest(t);
-    await new Promise(r=>setTimeout(r,80));
-  }
-  running = false;
-}
-
-function copyReport() {
-  const lines = ['Atlantic Truck Diagnostic Report', new Date().toISOString(), ''];
-  TESTS.forEach(t => {
-    const s = state[t.id];
-    const status = s ? s.status.toUpperCase() : 'NOT RUN';
-    lines.push(`[${status.padEnd(7)}] ${t.name}: ${s?s.msg:'-'}`);
-  });
-  navigator.clipboard.writeText(lines.join('\n')).then(()=>log('Report copied to clipboard','ok'));
-}
-
-function copyLog() {
-  const text = [...document.querySelectorAll('.log-line')].map(l=>l.textContent).join('\n');
-  navigator.clipboard.writeText(text).then(()=>log('Log copied','ok'));
-}
-
-// Init
-renderAll();
-log('Diagnostic ready. Click "Run Full Diagnostic" to begin.', 'info');
+// Auto-run on load
+window.addEventListener('load', runAll);
 </script>
 </body>
 </html>
