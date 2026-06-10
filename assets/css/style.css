@@ -1345,3 +1345,134 @@ picture img { display: block; width: 100%; height: 100%; object-fit: inherit; }
   opacity: 1;
   filter: none;
 }
+
+/* ================================================================
+   UX AUDIT IMPROVEMENTS — June 2026
+   ================================================================ */
+
+/* ---- Skip to main content (accessibility) -------------------- */
+.skip-link {
+  position: absolute;
+  top: -100px;
+  left: 16px;
+  background: var(--brand);
+  color: #fff;
+  padding: 8px 16px;
+  border-radius: 0 0 8px 8px;
+  font-weight: 700;
+  font-size: .875rem;
+  z-index: 9999;
+  transition: top .2s;
+}
+.skip-link:focus { top: 0; text-decoration: none; }
+
+/* ---- Visible focus rings (keyboard navigation) --------------- */
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--brand);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+/* ---- Smooth scrolling ---------------------------------------- */
+html { scroll-behavior: smooth; }
+
+/* ---- Improved button active states --------------------------- */
+.btn:active { transform: translateY(0); box-shadow: 0 2px 8px rgba(185,17,27,.2); }
+.btn-light:active { transform: translateY(0); }
+
+/* ---- Tile hover — stronger lift on desktop ------------------- */
+@media (hover: hover) {
+  .tile:hover {
+    box-shadow: var(--shadow-lg);
+    transform: translateY(-4px);
+  }
+}
+
+/* ---- Improved form field UX ---------------------------------- */
+input, textarea, select {
+  border-radius: var(--radius-sm);
+  transition: border-color .15s, box-shadow .15s;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--brand);
+  box-shadow: 0 0 0 3px rgba(185,17,27,.12);
+}
+label { font-size: .875rem; font-weight: 600; color: var(--text); }
+button[type="submit"].btn, input[type="submit"].btn {
+  width: 100%;
+  margin-top: 8px;
+  font-size: 1rem;
+  padding: 14px 24px;
+  cursor: pointer;
+  border: none;
+}
+
+/* ---- Page hero — tighter line-height on mobile --------------- */
+.page-hero-h1 { line-height: 1.08; }
+@media (max-width: 600px) {
+  .page-hero-h1 { font-size: clamp(2rem, 8vw, 3rem); }
+}
+
+/* ---- Hero section — ensure text is always legible ------------ */
+.hero h1 span { color: var(--brand); }
+
+/* ---- Stat bar — stronger number colour ----------------------- */
+.stat-num { color: var(--brand); }
+
+/* ---- News card — consistent image height --------------------- */
+.news-thumb { height: 200px; object-fit: cover; }
+
+/* ---- Gallery grid — better aspect ratio on mobile ------------ */
+@media (max-width: 700px) {
+  .gallery-grid img { height: 200px; }
+}
+
+/* ---- Footer — Facebook link style ---------------------------- */
+.site-footer a:hover { color: #fff; text-decoration: underline; }
+
+/* ---- Testimonial — tighter on mobile ------------------------- */
+@media (max-width: 700px) {
+  .testimonial blockquote { font-size: .9rem; }
+}
+
+/* ---- Contact tiles (quick-action tiles) — no image slot ------ */
+.tile.small img { display: none; }
+.tile.small .body { padding: 14px 16px; }
+.tile.small .body strong { font-size: .9rem; }
+.tile.small .body div { font-size: .8rem; color: var(--muted); margin-top: 2px; }
+
+/* ---- Team photo caption -------------------------------------- */
+.team-photo { position: relative; border-radius: var(--radius-lg); overflow: hidden; }
+.team-photo img { width: 100%; height: 380px; object-fit: cover; display: block; }
+.team-caption {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  padding: 16px 20px;
+  background: linear-gradient(transparent, rgba(0,0,0,.72));
+  display: flex; flex-direction: column; gap: 2px;
+}
+.team-caption strong { color: #fff; font-family: var(--ff-display); font-size: 1rem; font-weight: 800; }
+.team-caption span { color: rgba(255,255,255,.75); font-size: .8rem; }
+
+/* ---- Kicker — inline flex for icon+text ---------------------- */
+.kicker { display: inline-flex; align-items: center; gap: 6px; }
+
+/* ---- Section title spacing ----------------------------------- */
+.section-title { margin: .4rem 0 1rem; }
+.section-lead { color: var(--muted); font-size: 1.05rem; line-height: 1.75; margin-bottom: 1.5rem; }
+
+/* ---- Checklist — spacing fix --------------------------------- */
+.checklist li { padding: 8px 0; font-size: .9375rem; }
+
+/* ---- CTA strip — prevent text wrapping on small phones ------- */
+@media (max-width: 400px) {
+  .section-cta .row { flex-direction: column; }
+}
+
+/* ---- Print — hide interactive elements ----------------------- */
+@media print {
+  .emergency-bar, .action-bar, .nav-toggle, .site-header nav { display: none; }
+}

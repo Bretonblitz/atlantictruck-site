@@ -215,17 +215,18 @@ async function renderHomepageSidebar(){
 /* ── Gallery (gallery.html) ─────────────────────────────────────── */
 async function renderGallery(){
   const grid=document.getElementById('galleryGrid');
-  if(!grid) return;
-  grid.innerHTML='<div class="skeleton"></div>'.repeat(6);
+  const localGrid=document.getElementById('localGallery');
+  if(!grid&&!localGrid) return;
+
+  // Fetch FB photos and append to main gallery grid
   let photos=[];
   try{
     const r=await fetch('/.netlify/functions/get-facebook-photos?limit=30',{cache:'no-store'});
     if(!r.ok) throw new Error('FB photos unavailable');
     const json=await r.json();
-    // Handle both {data:[...]} and {items:[...]} shapes
     const raw=(json&&json.data)||[];
     photos=raw.map(ph=>{
-      // Try every possible image URL field
+      // Pick highest-res image available
       const src=(ph.images&&ph.images[0]&&ph.images[0].source)
         ||ph.full_picture||ph.source||ph.picture||'';
       return {src:src.trim(), caption:ph.name||ph.message||''};
@@ -233,37 +234,54 @@ async function renderGallery(){
   }catch(e){
     console.warn('FB gallery fetch failed:',e);
   }
-  grid.innerHTML='';
-  if(!photos.length){
-    grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:2rem;background:var(--light);border-radius:var(--radius-lg)">
-      <svg width="40" height="40" fill="none" stroke="var(--muted)" stroke-width="1.5" viewBox="0 0 24 24" style="margin-bottom:12px"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-      <p style="color:var(--muted);margin:0 0 12px;font-size:.9rem">Facebook photos will appear here once connected.</p>
-      <p style="color:var(--muted);font-size:.8rem;margin:0 0 14px">To connect: Netlify → Site configuration → Environment variables<br>Add <code>FB_PAGE_ID</code> and <code>FB_PAGE_ACCESS_TOKEN</code></p>
-      <a href="https://www.facebook.com/profile.php?id=766439739884645" target="_blank" rel="noopener" class="btn-light" style="font-size:.875rem">View our Facebook page →</a>
-    </div>`;
-    return;
-  }
-  // Show the FB section header only when we have photos
-  const fbSection=document.getElementById('fbGallerySection');
-  if(fbSection) fbSection.style.display='';
 
-  // Deduplicate by canonical URL (strip query params)
+  // Hide old separate FB section; we merge everything into localGallery
+  const fbSection=document.getElementById('fbGallerySection');
+  if(fbSection) fbSection.style.display='none';
+  if(grid) grid.innerHTML='';
+
+  if(!photos.length) return;
+
+  // Add "Facebook" filter button if not already present
+  const filterBar=document.querySelector('.gallery-filters');
+  if(filterBar&&!filterBar.querySelector('[data-filter="facebook"]')){
+    const btn=document.createElement('button');
+    btn.className='gallery-filter';
+    btn.dataset.filter='facebook';
+    btn.textContent='Facebook';
+    btn.onclick=()=>filterGallery('facebook',btn);
+    filterBar.appendChild(btn);
+  }
+
+  // Dedup and inject into localGallery with data-category="facebook"
   const seen=new Set();
   const canon=u=>{ try{ const x=new URL(u); return x.origin+x.pathname; }catch{ return u.split('?')[0]; }};
+
   photos.forEach(ph=>{
     const key=canon(ph.src);
     if(seen.has(key)) return;
     seen.add(key);
+
+    // Proxy the image URL through fb-img-proxy to avoid CORS/expiry
+    const proxied=`/.netlify/functions/fb-img-proxy?u=${encodeURIComponent(ph.src)}`;
+
     const a=document.createElement('a');
-    a.href=ph.src; a.className='lightbox-trigger'; a.dataset.src=ph.src;
-    a.dataset.caption=ph.caption;
-    a.setAttribute('aria-label',ph.caption||'View full photo');
+    a.href=proxied;
+    a.className='lightbox-trigger';
+    a.dataset.src=proxied;
+    a.dataset.caption=ph.caption||'From our Facebook page';
+    a.dataset.category='facebook';
+    a.setAttribute('aria-label',ph.caption||'View Facebook photo');
+
     const img=document.createElement('img');
-    img.src=ph.src; img.alt=ph.caption||'Fleet photo'; img.loading='lazy';
-    img.onerror=()=>{ a.remove(); }; // silently remove broken images
+    img.src=proxied;
+    img.alt=ph.caption||'Atlantic Truck Facebook photo';
+    img.loading='lazy';
+    img.onerror=()=>{ a.remove(); };
     a.appendChild(img);
-    grid.appendChild(a);
+    if(localGrid) localGrid.appendChild(a);
   });
+
   // Re-init lightbox after dynamic load
   if(window._lbAttach) window._lbAttach();
   else initLightbox();
