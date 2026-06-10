@@ -641,10 +641,13 @@ function initMobileNav(){
     });
   });
 
-  // Auto-close drawer on any nav link tap
+  // Auto-close drawer on nav link tap — but NOT on accordion parent links
   navList.querySelectorAll('a:not(.nav-drawer-close)').forEach(a=>{
-    a.addEventListener('click',()=>{
-      if(window.innerWidth<=BREAKPOINT) closeDrawer();
+    a.addEventListener('click',e=>{
+      if(window.innerWidth>BREAKPOINT) return;
+      // If this link belongs to a has-sub parent (accordion toggle), don't close
+      if(a.closest('.has-sub') && a.parentElement.classList.contains('has-sub')) return;
+      closeDrawer();
     });
   });
 }
