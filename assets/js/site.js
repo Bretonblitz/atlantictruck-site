@@ -599,14 +599,19 @@ function initMobileNav(){
     document.body.style.overflow='';
   }
 
-  toggle.addEventListener('click',()=>{
+  // Use mousedown so the toggle fires before any document click handler
+  toggle.addEventListener('click',e=>{
+    e.stopPropagation();
     navList.classList.contains('open')?closeDrawer():openDrawer();
   });
-  if(closeBtn) closeBtn.addEventListener('click',closeDrawer);
+  if(closeBtn) closeBtn.addEventListener('click',e=>{
+    e.stopPropagation();
+    closeDrawer();
+  });
 
-  // Close on backdrop click (click outside navList)
+  // Close on backdrop click (anywhere outside the drawer)
   document.addEventListener('click',e=>{
-    if(navList.classList.contains('open')&&!navList.contains(e.target)&&!toggle.contains(e.target)){
+    if(navList.classList.contains('open')&&!navList.contains(e.target)){
       closeDrawer();
     }
   });
@@ -616,18 +621,23 @@ function initMobileNav(){
     if(e.key==='Escape'&&navList.classList.contains('open')) closeDrawer();
   });
 
-  // Accordion for Services sub-menu (tap chevron/row to expand)
+  // Accordion for Services sub-menu
   navList.querySelectorAll('.has-sub').forEach(li=>{
     const link=li.querySelector(':scope > a');
     if(!link) return;
     link.addEventListener('click',e=>{
-      // Only intercept on mobile (drawer visible)
-      if(window.innerWidth>1080) return;
+      if(window.innerWidth>1080) return; // desktop: use hover
       e.preventDefault();
       const isOpen=li.classList.contains('sub-open');
-      // Close all others
       navList.querySelectorAll('.has-sub.sub-open').forEach(o=>o.classList.remove('sub-open'));
       if(!isOpen) li.classList.add('sub-open');
+    });
+  });
+
+  // Close drawer when a nav link is tapped (navigating away)
+  navList.querySelectorAll('a:not(.nav-drawer-close)').forEach(a=>{
+    a.addEventListener('click',()=>{
+      if(window.innerWidth<=1080) closeDrawer();
     });
   });
 }
