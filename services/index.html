@@ -69,6 +69,7 @@
     </a>
     <nav class="main-nav">
       <ul class="nav-list" id="navList">
+      <li class="nav-drawer-header" aria-hidden="true">Navigation <button class="nav-drawer-close" id="navClose" aria-label="Close menu">&#x2715;</button></li>
         <li><a href="/index.html">Home</a></li>
         <li class="has-sub"><a href="/services/index.html" class="active">Services <span class="nav-chevron">▾</span></a>
           <ul class="sub">
@@ -87,8 +88,12 @@
         <li><a href="/requests.html">Book Service</a></li>
         <li><a href="/about.html">About</a></li>
         <li><a href="/contact.html">Contact</a></li>
+      <li class="nav-drawer-cta" aria-hidden="true">
+        <a href="tel:9025394574" class="cta-call">&#128222;&nbsp; Call Service: 902-539-4574</a>
+        <a href="tel:9025394139" class="cta-parts">&#128222;&nbsp; Parts: 902-539-4139</a>
+      </li>
       </ul>
-      <button class="nav-toggle" aria-label="Toggle navigation" onclick="document.getElementById('navList').classList.toggle('open')">
+      <button class="nav-toggle" id="navToggle" aria-label="Toggle navigation">
         <span></span><span></span><span></span>
       </button>
     </nav>

@@ -561,8 +561,62 @@ function initRememberDetails(){
   });
 }
 
+/* ── Mobile nav — drawer + accordion ───────────────────────────── */
+function initMobileNav(){
+  const toggle=document.getElementById('navToggle');
+  const navList=document.getElementById('navList');
+  const closeBtn=document.getElementById('navClose');
+  if(!toggle||!navList) return;
+
+  function openDrawer(){
+    navList.classList.add('open');
+    toggle.classList.add('is-open');
+    toggle.setAttribute('aria-expanded','true');
+    document.body.style.overflow='hidden';
+  }
+  function closeDrawer(){
+    navList.classList.remove('open');
+    toggle.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+    document.body.style.overflow='';
+  }
+
+  toggle.addEventListener('click',()=>{
+    navList.classList.contains('open')?closeDrawer():openDrawer();
+  });
+  if(closeBtn) closeBtn.addEventListener('click',closeDrawer);
+
+  // Close on backdrop click (click outside navList)
+  document.addEventListener('click',e=>{
+    if(navList.classList.contains('open')&&!navList.contains(e.target)&&!toggle.contains(e.target)){
+      closeDrawer();
+    }
+  });
+
+  // Close on Escape
+  document.addEventListener('keydown',e=>{
+    if(e.key==='Escape'&&navList.classList.contains('open')) closeDrawer();
+  });
+
+  // Accordion for Services sub-menu (tap chevron/row to expand)
+  navList.querySelectorAll('.has-sub').forEach(li=>{
+    const link=li.querySelector(':scope > a');
+    if(!link) return;
+    link.addEventListener('click',e=>{
+      // Only intercept on mobile (drawer visible)
+      if(window.innerWidth>1080) return;
+      e.preventDefault();
+      const isOpen=li.classList.contains('sub-open');
+      // Close all others
+      navList.querySelectorAll('.has-sub.sub-open').forEach(o=>o.classList.remove('sub-open'));
+      if(!isOpen) li.classList.add('sub-open');
+    });
+  });
+}
+
 /* ── Boot ───────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded',()=>{
+  initMobileNav();
   updateSmartCta();
   setInterval(updateSmartCta,60000);
   initETA();
