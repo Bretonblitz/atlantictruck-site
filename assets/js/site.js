@@ -586,6 +586,8 @@ function initMobileNav(){
   const closeBtn=document.getElementById('navClose');
   if(!toggle||!navList) return;
 
+  const BREAKPOINT=1280;
+
   function openDrawer(){
     navList.classList.add('open');
     toggle.classList.add('is-open');
@@ -599,17 +601,17 @@ function initMobileNav(){
     document.body.style.overflow='';
   }
 
-  // Use mousedown so the toggle fires before any document click handler
   toggle.addEventListener('click',e=>{
     e.stopPropagation();
     navList.classList.contains('open')?closeDrawer():openDrawer();
   });
+
   if(closeBtn) closeBtn.addEventListener('click',e=>{
     e.stopPropagation();
     closeDrawer();
   });
 
-  // Close on backdrop click (anywhere outside the drawer)
+  // Close on backdrop tap
   document.addEventListener('click',e=>{
     if(navList.classList.contains('open')&&!navList.contains(e.target)){
       closeDrawer();
@@ -618,15 +620,20 @@ function initMobileNav(){
 
   // Close on Escape
   document.addEventListener('keydown',e=>{
-    if(e.key==='Escape'&&navList.classList.contains('open')) closeDrawer();
+    if(e.key==='Escape') closeDrawer();
   });
 
-  // Accordion for Services sub-menu
+  // Close drawer if window is resized to desktop width
+  window.addEventListener('resize',()=>{
+    if(window.innerWidth>BREAKPOINT) closeDrawer();
+  },{passive:true});
+
+  // Services accordion (mobile only)
   navList.querySelectorAll('.has-sub').forEach(li=>{
     const link=li.querySelector(':scope > a');
     if(!link) return;
     link.addEventListener('click',e=>{
-      if(window.innerWidth>1080) return; // desktop: use hover
+      if(window.innerWidth>BREAKPOINT) return;
       e.preventDefault();
       const isOpen=li.classList.contains('sub-open');
       navList.querySelectorAll('.has-sub.sub-open').forEach(o=>o.classList.remove('sub-open'));
@@ -634,10 +641,10 @@ function initMobileNav(){
     });
   });
 
-  // Close drawer when a nav link is tapped (navigating away)
+  // Auto-close drawer on any nav link tap
   navList.querySelectorAll('a:not(.nav-drawer-close)').forEach(a=>{
     a.addEventListener('click',()=>{
-      if(window.innerWidth<=1080) closeDrawer();
+      if(window.innerWidth<=BREAKPOINT) closeDrawer();
     });
   });
 }
